@@ -155,7 +155,7 @@ function StatusCard({
   const Wrapper = disabled ? 'div' : Link
   return (
     <Wrapper
-      href={disabled ? undefined : href}
+      href={disabled ? '#' : href}
       className={cn(
         'group glass rounded-2xl p-5 transition-all',
         disabled ? 'opacity-60' : 'hover:shadow-xl hover:-translate-y-0.5',
