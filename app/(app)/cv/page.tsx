@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import CvUploadForm from '@/components/cv-upload-form'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
-import { FileText, Upload, User, MapPin, Mail, Sparkles, CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { desc, eq } from 'drizzle-orm'
+import { CheckCircle2, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
 
 export default async function CVPage() {
   const supabase = await createClient()
@@ -43,16 +44,7 @@ export default async function CVPage() {
         )}
       </div>
 
-      <div className="glass rounded-2xl p-10 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600/10 via-fuchsia-500/10 to-pink-500/10 ring-1 ring-violet-500/20">
-          <Upload className="h-7 w-7 text-violet-500" />
-        </div>
-        <p className="mt-5 font-semibold">CV uploader coming in Phase 3</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Drag & drop a PDF, or paste raw text — Claude will extract skills,
-          experience, and education.
-        </p>
-      </div>
+      <CvUploadForm />
 
       {structured && (
         <div className="grid gap-4 lg:grid-cols-3">
