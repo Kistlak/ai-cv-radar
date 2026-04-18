@@ -53,6 +53,7 @@ export const searches = pgTable('searches', {
   remoteOnly: boolean('remote_only').default(false).notNull(),
   sources: text('sources').array().notNull(),
   sourcesHash: text('sources_hash'),
+  maxResults: integer('max_results'),
   status: text('status').notNull().default('running'),
   error: text('error'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
