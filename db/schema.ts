@@ -36,6 +36,8 @@ export const cvs = pgTable('cvs', {
   filePath: text('file_path').notNull(),
   rawText: text('raw_text').notNull(),
   structured: jsonb('structured').notNull(),
+  generalCv: jsonb('general_cv'),
+  generalCoverLetter: text('general_cover_letter'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
@@ -79,6 +81,9 @@ export const jobResults = pgTable(
     applyUrl: text('apply_url').notNull(),
     matchScore: integer('match_score'),
     matchReason: text('match_reason'),
+    deepDive: jsonb('deep_dive'),
+    coverLetter: text('cover_letter'),
+    tailoredCv: jsonb('tailored_cv'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

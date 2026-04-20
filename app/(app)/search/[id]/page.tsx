@@ -6,10 +6,12 @@ import { searches, jobResults } from '@/db/schema'
 import { and, eq, desc } from 'drizzle-orm'
 import {
   ArrowLeft, Clock, MapPin, ExternalLink, Wifi, Building2,
-  Sparkles, AlertCircle, Loader2, BadgeCheck,
+  Sparkles, AlertCircle, Loader2, BadgeCheck, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import SearchPoller from '@/components/search-poller'
+import { JobActions } from '@/components/job-actions'
+import { CancelSearchButton } from '@/components/cancel-search-button'
 
 export default async function SearchResultsPage({
   params,
@@ -88,8 +90,27 @@ export default async function SearchResultsPage({
               An agent is searching job boards, refining queries, and scoring results against your CV.
               This can take 1–2 minutes.
             </p>
+            <div className="mt-5 flex justify-center">
+              <CancelSearchButton searchId={id} />
+            </div>
           </div>
         </>
+      )}
+
+      {search.status === 'cancelled' && (
+        <div className="glass rounded-2xl p-8 ring-1 ring-border/40">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground ring-1 ring-border/40">
+              <Ban className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Search cancelled</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                You stopped this search before it finished. Start a new one any time.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {search.status === 'failed' && (
@@ -205,6 +226,8 @@ function JobCard({ job }: { job: Job }) {
             </div>
           )}
 
+          <JobActions jobId={job.id} jobTitle={job.title} company={job.company} />
+
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">{job.source}</span>
             {job.postedAt && (
@@ -224,6 +247,7 @@ function StatusBadge({ status }: { status: string }) {
     complete: 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20',
     running: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20',
     failed: 'bg-red-500/10 text-red-600 dark:text-red-400 ring-red-500/20',
+    cancelled: 'bg-muted text-muted-foreground ring-border/40',
   }
   return (
     <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1', config[status] ?? 'bg-muted text-muted-foreground')}>

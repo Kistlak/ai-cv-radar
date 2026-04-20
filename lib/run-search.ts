@@ -11,6 +11,15 @@ import { runAgenticSearch } from './agentic-search'
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
 const APIFY_SOURCES = new Set(['linkedin', 'indeed', 'glassdoor'])
 
+async function isCancelled(searchId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ status: searches.status })
+    .from(searches)
+    .where(eq(searches.id, searchId))
+    .limit(1)
+  return row?.status === 'cancelled'
+}
+
 export async function runSearch(searchId: string, userId: string): Promise<void> {
   try {
     const [search] = await db
@@ -102,6 +111,11 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       `[run-search] cheap=${cheapJobs.length} agentic=${agenticJobs.length} → ${rawJobs.length} after dedupe`
     )
 
+    if (await isCancelled(searchId)) {
+      console.log(`[run-search] ${searchId} cancelled before scoring — bailing`)
+      return
+    }
+
     if (rawJobs.length === 0) {
       await db
         .update(searches)
@@ -115,6 +129,11 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     const scoredJobs = search.maxResults
       ? [...allScored].sort((a, b) => b.matchScore - a.matchScore).slice(0, search.maxResults)
       : allScored
+
+    if (await isCancelled(searchId)) {
+      console.log(`[run-search] ${searchId} cancelled after scoring — skipping persistence`)
+      return
+    }
 
     if (scoredJobs.length > 0) {
       await db
@@ -139,12 +158,15 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
         .onConflictDoNothing()
     }
 
+    if (await isCancelled(searchId)) return
+
     await db
       .update(searches)
       .set({ status: 'complete', completedAt: new Date() })
       .where(eq(searches.id, searchId))
   } catch (err) {
     console.error('[runSearch] failed:', err)
+    if (await isCancelled(searchId)) return
     await db
       .update(searches)
       .set({
