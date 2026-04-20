@@ -1,4 +1,5 @@
 import CvUploadForm from '@/components/cv-upload-form'
+import { CvPolishActions } from '@/components/cv-polish-actions'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
@@ -48,6 +49,7 @@ export default async function CVPage() {
 
       {structured && (
         <div className="grid gap-4 lg:grid-cols-3">
+          <CvPolishActions />
           <div className="glass rounded-2xl p-5 lg:col-span-1">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600/20 via-fuchsia-500/20 to-pink-500/20 text-violet-600 dark:text-violet-300 ring-1 ring-violet-500/20">
