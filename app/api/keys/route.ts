@@ -62,20 +62,55 @@ export async function GET() {
   })
 }
 
-export async function getDecryptedKeys(userId: string) {
-  const [keys] = await db
+export interface ResolvedKeys {
+  anthropicKey?: string
+  apifyToken?: string
+  adzunaAppId?: string
+  adzunaAppKey?: string
+  rapidapiKey?: string
+  // Per-key flag set when the value came from the operator-provided FALLBACK_*
+  // env var instead of the user's own configured key. Useful for telemetry,
+  // rate limiting, or showing a "shared key" badge in the UI.
+  usingFallback: {
+    anthropicKey: boolean
+    apifyToken: boolean
+    adzunaAppId: boolean
+    adzunaAppKey: boolean
+    rapidapiKey: boolean
+  }
+}
+
+export async function getDecryptedKeys(userId: string): Promise<ResolvedKeys> {
+  const [row] = await db
     .select()
     .from(userApiKeys)
     .where(eq(userApiKeys.userId, userId))
     .limit(1)
 
-  if (!keys) return null
+  const userAnthropic = row?.anthropicKey ? decrypt(row.anthropicKey) : undefined
+  const userApify = row?.apifyToken ? decrypt(row.apifyToken) : undefined
+  const userAdzunaId = row?.adzunaAppId ?? undefined
+  const userAdzunaKey = row?.adzunaAppKey ? decrypt(row.adzunaAppKey) : undefined
+  const userRapidapi = row?.rapidapiKey ? decrypt(row.rapidapiKey) : undefined
+
+  const fallbackAnthropic = process.env.FALLBACK_ANTHROPIC_KEY || undefined
+  const fallbackApify = process.env.FALLBACK_APIFY_TOKEN || undefined
+  const fallbackAdzunaId = process.env.FALLBACK_ADZUNA_APP_ID || undefined
+  const fallbackAdzunaKey = process.env.FALLBACK_ADZUNA_APP_KEY || undefined
+  const fallbackRapidapi = process.env.FALLBACK_RAPIDAPI_KEY || undefined
 
   return {
-    anthropicKey: keys.anthropicKey ? decrypt(keys.anthropicKey) : undefined,
-    apifyToken: keys.apifyToken ? decrypt(keys.apifyToken) : undefined,
-    adzunaAppId: keys.adzunaAppId ?? undefined,
-    adzunaAppKey: keys.adzunaAppKey ? decrypt(keys.adzunaAppKey) : undefined,
-    rapidapiKey: keys.rapidapiKey ? decrypt(keys.rapidapiKey) : undefined,
+    anthropicKey: userAnthropic ?? fallbackAnthropic,
+    apifyToken: userApify ?? fallbackApify,
+    adzunaAppId: userAdzunaId ?? fallbackAdzunaId,
+    adzunaAppKey: userAdzunaKey ?? fallbackAdzunaKey,
+    rapidapiKey: userRapidapi ?? fallbackRapidapi,
+    usingFallback: {
+      anthropicKey: !userAnthropic && !!fallbackAnthropic,
+      apifyToken: !userApify && !!fallbackApify,
+      adzunaAppId: !userAdzunaId && !!fallbackAdzunaId,
+      adzunaAppKey: !userAdzunaKey && !!fallbackAdzunaKey,
+      rapidapiKey: !userRapidapi && !!fallbackRapidapi,
+    },
   }
 }
