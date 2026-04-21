@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CV Radar</title>
+    <style>
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 14px 14px 12px;
+        font: 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        color: #0f172a;
+        background: #fff;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.45;
+      }
+      .muted {
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 10px;
+      }
+      .origin-list {
+        margin-top: 10px;
+        padding: 8px 10px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+      }
+      .origin-list code {
+        display: block;
+        font-size: 11px;
+        color: #334155;
+        word-break: break-all;
+      }
+      .origin-list code + code {
+        margin-top: 4px;
+      }
+      .empty {
+        color: #94a3b8;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CV Radar Auto Apply</h1>
+    <p>Open a job result in CV Radar and click <strong>Auto Apply</strong>.</p>
+    <div class="origin-list">
+      <div class="muted" style="margin: 0 0 4px">Connected app origins</div>
+      <div id="origins"><span class="empty">None detected yet. Open the app.</span></div>
+    </div>
+    <p class="muted">Forms are filled but not submitted. Review everything before you click submit.</p>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "CV Radar — Auto Apply",
+  "version": "0.1.0",
+  "description": "Autofill job application forms with your CV Radar profile. Review before submitting.",
+  "permissions": ["storage", "tabs", "scripting"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
+    "https://*.vercel.app/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:3000/*",
+        "http://127.0.0.1:3000/*",
+        "https://*.vercel.app/*"
+      ],
+      "js": ["content-connector.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "CV Radar",
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content-connector.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
