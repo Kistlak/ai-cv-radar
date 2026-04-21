@@ -31,3 +31,10 @@ npm-debug.log*
 # Claude / AI agent state
 #.agent/
 .claude/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/.playwright-browsers/
