@@ -25,6 +25,10 @@ import {
   FileUser,
   Download,
   ImageIcon,
+  Rocket,
+  Puzzle,
+  Bot,
+  ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -47,14 +51,23 @@ interface JobActionsProps {
   jobId: string
   jobTitle: string
   company: string
+  applyUrl?: string
 }
 
-export function JobActions({ jobId, jobTitle, company }: JobActionsProps) {
+export function JobActions({ jobId, jobTitle, company, applyUrl }: JobActionsProps) {
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       <DeepDiveButton jobId={jobId} jobTitle={jobTitle} company={company} />
       <CoverLetterButton jobId={jobId} jobTitle={jobTitle} company={company} />
       <TailoredCvButton jobId={jobId} jobTitle={jobTitle} company={company} />
+      {applyUrl && (
+        <AutoApplyButton
+          jobId={jobId}
+          jobTitle={jobTitle}
+          company={company}
+          applyUrl={applyUrl}
+        />
+      )}
     </div>
   )
 }
@@ -519,5 +532,185 @@ function TailoredCvButton({ jobId, jobTitle, company }: JobActionsProps) {
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+interface AutoApplyButtonProps extends JobActionsProps {
+  applyUrl: string
+}
+
+function AutoApplyButton({ jobId, jobTitle, company, applyUrl }: AutoApplyButtonProps) {
+  const [open, setOpen] = useState(false)
+  const [extensionStatus, setExtensionStatus] = useState<'unknown' | 'installed' | 'missing'>(
+    'unknown'
+  )
+  const [launching, setLaunching] = useState(false)
+
+  const detectExtension = useCallback(() => {
+    if (typeof document === 'undefined') return
+    const version = document.documentElement.getAttribute('data-cv-radar-extension')
+    setExtensionStatus(version ? 'installed' : 'missing')
+  }, [])
+
+  const launch = useCallback(() => {
+    if (typeof window === 'undefined') return
+    setLaunching(true)
+    window.postMessage(
+      {
+        source: 'cv-radar',
+        type: 'AUTO_APPLY_REQUEST',
+        payload: { jobId, jobTitle, company, applyUrl },
+      },
+      window.location.origin
+    )
+    toast.success('Auto Apply started — check the new tab')
+    setTimeout(() => {
+      setLaunching(false)
+      setOpen(false)
+    }, 800)
+  }, [jobId, jobTitle, company, applyUrl])
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) detectExtension()
+      }}
+    >
+      <DialogTrigger
+        render={
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white hover:opacity-90"
+          >
+            <Rocket />
+            Auto Apply
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Auto Apply</DialogTitle>
+          <DialogDescription>
+            {jobTitle} · {company}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <MethodCard
+            icon={<Puzzle className="h-4 w-4 text-violet-500" />}
+            title="Use browser extension"
+            description="Opens the application page and fills your details in your own browser. You review and submit."
+            badge={
+              extensionStatus === 'installed'
+                ? { text: 'Detected', tone: 'green' as const }
+                : extensionStatus === 'missing'
+                  ? { text: 'Not installed', tone: 'amber' as const }
+                  : null
+            }
+            disabled={extensionStatus !== 'installed'}
+            action={
+              extensionStatus === 'installed' ? (
+                <Button size="sm" onClick={launch} disabled={launching}>
+                  {launching ? <Loader2 className="animate-spin" /> : <Rocket />}
+                  {launching ? 'Starting…' : 'Start Auto Apply'}
+                </Button>
+              ) : (
+                <div className="flex flex-col gap-2 text-xs">
+                  <p className="text-muted-foreground">
+                    Install the CV Radar extension, then reload this page.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        detectExtension()
+                        if (document.documentElement.getAttribute('data-cv-radar-extension')) {
+                          toast.success('Extension detected')
+                        } else {
+                          toast.error('Still not detected — try reloading after install')
+                        }
+                      }}
+                    >
+                      <RefreshCw />
+                      Re-check
+                    </Button>
+                    <a
+                      href="/help#extension"
+                      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium ring-1 ring-border hover:bg-muted/60"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Install guide
+                    </a>
+                  </div>
+                </div>
+              )
+            }
+          />
+
+          <MethodCard
+            icon={<Bot className="h-4 w-4 text-muted-foreground" />}
+            title="Server-side automation"
+            description="Runs the application on our servers without an extension."
+            badge={{ text: 'Coming soon', tone: 'muted' as const }}
+            disabled
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MethodCard({
+  icon,
+  title,
+  description,
+  badge,
+  disabled,
+  action,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+  badge?: { text: string; tone: 'green' | 'amber' | 'muted' } | null
+  disabled?: boolean
+  action?: React.ReactNode
+}) {
+  const badgeClass =
+    badge?.tone === 'green'
+      ? 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20'
+      : badge?.tone === 'amber'
+        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
+        : 'bg-muted text-muted-foreground ring-border/40'
+  return (
+    <div
+      className={cn(
+        'rounded-lg ring-1 ring-border/60 px-4 py-3',
+        disabled && !action && 'opacity-60'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold">{title}</p>
+            {badge && (
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ring-1',
+                  badgeClass
+                )}
+              >
+                {badge.text}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{description}</p>
+          {action && <div className="mt-3">{action}</div>}
+        </div>
+      </div>
+    </div>
   )
 }
