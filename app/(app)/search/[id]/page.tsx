@@ -226,7 +226,12 @@ function JobCard({ job }: { job: Job }) {
             </div>
           )}
 
-          <JobActions jobId={job.id} jobTitle={job.title} company={job.company} />
+          <JobActions
+            jobId={job.id}
+            jobTitle={job.title}
+            company={job.company}
+            applyUrl={job.applyUrl}
+          />
 
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">{job.source}</span>
