@@ -42,6 +42,18 @@ async function consumePendingFill(tabId) {
   return entry
 }
 
+async function peekPendingFill(tabId) {
+  const map = await getPendingFills()
+  const entry = map[tabId]
+  if (!entry) return null
+  if (entry.expiresAt && entry.expiresAt < Date.now()) {
+    delete map[tabId]
+    await chrome.storage.session.set({ [PENDING_KEY]: map })
+    return null
+  }
+  return entry
+}
+
 async function fetchProfile(appOrigin) {
   const res = await fetch(`${appOrigin}/api/me/application-profile`, {
     method: 'GET',
@@ -115,13 +127,82 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ pending: null })
       return
     }
-    consumePendingFill(tabId)
-      .then((pending) => sendResponse({ pending }))
+    // For manual fills the entry is shared across all frames of the tab, so
+    // peek instead of consuming; it expires naturally after EXPIRY_MS.
+    peekPendingFill(tabId)
+      .then(async (pending) => {
+        if (pending && !pending.job?.manual) await consumePendingFill(tabId)
+        sendResponse({ pending })
+      })
       .catch(() => sendResponse({ pending: null }))
     return true
   }
 
+  if (msg.type === 'FILL_ACTIVE_TAB') {
+    handleFillActiveTab()
+      .then(() => sendResponse({ ok: true }))
+      .catch((err) => {
+        console.error('[cv-radar] FILL_ACTIVE_TAB failed', err)
+        sendResponse({ ok: false, error: String(err?.message || err) })
+      })
+    return true
+  }
+
 })
+
+async function handleFillActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+  if (!tab?.id) throw new Error('No active tab')
+  if (!tab.url || /^(chrome|edge|brave|about|chrome-extension):/i.test(tab.url)) {
+    throw new Error('Cannot fill on this page')
+  }
+
+  const origins = await getAppOrigins()
+  if (origins.length === 0) {
+    throw new Error('Open CV Radar and sign in first, then try again')
+  }
+
+  let profile = null
+  let lastError = null
+  for (const origin of origins) {
+    try {
+      profile = await fetchProfile(origin)
+      break
+    } catch (err) {
+      lastError = err
+    }
+  }
+  if (!profile) {
+    throw new Error(
+      lastError?.message
+        ? `Couldn't load your profile (${lastError.message}). Make sure you're signed into CV Radar.`
+        : "Couldn't load your profile. Sign into CV Radar and try again."
+    )
+  }
+
+  await setPendingFill(tab.id, {
+    profile,
+    job: { manual: true },
+    appOrigin: origins[0],
+    expiresAt: Date.now() + EXPIRY_MS,
+  })
+
+  // Reset the filler's single-run guard so repeat clicks work after the user
+  // navigates through extra steps to reveal the form. allFrames: true so the
+  // filler also runs inside embedded ATS iframes (Greenhouse/Lever embedded
+  // on company career pages).
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id, allFrames: true },
+    func: () => {
+      delete window.__cvRadarFillerRan
+    },
+  })
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id, allFrames: true },
+    files: ['content-filler.js'],
+  })
+}
 
 // When a tab finishes loading, check if it has a pending fill and inject the
 // filler content script.
@@ -134,7 +215,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
   chrome.scripting
     .executeScript({
-      target: { tabId },
+      target: { tabId, allFrames: true },
       files: ['content-filler.js'],
     })
     .catch((err) => console.warn('[cv-radar] failed to inject filler', err))
