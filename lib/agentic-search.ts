@@ -6,6 +6,8 @@ const AGENT_MODEL = process.env.AGENT_MODEL || 'claude-sonnet-4-6'
 const AGENT_MAX_TOKENS = Number(process.env.AGENT_MAX_TOKENS || 16000)
 const MCP_BETA = 'mcp-client-2025-11-20'
 
+export type AgenticEvent = { type: 'mcp_calls'; count: number }
+
 export interface AgenticSearchInput {
   cvText: string
   userQuery: string
@@ -14,6 +16,7 @@ export interface AgenticSearchInput {
   maxResults?: number | null
   anthropicKey: string
   apifyToken: string
+  onEvent?: (event: AgenticEvent) => void | Promise<void>
 }
 
 interface FinalizeJobsInput {
@@ -189,6 +192,13 @@ export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJo
   console.log(
     `[agentic-search] stop_reason=${response.stop_reason} mcp_calls=${mcpCalls} input_tokens=${response.usage.input_tokens} output_tokens=${response.usage.output_tokens}`
   )
+  if (input.onEvent) {
+    try {
+      await input.onEvent({ type: 'mcp_calls', count: mcpCalls })
+    } catch (err) {
+      console.warn('[agentic-search] onEvent failed:', err)
+    }
+  }
 
   for (const block of response.content) {
     if (block.type === 'tool_use' && block.name === 'finalize_jobs') {

@@ -1,9 +1,26 @@
 # Agentic Job Search
 
-**Status:** proposed
+**Status:** shipped (Approach A). Classic fan-out retained as fallback.
 **Author:** kistlak
-**Date:** 2026-04-18
+**Date:** 2026-04-18 (proposed) · 2026-04-23 (shipped)
 **Branch base:** `feature/phase-3`
+
+## What shipped
+
+- `lib/agentic-search.ts` — single `runAgenticSearch()` using Anthropic MCP connector to Apify (`mcp_servers` with `authorization_token`), beta header `mcp-client-2025-11-20`.
+- `lib/run-search.ts` — agentic path runs in parallel with cheap-sources fan-out; Apify-backed sources are removed from the classic fan-out when the agent is active. Failure falls back to empty results (classic still completes the search).
+- Feature flag: `AGENT_ENABLED` env var (default on). Per-search `searches.mode` column was **not** added — flag is global.
+- `finalize_jobs` local tool forces a structured final payload; `normalizeSource()` maps agent output back to `linkedin/indeed/glassdoor`.
+- Cost control: `AGENT_MAX_TOKENS` (default 16000) on a single `messages.create` call. Relying on MCP's in-request tool loop rather than our own `while(stop_reason === 'tool_use')` loop.
+- `scoreJobs` still runs on top of agent output — agent finds, we score.
+
+## Still open
+
+- **Per-search `mode` toggle** not implemented — all searches use the global flag. Low priority unless A/B testing is wanted.
+- **No wall-clock timeout** around `runAgenticSearch`. Relies on `max_tokens` and Anthropic's own limits. A 60s Promise.race would be cheap insurance.
+- **Progress streaming** (agent steps visible in UI) not built. `searches.status` stays `running` until the whole thing finishes — users see a spinner with no signal for 30–90s.
+- **Unit tests** with a mocked Anthropic client — none added.
+- **No explicit MCP-call cap.** If the agent goes rogue inside one request, cost is bounded only by `max_tokens`. Acceptable today; revisit if bills look wrong.
 
 ## Problem
 
