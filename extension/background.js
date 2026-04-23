@@ -69,16 +69,6 @@ async function fetchProfile(appOrigin) {
   return body.profile
 }
 
-async function notifyAppTab(appOrigin, status, message) {
-  const tabs = await chrome.tabs.query({ url: `${appOrigin}/*` })
-  for (const t of tabs) {
-    if (t.id == null) continue
-    chrome.tabs
-      .sendMessage(t.id, { type: 'AUTO_APPLY_STATUS', status, message })
-      .catch(() => {})
-  }
-}
-
 async function handleAutoApply({ appOrigin, payload }) {
   if (!appOrigin || !payload?.applyUrl) {
     throw new Error('Missing applyUrl or appOrigin')

@@ -66,7 +66,7 @@
       if (el.value === String(value)) return false
       const proto = tag === 'INPUT' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype
       const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
-      setter ? setter.call(el, String(value)) : (el.value = String(value))
+      if (setter) { setter.call(el, String(value)) } else { el.value = String(value) }
       el.dispatchEvent(new Event('input', { bubbles: true }))
       el.dispatchEvent(new Event('change', { bubbles: true }))
       el.dispatchEvent(new Event('blur', { bubbles: true }))
