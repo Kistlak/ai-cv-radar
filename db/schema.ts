@@ -58,6 +58,7 @@ export const searches = pgTable('searches', {
   maxResults: integer('max_results'),
   status: text('status').notNull().default('running'),
   error: text('error'),
+  progress: jsonb('progress'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
 })
