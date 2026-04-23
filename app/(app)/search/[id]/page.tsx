@@ -6,12 +6,11 @@ import { searches, jobResults } from '@/db/schema'
 import { and, eq, desc } from 'drizzle-orm'
 import {
   ArrowLeft, Clock, MapPin, ExternalLink, Wifi, Building2,
-  Sparkles, AlertCircle, Loader2, BadgeCheck, Ban,
+  Sparkles, AlertCircle, BadgeCheck, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import SearchPoller from '@/components/search-poller'
 import { JobActions } from '@/components/job-actions'
-import { CancelSearchButton } from '@/components/cancel-search-button'
 
 export default async function SearchResultsPage({
   params,
@@ -78,24 +77,7 @@ export default async function SearchResultsPage({
         </div>
       </div>
 
-      {search.status === 'running' && (
-        <>
-          <SearchPoller searchId={id} />
-          <div className="glass rounded-2xl p-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600/10 via-fuchsia-500/10 to-pink-500/10 ring-1 ring-violet-500/20">
-              <Loader2 className="h-6 w-6 text-violet-500 animate-spin" />
-            </div>
-            <p className="mt-4 font-semibold">Finding and ranking jobs…</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              An agent is searching job boards, refining queries, and scoring results against your CV.
-              This can take 1–2 minutes.
-            </p>
-            <div className="mt-5 flex justify-center">
-              <CancelSearchButton searchId={id} />
-            </div>
-          </div>
-        </>
-      )}
+      {search.status === 'running' && <SearchPoller searchId={id} />}
 
       {search.status === 'cancelled' && (
         <div className="glass rounded-2xl p-8 ring-1 ring-border/40">

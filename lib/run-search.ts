@@ -7,6 +7,7 @@ import type { RawJob } from './job-sources/types'
 import { scoreJobs } from './score-jobs'
 import { deriveQueriesFromCv } from './derive-query'
 import { runAgenticSearch } from './agentic-search'
+import { createProgressUpdater } from './search-progress'
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
 const APIFY_SOURCES = new Set(['linkedin', 'indeed', 'glassdoor'])
@@ -21,6 +22,7 @@ async function isCancelled(searchId: string): Promise<boolean> {
 }
 
 export async function runSearch(searchId: string, userId: string): Promise<void> {
+  const setProgress = createProgressUpdater(searchId)
   try {
     const [search] = await db
       .select()
@@ -48,6 +50,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     if (userQuery) {
       queries = [userQuery]
     } else {
+      await setProgress({ stage: 'deriving-queries' })
       queries = await deriveQueriesFromCv(cv.rawText, keys.anthropicKey, 3)
       console.log(`[run-search] auto-matched queries from CV: ${JSON.stringify(queries)}`)
       // Persist the primary derived query so the UI shows something sensible.
@@ -72,6 +75,13 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       ? search.sources.filter((s) => !APIFY_SOURCES.has(s))
       : search.sources
 
+    await setProgress({
+      stage: 'fetching',
+      queries,
+      cheapSources,
+      agentic: useAgentic,
+    })
+
     const cheapJobsPromise = fetchAllSourcesMultiQuery(
       queries,
       {
@@ -85,7 +95,10 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
         rapidapiKey: keys.rapidapiKey,
       },
       cheapSources
-    )
+    ).then(async (jobs) => {
+      await setProgress({ cheapDone: true, cheapCount: jobs.length })
+      return jobs
+    })
 
     const agenticJobsPromise: Promise<RawJob[]> = useAgentic
       ? runAgenticSearch({
@@ -96,11 +109,22 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
           maxResults: search.maxResults,
           anthropicKey: keys.anthropicKey,
           apifyToken: keys.apifyToken!,
-        }).catch((err) => {
-          console.error('[run-search] agentic path failed, falling back to empty:', err)
-          return []
+          onEvent: async (e) => {
+            if (e.type === 'mcp_calls') {
+              await setProgress({ agenticMcpCalls: e.count })
+            }
+          },
         })
-      : Promise.resolve([])
+          .then(async (jobs) => {
+            await setProgress({ agenticDone: true, agenticCount: jobs.length })
+            return jobs
+          })
+          .catch(async (err) => {
+            console.error('[run-search] agentic path failed, falling back to empty:', err)
+            await setProgress({ agenticDone: true, agenticCount: 0 })
+            return [] as RawJob[]
+          })
+      : Promise.resolve<RawJob[]>([])
 
     const [cheapJobs, agenticJobs] = await Promise.all([
       cheapJobsPromise,
@@ -124,6 +148,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       return
     }
 
+    await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
     const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, keys.anthropicKey)
     // Respect the user's job-count preference by keeping the top-scoring N after scoring.
     const scoredJobs = search.maxResults
@@ -134,6 +159,8 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       console.log(`[run-search] ${searchId} cancelled after scoring — skipping persistence`)
       return
     }
+
+    await setProgress({ stage: 'persisting', scoredJobs: scoredJobs.length })
 
     if (scoredJobs.length > 0) {
       await db
