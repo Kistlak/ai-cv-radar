@@ -1,0 +1,65 @@
+name: Auto PR
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  create-pr:
+    name: Open PR to master
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR already exists
+        id: check
+        run: |
+          COUNT=$(gh pr list --head "${{ github.ref_name }}" --base master --json number --jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate PR title and description
+        if: steps.check.outputs.exists == 'false'
+        id: generate
+        run: |
+          # Title: strip prefix (feature/, fix/, chore/ etc), replace hyphens/underscores with spaces, capitalise first letter
+          BRANCH="${{ github.ref_name }}"
+          CLEAN=$(echo "$BRANCH" | sed 's|^[^/]*/||' | tr -- '-_' ' ')
+          TITLE="$(echo "$CLEAN" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')"
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+          # Description: one bullet per commit since master
+          COMMITS=$(git log origin/master..HEAD --format='- %s' --reverse)
+          FILES=$(git diff origin/master..HEAD --stat | tail -1)
+
+          cat << EOF > /tmp/pr_body.md
+          ## What changed
+          ${COMMITS:-"- Initial changes"}
+
+          **Files:** ${FILES:-"no file changes"}
+          EOF
+
+      - name: Create PR
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ steps.generate.outputs.title }}
+        run: |
+          gh pr create \
+            --title "$PR_TITLE" \
+            --body-file /tmp/pr_body.md \
+            --base master
