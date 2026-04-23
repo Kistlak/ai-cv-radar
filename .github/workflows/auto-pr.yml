@@ -36,7 +36,7 @@ jobs:
         run: |
           # Title: strip prefix (feature/, fix/, chore/ etc), replace hyphens/underscores with spaces, capitalise first letter
           BRANCH="${{ github.ref_name }}"
-          CLEAN=$(echo "$BRANCH" | sed 's|^[^/]*/||' | tr '-_' ' ')
+          CLEAN=$(echo "$BRANCH" | sed 's|^[^/]*/||' | tr -- '-_' ' ')
           TITLE="$(echo "$CLEAN" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')"
           echo "title=$TITLE" >> $GITHUB_OUTPUT
 
