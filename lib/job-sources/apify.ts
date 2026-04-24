@@ -1,7 +1,7 @@
 import { ApifyClient } from 'apify-client'
 import type { RawJob, SearchParams } from './types'
 
-// Default actors — override via env vars if you want to swap any.
+// Default actors - override via env vars if you want to swap any.
 const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR || 'bebity/linkedin-jobs-scraper'
 const INDEED_ACTOR = process.env.APIFY_INDEED_ACTOR || 'misceres/indeed-scraper'
 const GLASSDOOR_ACTOR = process.env.APIFY_GLASSDOOR_ACTOR || 'bebity/glassdoor-jobs-scraper'
@@ -13,7 +13,7 @@ function parseDate(raw: unknown): Date | null {
 }
 
 // ───────────────────────────────────────────────────────────────
-// LinkedIn (bebity/linkedin-jobs-scraper) — URL-based input
+// LinkedIn (bebity/linkedin-jobs-scraper) - URL-based input
 // ───────────────────────────────────────────────────────────────
 
 interface BebityLinkedInJob {
@@ -86,7 +86,7 @@ export async function fetchApifyLinkedIn(
 }
 
 // ───────────────────────────────────────────────────────────────
-// Indeed (misceres/indeed-scraper) — position + country input
+// Indeed (misceres/indeed-scraper) - position + country input
 // ───────────────────────────────────────────────────────────────
 
 interface MisceresIndeedJob {
@@ -168,7 +168,7 @@ export async function fetchApifyIndeed(
 }
 
 // ───────────────────────────────────────────────────────────────
-// Glassdoor (bebity/glassdoor-jobs-scraper) — URL-based input
+// Glassdoor (bebity/glassdoor-jobs-scraper) - URL-based input
 // ───────────────────────────────────────────────────────────────
 
 interface BebityGlassdoorJob {

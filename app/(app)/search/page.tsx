@@ -1,10 +1,10 @@
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import SearchForm from '@/components/search-form'
 import { db } from '@/db'
 import { cvs, userApiKeys } from '@/db/schema'
+import { createClient } from '@/lib/supabase/server'
 import { eq } from 'drizzle-orm'
 import { AlertCircle } from 'lucide-react'
-import SearchForm from '@/components/search-form'
+import Link from 'next/link'
 
 export default async function SearchPage() {
   const supabase = await createClient()
@@ -42,7 +42,7 @@ export default async function SearchPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
           Tell us what you&apos;re looking for. We&apos;ll pull fresh listings from
-          Remotive, Adzuna, JSearch, and LinkedIn — then rank them against your CV with Claude.
+          Remotive, Adzuna, JSearch, and LinkedIn - then rank them against your CV with Claude.
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export default async function SearchPage() {
                     <Link href="/settings" className="text-violet-600 dark:text-violet-300 hover:underline">
                       Add your Anthropic API key
                     </Link>{' '}
-                    — required for parsing and matching.
+                    - required for parsing and matching.
                   </li>
                 )}
               </ul>

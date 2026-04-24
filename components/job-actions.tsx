@@ -1,7 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -10,27 +9,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import {
-  Sparkles,
-  FileText,
-  Copy,
-  Check,
-  Loader2,
-  AlertCircle,
-  CircleCheck,
-  CircleAlert,
-  Lightbulb,
-  RefreshCw,
-  FileUser,
-  Download,
-  ImageIcon,
-  Rocket,
-  Puzzle,
-  Bot,
-  ExternalLink,
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  AlertCircle,
+  Bot,
+  Check,
+  CircleAlert,
+  CircleCheck,
+  Copy,
+  Download,
+  ExternalLink,
+  FileText,
+  FileUser,
+  ImageIcon,
+  Lightbulb,
+  Loader2,
+  Puzzle,
+  RefreshCw,
+  Rocket,
+  Sparkles,
+} from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
 
 interface DeepDive {
   fitSummary: string
@@ -267,7 +267,7 @@ function CoverLetterButton({ jobId, jobTitle, company }: JobActionsProps) {
       toast.success('Cover letter copied')
       setTimeout(() => setCopied(false), 1800)
     } catch {
-      toast.error('Copy failed — select the text manually')
+      toast.error('Copy failed - select the text manually')
     }
   }, [letter])
 
@@ -406,7 +406,7 @@ function TailoredCvButton({ jobId, jobTitle, company }: JobActionsProps) {
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      toast.success('CV downloaded — edit in Word to finish')
+      toast.success('CV downloaded - edit in Word to finish')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Download failed')
     } finally {
@@ -477,7 +477,7 @@ function TailoredCvButton({ jobId, jobTitle, company }: JobActionsProps) {
               {cv.experience.slice(0, 3).map((role, i) => (
                 <div key={i} className="rounded-lg ring-1 ring-border/40 px-3 py-2">
                   <p className="font-semibold">
-                    {role.title} <span className="text-muted-foreground">— {role.company}</span>
+                    {role.title} <span className="text-muted-foreground">- {role.company}</span>
                   </p>
                   <ul className="mt-1 space-y-0.5">
                     {role.bullets.slice(0, 3).map((b, j) => (
@@ -509,7 +509,7 @@ function TailoredCvButton({ jobId, jobTitle, company }: JobActionsProps) {
               <ImageIcon className="h-3.5 w-3.5 text-violet-500" />
               <span className="flex-1">
                 <span className="font-medium">Include photo placeholder</span>
-                <span className="text-muted-foreground"> — recommended for UAE/EU/DE/FR. Skip for UK/US/CA/AU.</span>
+                <span className="text-muted-foreground"> - recommended for UAE/EU/DE/FR. Skip for UK/US/CA/AU.</span>
               </span>
             </label>
 
@@ -563,7 +563,7 @@ function AutoApplyButton({ jobId, jobTitle, company, applyUrl }: AutoApplyButton
       },
       window.location.origin
     )
-    toast.success('Auto Apply started — check the new tab')
+    toast.success('Auto Apply started - check the new tab')
     setTimeout(() => {
       setLaunching(false)
       setOpen(false)
@@ -630,7 +630,7 @@ function AutoApplyButton({ jobId, jobTitle, company, applyUrl }: AutoApplyButton
                         if (document.documentElement.getAttribute('data-cv-radar-extension')) {
                           toast.success('Extension detected')
                         } else {
-                          toast.error('Still not detected — try reloading after install')
+                          toast.error('Still not detected - try reloading after install')
                         }
                       }}
                     >

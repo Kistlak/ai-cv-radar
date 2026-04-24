@@ -1,8 +1,8 @@
-import type { RawJob, SearchParams } from './types'
 import { fetchAdzuna } from './adzuna'
+import { fetchApifyGlassdoor, fetchApifyIndeed, fetchApifyLinkedIn } from './apify'
 import { fetchJSearch } from './jsearch'
 import { fetchRemotive } from './remotive'
-import { fetchApifyLinkedIn, fetchApifyIndeed, fetchApifyGlassdoor } from './apify'
+import type { RawJob, SearchParams } from './types'
 
 export type { RawJob, SearchParams }
 
@@ -13,7 +13,7 @@ export interface Keys {
   rapidapiKey?: string
 }
 
-// Sources that are cheap/free — safe to run for every derived query.
+// Sources that are cheap/free - safe to run for every derived query.
 // Apify sources cost money per actor run, so we only use them for the primary query.
 const CHEAP_SOURCES = new Set(['remotive', 'adzuna', 'jsearch'])
 
@@ -96,7 +96,7 @@ export async function fetchAllSourcesMultiQuery(
 
   const tasks = queries.map((query, i) => {
     const sources = i === 0 ? enabledSources : cheapEnabled
-    console.log(`[multi-query] query #${i + 1}: "${query}" — sources: ${sources.join(', ')}`)
+    console.log(`[multi-query] query #${i + 1}: "${query}" - sources: ${sources.join(', ')}`)
     return fetchSources({ ...baseParams, query }, keys, sources)
   })
 
