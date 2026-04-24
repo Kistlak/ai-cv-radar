@@ -1,7 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -10,19 +9,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import {
-  FileUser,
-  FileText,
-  Loader2,
   AlertCircle,
-  RefreshCw,
-  Download,
-  ImageIcon,
-  Copy,
   Check,
+  Copy,
+  Download,
+  FileText,
+  FileUser,
+  ImageIcon,
+  Loader2,
+  RefreshCw,
   Sparkles,
 } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
 
 interface CvJsonPreview {
   name: string
@@ -103,7 +103,7 @@ function GeneralCvButton() {
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      toast.success('CV downloaded — open in Word to edit')
+      toast.success('CV downloaded - open in Word to edit')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Download failed')
     } finally {
@@ -174,7 +174,7 @@ function GeneralCvButton() {
               {cv.experience.slice(0, 3).map((role, i) => (
                 <div key={i} className="rounded-lg ring-1 ring-border/40 px-3 py-2">
                   <p className="font-semibold">
-                    {role.title} <span className="text-muted-foreground">— {role.company}</span>
+                    {role.title} <span className="text-muted-foreground">- {role.company}</span>
                   </p>
                   <ul className="mt-1 space-y-0.5">
                     {role.bullets.slice(0, 3).map((b, j) => (
@@ -206,7 +206,7 @@ function GeneralCvButton() {
               <ImageIcon className="h-3.5 w-3.5 text-violet-500" />
               <span className="flex-1">
                 <span className="font-medium">Include photo placeholder</span>
-                <span className="text-muted-foreground"> — enable for UAE/EU/DE/FR. Skip for UK/US/CA/AU.</span>
+                <span className="text-muted-foreground"> - enable for UAE/EU/DE/FR. Skip for UK/US/CA/AU.</span>
               </span>
             </label>
 
@@ -271,7 +271,7 @@ function GeneralCoverLetterButton() {
       toast.success('Cover letter copied')
       setTimeout(() => setCopied(false), 1800)
     } catch {
-      toast.error('Copy failed — select the text manually')
+      toast.error('Copy failed - select the text manually')
     }
   }, [letter])
 
@@ -295,7 +295,7 @@ function GeneralCoverLetterButton() {
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-      toast.success('Cover letter downloaded — replace [Company Name] and [Role Title] in Word')
+      toast.success('Cover letter downloaded - replace [Company Name] and [Role Title] in Word')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Download failed')
     } finally {

@@ -1,22 +1,22 @@
-import Link from 'next/link'
-import { ArrowRight, Radar, Sparkles, Shield, Zap, Target, Layers } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { ArrowRight, Layers, Radar, Shield, Sparkles, Target, Zap } from 'lucide-react'
+import Link from 'next/link'
 
 const FEATURES = [
   {
     icon: Sparkles,
     title: 'AI-Ranked Matches',
-    desc: 'Claude scores each job 0–100 against your CV and explains why it fits.',
+    desc: 'Claude scores each job 0-100 against your CV and explains why it fits.',
   },
   {
     icon: Layers,
     title: '6 Sources, One Search',
-    desc: 'LinkedIn, Indeed, Glassdoor, Adzuna, JSearch, and Remotive — deduplicated.',
+    desc: 'LinkedIn, Indeed, Glassdoor, Adzuna, JSearch, and Remotive - deduplicated.',
   },
   {
     icon: Shield,
     title: 'Bring Your Own Keys',
-    desc: 'Your API keys stay encrypted. We never pay for — or see — your usage.',
+    desc: 'Your API keys stay encrypted. We never pay for - or see - your usage.',
   },
   {
     icon: Target,
@@ -51,7 +51,7 @@ export default function LandingPage() {
       <section className="mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center px-4 py-16 text-center sm:px-6 lg:py-24">
         <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm">
           <Zap className="h-3 w-3 text-violet-500" />
-          Powered by Claude · BYOK · Open source friendly
+          Powered by Kisalka · Open source friendly
         </div>
 
         <h1 className="mt-8 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
@@ -63,7 +63,7 @@ export default function LandingPage() {
 
         <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
           Upload your CV once. Enter a search. Get a ranked list of positions from six
-          major job platforms — scored and explained by AI for your exact fit.
+          major job platforms scored and explained by AI for your exact fit.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -71,7 +71,7 @@ export default function LandingPage() {
             href="/login"
             className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:shadow-xl hover:shadow-violet-500/40 hover:scale-[1.02]"
           >
-            Get Started — It&apos;s Free
+            Get Started - It&apos;s Free
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <a
@@ -118,7 +118,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-center text-xs text-muted-foreground">
-        Built with Next.js, Supabase, and Claude · Your data stays yours
+        Built with Next.js, Supabase, and Claude API · Your data stays yours
       </footer>
     </main>
   )

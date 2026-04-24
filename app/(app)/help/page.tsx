@@ -1,4 +1,4 @@
-import { Puzzle, ShieldCheck, Wrench, FileWarning } from 'lucide-react'
+import { FileWarning, Puzzle, ShieldCheck, Wrench } from 'lucide-react'
 
 export default function HelpPage() {
   return (
@@ -56,7 +56,7 @@ export default function HelpPage() {
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
               Click <strong className="text-foreground">Load unpacked</strong> and select the{' '}
               <code className="rounded bg-muted px-1 py-0.5 text-[11px]">extension/</code> folder. You should see
-              &ldquo;CV Radar — Auto Apply&rdquo; appear in your extension list.
+              &ldquo;CV Radar - Auto Apply&rdquo; appear in your extension list.
             </p>
           </div>
 
@@ -83,7 +83,7 @@ export default function HelpPage() {
               <li>• Opens the application page in a new tab</li>
               <li>• Fills name, contact, links, and known ATS fields</li>
               <li>• Shows a floating badge with Undo / Dismiss</li>
-              <li>• Never submits — you review and click submit</li>
+              <li>• Never submits - you review and click submit</li>
             </ul>
           </div>
 
@@ -93,7 +93,7 @@ export default function HelpPage() {
               <h3 className="text-sm font-semibold">What it skips</h3>
             </div>
             <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground leading-relaxed">
-              <li>• File uploads (CV/cover letter) — pick these yourself</li>
+              <li>• File uploads (CV/cover letter) - pick these yourself</li>
               <li>• Auth-walled sites (LinkedIn, Indeed, company SSO)</li>
               <li>• CAPTCHA, honeypots, custom freeform questions</li>
               <li>• Fields not in your CV (visa, salary, EEO)</li>

@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from 'sonner'
-import { Search, MapPin, Briefcase, ArrowRight, Loader2, Wifi, Sparkles, ListOrdered } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, Briefcase, ListOrdered, Loader2, MapPin, Search, Sparkles, Wifi } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 interface LocSuggestion {
   label: string
@@ -98,7 +98,7 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch }: SearchFo
         setLocSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
         setLocActive(-1)
       } catch {
-        /* aborted or network error — ignore */
+        /* aborted or network error - ignore */
       }
     }, 200)
     return () => {
