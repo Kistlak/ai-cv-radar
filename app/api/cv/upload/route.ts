@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Could not extract text from PDF' }, { status: 400 })
 
     // 6. Upload the original PDF to Supabase Storage
-    //    Path format: {userId}/{timestamp}.pdf  — matches our storage policy
+    //    Path format: {userId}/{timestamp}.pdf - matches our storage policy
     const filePath = `${user.id}/${Date.now()}.pdf`
     const { error: storageError } = await supabase.storage
         .from('cvs')

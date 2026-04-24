@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, ExternalLink, KeyRound, Eye, EyeOff } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { CheckCircle2, ExternalLink, Eye, EyeOff, KeyRound } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 type KeyStatus = {
   anthropic_key: boolean
@@ -29,7 +29,7 @@ const KEY_FIELDS: KeyField[] = [
     label: 'Anthropic API Key',
     placeholder: 'sk-ant-...',
     helpUrl: 'https://console.anthropic.com/settings/keys',
-    description: 'Required — powers CV parsing and job ranking',
+    description: 'Required - powers CV parsing and job ranking',
     required: true,
   },
   {

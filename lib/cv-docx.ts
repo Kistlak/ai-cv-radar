@@ -1,9 +1,9 @@
 import {
+  AlignmentType,
+  BorderStyle,
   Document,
   Paragraph,
   TextRun,
-  AlignmentType,
-  BorderStyle,
 } from 'docx'
 
 export interface CvJson {
@@ -95,7 +95,7 @@ export function buildCvDocx(cv: CvJson, withPhoto: boolean): Document {
           right: { style: BorderStyle.DASHED, size: 6, color: '888888' },
         },
         children: [
-          run('[ PHOTO — replace this box with your photo in Word ]', {
+          run('[ PHOTO - replace this box with your photo in Word ]', {
             color: '777777',
             size: SIZE_SMALL,
           }),
@@ -152,7 +152,7 @@ export function buildCvDocx(cv: CvJson, withPhoto: boolean): Document {
           spacing: { before: 120, after: 40 },
           children: [
             run(role.title, { bold: true }),
-            run(' — '),
+            run(' - '),
             run(role.company),
           ],
         })
@@ -196,7 +196,7 @@ export function buildCvDocx(cv: CvJson, withPhoto: boolean): Document {
           spacing: { after: 60 },
           children: [
             run(ed.degree, { bold: true }),
-            run(' — '),
+            run(' - '),
             run(ed.institution),
             ...(ed.year ? [run(` (${ed.year})`, { size: SIZE_SMALL, color: COLOR_MUTED })] : []),
           ],
@@ -220,7 +220,7 @@ export function buildCvDocx(cv: CvJson, withPhoto: boolean): Document {
 
   return new Document({
     creator: 'AI CV Radar',
-    title: `${cv.name} — ${cv.title}`,
+    title: `${cv.name} - ${cv.title}`,
     styles: {
       default: {
         document: {
@@ -283,7 +283,7 @@ export function buildCoverLetterDocx(params: {
 
   return new Document({
     creator: 'AI CV Radar',
-    title: `${name} — Cover Letter`,
+    title: `${name} - Cover Letter`,
     styles: {
       default: {
         document: {

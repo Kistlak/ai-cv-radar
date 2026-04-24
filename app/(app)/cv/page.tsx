@@ -1,5 +1,5 @@
-import CvUploadForm from '@/components/cv-upload-form'
 import { CvPolishActions } from '@/components/cv-polish-actions'
+import CvUploadForm from '@/components/cv-upload-form'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
@@ -34,7 +34,7 @@ export default async function CVPage() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
             Upload a PDF and we&apos;ll parse it into a structured profile. Your CV
-            powers every job match — the better the input, the sharper the radar.
+            powers every job match - the better the input, the sharper the radar.
           </p>
         </div>
         {activeCv && (
@@ -58,9 +58,9 @@ export default async function CVPage() {
               <h3 className="font-semibold text-sm">Profile</h3>
             </div>
             <dl className="mt-4 space-y-3 text-sm">
-              <ProfileRow icon={User} label="Name" value={String(structured.name ?? '—')} />
-              <ProfileRow icon={Mail} label="Email" value={String(structured.email ?? '—')} />
-              <ProfileRow icon={MapPin} label="Location" value={String(structured.location ?? '—')} />
+              <ProfileRow icon={User} label="Name" value={String(structured.name ?? '-')} />
+              <ProfileRow icon={Mail} label="Email" value={String(structured.email ?? '-')} />
+              <ProfileRow icon={MapPin} label="Location" value={String(structured.location ?? '-')} />
             </dl>
           </div>
 
@@ -103,7 +103,7 @@ export default async function CVPage() {
                   <li key={i} className="rounded-xl border border-border/50 p-3">
                     <p className="font-medium text-sm">{String(exp.role ?? exp.title ?? 'Role')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {String(exp.company ?? '—')}
+                      {String(exp.company ?? '-')}
                       {exp.period ? ` · ${String(exp.period)}` : ''}
                     </p>
                   </li>

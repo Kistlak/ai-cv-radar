@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
   const photonUrl = new URL(PHOTON_URL)
   photonUrl.searchParams.set('q', q)
   photonUrl.searchParams.set('limit', '5')
-  // Bias toward cities/regions/countries — job searches rarely want a specific street.
+  // Bias toward cities/regions/countries - job searches rarely want a specific street.
   photonUrl.searchParams.append('osm_tag', 'place:city')
   photonUrl.searchParams.append('osm_tag', 'place:town')
   photonUrl.searchParams.append('osm_tag', 'place:state')
