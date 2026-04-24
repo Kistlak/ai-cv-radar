@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { ArrowLeft, Mail, Radar, CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { ArrowLeft, CheckCircle2, Mail, Radar } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -113,7 +113,7 @@ export default function LoginPage() {
 
                 <p className="text-center text-xs text-muted-foreground pt-2">
                   By continuing, you agree to the terms of use. We&apos;ll email you a
-                  one-time sign-in link — no password needed.
+                  one-time sign-in link - no password needed.
                 </p>
               </form>
             )}

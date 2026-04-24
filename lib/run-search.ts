@@ -1,12 +1,12 @@
-import { db } from '@/db'
-import { searches, jobResults, cvs } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
-import { fetchAllSourcesMultiQuery, dedupeJobs } from './job-sources'
+import { db } from '@/db'
+import { cvs, jobResults, searches } from '@/db/schema'
+import { desc, eq } from 'drizzle-orm'
+import { runAgenticSearch } from './agentic-search'
+import { deriveQueriesFromCv } from './derive-query'
+import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
 import type { RawJob } from './job-sources/types'
 import { scoreJobs } from './score-jobs'
-import { deriveQueriesFromCv } from './derive-query'
-import { runAgenticSearch } from './agentic-search'
 import { createProgressUpdater } from './search-progress'
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
@@ -136,7 +136,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     )
 
     if (await isCancelled(searchId)) {
-      console.log(`[run-search] ${searchId} cancelled before scoring — bailing`)
+      console.log(`[run-search] ${searchId} cancelled before scoring - bailing`)
       return
     }
 
@@ -156,7 +156,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       : allScored
 
     if (await isCancelled(searchId)) {
-      console.log(`[run-search] ${searchId} cancelled after scoring — skipping persistence`)
+      console.log(`[run-search] ${searchId} cancelled after scoring - skipping persistence`)
       return
     }
 

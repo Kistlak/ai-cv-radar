@@ -11,7 +11,7 @@ AI-powered job search that ranks job listings against your CV and helps you appl
   - **Cover letter** - a tailored draft grounded in your CV.
   - **Tailored CV** - an ATS-friendly MS Word document rewritten for the role. Download, edit, apply.
 - **Reusable polished CV and cover letter.** From your uploaded CV, generate a general ATS-friendly `.docx` and a cover-letter template (with `[Company Name]` / `[Role Title]` placeholders) you can send for similar roles.
-- **Auto Apply (browser extension).** Install the bundled Chromium extension and either click **Auto Apply** on a job result (opens the apply page and fills it for you) or click the extension popup's **Fill this form** button on any application page you've already opened. The extension never submits — you review every field and click submit yourself. Works on Greenhouse, Lever, Ashby, and Workable out of the box, plus a heuristic fallback for unknown ATSs.
+- **Auto Apply (browser extension).** Install the bundled Chromium extension and either click **Auto Apply** on a job result (opens the apply page and fills it for you) or click the extension popup's **Fill this form** button on any application page you've already opened. The extension never submits - you review every field and click submit yourself. Works on Greenhouse, Lever, Ashby, and Workable out of the box, plus a heuristic fallback for unknown ATSs.
 - **Cancel anytime.** Long-running searches stop cleanly from the UI.
 
 All AI outputs are cached. Each has an explicit Regenerate button if you want a fresh pass.
@@ -25,7 +25,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
 - **AI:** Anthropic Claude - Sonnet 4.6 for generation, Haiku 4.5 for scoring
 - **Job sources:** Remotive, Adzuna, JSearch (direct APIs); LinkedIn, Indeed, Glassdoor (via Apify)
 - **Document generation:** `docx` (Word output), `unpdf` (PDF parsing)
-- **Browser extension:** Manifest V3 (Chromium-based browsers — Chrome, Edge, Brave, Arc)
+- **Browser extension:** Manifest V3 (Chromium-based browsers - Chrome, Edge, Brave, Arc)
 - **Testing:** Playwright for end-to-end browser tests
 
 ## Getting started
@@ -70,7 +70,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    | `FALLBACK_ADZUNA_APP_KEY` | Adzuna source |
    | `FALLBACK_RAPIDAPI_KEY` | JSearch source |
 
-   > **Cost warning.** Anything you put in a `FALLBACK_*` var is billed to *your* account every time a user without their own key uses that feature. Anthropic and Apify costs scale fast — a single agentic search can run several Claude turns and dozens of Apify actor calls. Only set these if you're prepared to pay for shared usage, and consider rate-limiting or sign-up gating before going public.
+   > **Cost warning.** Anything you put in a `FALLBACK_*` var is billed to *your* account every time a user without their own key uses that feature. Anthropic and Apify costs scale fast - a single agentic search can run several Claude turns and dozens of Apify actor calls. Only set these if you're prepared to pay for shared usage, and consider rate-limiting or sign-up gating before going public.
 
 3. Push the schema to Supabase:
    ```bash
@@ -108,7 +108,7 @@ npm run test:e2e:report   # open the last HTML test report
 
 ## Auto Apply browser extension
 
-The `extension/` folder is an unpacked Manifest V3 extension for Chromium-based browsers (Chrome, Edge, Brave, Arc). It autofills job application forms with your CV Radar profile and **never submits** — you review every field and click submit yourself.
+The `extension/` folder is an unpacked Manifest V3 extension for Chromium-based browsers (Chrome, Edge, Brave, Arc). It autofills job application forms with your CV Radar profile and **never submits** - you review every field and click submit yourself.
 
 ### Install
 
@@ -130,7 +130,7 @@ ATS-aware selectors for **Greenhouse, Lever, Ashby, Workable**, plus a heuristic
 
 ### What it skips
 
-- File uploads (CV / cover letter `.docx`) — pick those yourself
+- File uploads (CV / cover letter `.docx`) - pick those yourself
 - Pages behind login walls (LinkedIn, Indeed, company SSO)
 - CAPTCHA, honeypots, custom freeform questions
 - Fields not present in your CV (visa sponsorship, salary expectation, EEO)
@@ -139,7 +139,7 @@ A floating badge in the bottom-right reports how many fields were filled and off
 
 ## Testing
 
-End-to-end tests use Playwright against the dev server. The current suite is a smoke layer — landing renders, login form behaves, protected routes redirect to `/login` when unauthenticated. Authenticated flows (upload CV → run search → open result) are not yet covered; they require Supabase test fixtures.
+End-to-end tests use Playwright against the dev server. The current suite is a smoke layer - landing renders, login form behaves, protected routes redirect to `/login` when unauthenticated. Authenticated flows (upload CV → run search → open result) are not yet covered; they require Supabase test fixtures.
 
 ### Run
 

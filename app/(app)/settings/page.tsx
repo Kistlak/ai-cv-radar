@@ -1,5 +1,5 @@
 import { ApiKeysForm } from '@/components/api-keys-form'
-import { Shield, Key } from 'lucide-react'
+import { Key, Shield } from 'lucide-react'
 
 export default function SettingsPage() {
   return (
@@ -11,7 +11,7 @@ export default function SettingsPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
           Bring your own keys. We encrypt them at rest and never send them back to your
-          browser. Each provider has its own signup — click the help link to get yours.
+          browser. Each provider has its own signup - click the help link to get yours.
         </p>
       </div>
 
@@ -44,8 +44,8 @@ export default function SettingsPage() {
               <h3 className="font-semibold text-sm">Minimum to search</h3>
             </div>
             <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-              Just an <strong className="text-foreground">Anthropic key</strong> is
-              required — we&apos;ll fall back to free Remotive jobs. Add Apify to unlock
+              Just an <strong className="text-foreground">Anthropic key </strong> is
+              required. We&apos;ll fall back to free Remotive jobs. Add Apify to unlock
               LinkedIn, Indeed, and Glassdoor.
             </p>
           </div>

@@ -45,7 +45,7 @@
   - Accepts PDF only, max 5MB
   - Shows upload + parsing progress states
   - On success: displays parsed CV in readable card layout
-  - Fields shown: Name, Email, Skills (badges), Experience (timeline), Education
+  - Fields shown: Name, Email, Skills (badges),  (timeline), Education
 
 - [ ] 6. Write `src/app/(app)/cv/page.tsx`
   - Shows current active CV (if exists)
