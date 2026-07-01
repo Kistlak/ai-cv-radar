@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { isCvJson, type CvJson } from '@/lib/cv-docx'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
+import type { AiClient } from '@/lib/ai/provider'
 
-async function generateGeneralCv(
-  cvText: string,
-  anthropicKey: string
-): Promise<CvJson> {
-  const client = new Anthropic({ apiKey: anthropicKey })
-
+async function generateGeneralCv(cvText: string, ai: AiClient): Promise<CvJson> {
   const prompt = `You are a professional CV editor producing an ATS-optimized, polished general-purpose CV. This CV is NOT tailored to a specific job — it should be a strong, reusable version the candidate can send for similar roles that fit their background.
 
 CANDIDATE CV (primary source of truth):
@@ -59,15 +54,8 @@ Style rules for maximum ATS score + recruiter readability:
 - Do not use first-person pronouns in bullets.
 - Make section content copy-pastable plain text (no markdown, no emojis, no decorative punctuation).`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 3500,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type')
-  const match = content.text.match(/\{[\s\S]*\}/)
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
+  const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('No JSON object in response')
 
   const parsed: unknown = JSON.parse(match[0])
@@ -84,14 +72,14 @@ export async function POST(req: NextRequest) {
 
   const loaded = await loadGeneralCvContext(user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { cv, anthropicKey } = loaded.ctx
+  const { cv, ai } = loaded.ctx
 
   if (!regenerate && cv.generalCv && isCvJson(cv.generalCv)) {
     return NextResponse.json({ generalCv: cv.generalCv, cached: true })
   }
 
   try {
-    const generalCv = await generateGeneralCv(cv.rawText, anthropicKey)
+    const generalCv = await generateGeneralCv(cv.rawText, ai)
     await db.update(cvs).set({ generalCv }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ generalCv, cached: false })
   } catch (err) {

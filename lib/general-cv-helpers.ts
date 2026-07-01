@@ -2,10 +2,11 @@ import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
+import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 
 export interface GeneralCvContext {
   cv: typeof cvs.$inferSelect
-  anthropicKey: string
+  ai: AiClient
 }
 
 export async function loadGeneralCvContext(
@@ -20,7 +21,10 @@ export async function loadGeneralCvContext(
   if (!cv) return { ok: false, error: 'Upload a CV first', status: 400 }
 
   const keys = await getDecryptedKeys(userId)
-  if (!keys?.anthropicKey) return { ok: false, error: 'Anthropic key required', status: 400 }
+  const resolved = resolveProvider(keys.preferredAiProvider, keys)
+  if (!resolved) {
+    return { ok: false, error: 'Add an Anthropic or Gemini API key in Settings', status: 400 }
+  }
 
-  return { ok: true, ctx: { cv, anthropicKey: keys.anthropicKey } }
+  return { ok: true, ctx: { cv, ai: createAiClient(resolved.provider, resolved.apiKey) } }
 }

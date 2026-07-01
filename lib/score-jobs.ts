@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import type { AiClient } from '@/lib/ai/provider'
 import type { RawJob } from './job-sources/types'
 
 interface ScoredJob extends RawJob {
@@ -53,22 +53,18 @@ ${jobList}`
 }
 
 async function scoreBatch(
-  client: Anthropic,
+  ai: AiClient,
   cvText: string,
   query: string,
   batch: RawJob[]
 ): Promise<ScoreResult[]> {
-  const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1500,
-    messages: [{ role: 'user', content: buildPrompt(cvText, query, batch) }],
-  })
-
-  const content = message.content[0]
-  if (content.type !== 'text') return batch.map((_, i) => ({ index: i, score: 30, reason: '' }))
-
   try {
-    const match = content.text.match(/\[[\s\S]*\]/)
+    const text = await ai.complete({
+      tier: 'fast',
+      maxTokens: 1500,
+      prompt: buildPrompt(cvText, query, batch),
+    })
+    const match = text.match(/\[[\s\S]*\]/)
     if (!match) throw new Error('No JSON array found')
     return JSON.parse(match[0]) as ScoreResult[]
   } catch {
@@ -80,16 +76,15 @@ export async function scoreJobs(
   jobs: RawJob[],
   cvText: string,
   query: string,
-  anthropicKey: string
+  ai: AiClient
 ): Promise<ScoredJob[]> {
   if (jobs.length === 0) return []
 
-  const client = new Anthropic({ apiKey: anthropicKey })
   const scored: ScoredJob[] = []
 
   for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
     const batch = jobs.slice(i, i + BATCH_SIZE)
-    const results = await scoreBatch(client, cvText, query, batch)
+    const results = await scoreBatch(ai, cvText, query, batch)
 
     for (let j = 0; j < batch.length; j++) {
       const result = results.find((r) => r.index === j)
