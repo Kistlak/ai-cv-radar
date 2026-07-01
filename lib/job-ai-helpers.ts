@@ -2,11 +2,12 @@ import { db } from '@/db'
 import { jobResults, searches, cvs } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
+import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 
 export interface JobAIContext {
   job: typeof jobResults.$inferSelect
   cvText: string
-  anthropicKey: string
+  ai: AiClient
 }
 
 export async function loadJobAIContext(
@@ -31,11 +32,14 @@ export async function loadJobAIContext(
   if (!cv) return { ok: false, error: 'No CV on file', status: 400 }
 
   const keys = await getDecryptedKeys(userId)
-  if (!keys?.anthropicKey) return { ok: false, error: 'Anthropic key required', status: 400 }
+  const resolved = resolveProvider(keys.preferredAiProvider, keys)
+  if (!resolved) {
+    return { ok: false, error: 'Add an Anthropic or Gemini API key in Settings', status: 400 }
+  }
 
   return {
     ok: true,
-    ctx: { job: row.job, cvText: cv.rawText, anthropicKey: keys.anthropicKey },
+    ctx: { job: row.job, cvText: cv.rawText, ai: createAiClient(resolved.provider, resolved.apiKey) },
   }
 }
 

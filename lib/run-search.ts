@@ -2,6 +2,7 @@ import { getDecryptedKeys } from '@/app/api/keys/route'
 import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
 import { desc, eq } from 'drizzle-orm'
+import { createAiClient, resolveProvider } from './ai/provider'
 import { runAgenticSearch } from './agentic-search'
 import { deriveQueriesFromCv } from './derive-query'
 import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
@@ -40,7 +41,9 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     if (!cv) throw new Error('No CV found for user')
 
     const keys = await getDecryptedKeys(userId)
-    if (!keys?.anthropicKey) throw new Error('Anthropic key not configured')
+    const resolved = resolveProvider(keys.preferredAiProvider, keys)
+    if (!resolved) throw new Error('Add an Anthropic or Gemini API key in Settings')
+    const ai = createAiClient(resolved.provider, resolved.apiKey)
 
     // Build the query list.
     // - If user provided a query → use it directly (predictable behavior).
@@ -51,7 +54,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       queries = [userQuery]
     } else {
       await setProgress({ stage: 'deriving-queries' })
-      queries = await deriveQueriesFromCv(cv.rawText, keys.anthropicKey, 3)
+      queries = await deriveQueriesFromCv(cv.rawText, ai, 3)
       console.log(`[run-search] auto-matched queries from CV: ${JSON.stringify(queries)}`)
       // Persist the primary derived query so the UI shows something sensible.
       await db
@@ -65,9 +68,14 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
 
     // Decide whether to use the agentic path for Apify sources.
     // Conditions: feature enabled + user has an Apify token + at least one Apify-backed source was selected.
+    // Agentic uses Claude MCP tool-use, so it also requires an Anthropic key regardless of the
+    // user's preferred provider — Gemini can't drive this path today.
     const selectedApify = search.sources.filter((s) => APIFY_SOURCES.has(s))
     const useAgentic =
-      AGENT_ENABLED && !!keys.apifyToken && selectedApify.length > 0
+      AGENT_ENABLED &&
+      !!keys.apifyToken &&
+      !!keys.anthropicKey &&
+      selectedApify.length > 0
 
     // If agentic: classic fan-out only for cheap sources; agentic handles Apify.
     // Else: classic fan-out handles everything as before.
@@ -107,7 +115,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
           location: search.location ?? undefined,
           remoteOnly: search.remoteOnly,
           maxResults: search.maxResults,
-          anthropicKey: keys.anthropicKey,
+          anthropicKey: keys.anthropicKey!,
           apifyToken: keys.apifyToken!,
           onEvent: async (e) => {
             if (e.type === 'mcp_calls') {
@@ -149,7 +157,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     }
 
     await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
-    const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, keys.anthropicKey)
+    const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, ai)
     // Respect the user's job-count preference by keeping the top-scoring N after scoring.
     const scoredJobs = search.maxResults
       ? [...allScored].sort((a, b) => b.matchScore - a.matchScore).slice(0, search.maxResults)

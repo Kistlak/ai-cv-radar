@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
+import type { AiClient } from '@/lib/ai/provider'
 
-async function generateGeneralCoverLetter(
-  cvText: string,
-  anthropicKey: string
-): Promise<string> {
-  const client = new Anthropic({ apiKey: anthropicKey })
-
+async function generateGeneralCoverLetter(cvText: string, ai: AiClient): Promise<string> {
   const prompt = `Write a polished, reusable general cover letter for this candidate. The candidate will customize it for specific jobs by replacing the bracketed placeholders, so keep it strong but adaptable.
 
 CANDIDATE CV:
@@ -28,15 +23,8 @@ Rules:
 - Do not claim skills, certifications, employers, or metrics not present in the CV.
 - Return ONLY the letter text, starting with the salutation. No preamble, no notes.`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type')
-  return content.text.trim()
+  const text = await ai.complete({ tier: 'smart', maxTokens: 1500, prompt })
+  return text.trim()
 }
 
 export async function POST(req: NextRequest) {
@@ -48,14 +36,14 @@ export async function POST(req: NextRequest) {
 
   const loaded = await loadGeneralCvContext(user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { cv, anthropicKey } = loaded.ctx
+  const { cv, ai } = loaded.ctx
 
   if (!regenerate && cv.generalCoverLetter) {
     return NextResponse.json({ coverLetter: cv.generalCoverLetter, cached: true })
   }
 
   try {
-    const coverLetter = await generateGeneralCoverLetter(cv.rawText, anthropicKey)
+    const coverLetter = await generateGeneralCoverLetter(cv.rawText, ai)
     await db.update(cvs).set({ generalCoverLetter: coverLetter }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ coverLetter, cached: false })
   } catch (err) {

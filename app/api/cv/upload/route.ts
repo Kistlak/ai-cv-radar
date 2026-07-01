@@ -2,7 +2,7 @@ import { getDecryptedKeys } from '@/app/api/keys/route'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { createAiClient, resolveProvider } from '@/lib/ai/provider'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractText, getDocumentProxy } from 'unpdf'
@@ -19,10 +19,12 @@ export async function POST(req: NextRequest) {
     if (!file || file.type !== 'application/pdf')
         return NextResponse.json({ error: 'A PDF file is required' }, { status: 400 })
 
-    // 3. Fetch and decrypt the user's Anthropic key from the DB
+    // 3. Fetch keys and resolve the active AI provider (Anthropic or Gemini)
     const keys = await getDecryptedKeys(user.id)
-    if (!keys?.anthropicKey)
-        return NextResponse.json({ error: 'Anthropic key not configured. Add it in Settings.' }, { status: 400 })
+    const resolved = resolveProvider(keys.preferredAiProvider, keys)
+    if (!resolved)
+        return NextResponse.json({ error: 'Add an Anthropic or Gemini API key in Settings.' }, { status: 400 })
+    const ai = createAiClient(resolved.provider, resolved.apiKey)
 
     // 4. Convert the file to a Buffer (raw bytes) so we can parse and upload it
     const buffer = Buffer.from(await file.arrayBuffer())
@@ -43,14 +45,13 @@ export async function POST(req: NextRequest) {
     if (storageError)
         return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
 
-    // 7. Ask Claude to extract structured data from the raw CV text
-    const client = new Anthropic({ apiKey: keys.anthropicKey })
-    const message = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
-        messages: [{
-            role: 'user',
-            content: `Extract structured data from this CV. Return ONLY valid JSON matching this exact shape, no explanation:
+    // 7. Ask the active AI provider to extract structured data from the raw CV text
+    let structured: Record<string, unknown>
+    try {
+        const text = await ai.complete({
+            tier: 'smart',
+            maxTokens: 2048,
+            prompt: `Extract structured data from this CV. Return ONLY valid JSON matching this exact shape, no explanation:
   {
     "name": string,
     "email": string | null,
@@ -63,19 +64,12 @@ export async function POST(req: NextRequest) {
 
   CV text:
   ${rawText}`,
-        }],
-    })
-
-    // 8. Parse Claude's JSON response
-    let structured: Record<string, unknown>
-    try {
-        const content = message.content[0]
-        if (content.type !== 'text') throw new Error()
-        const jsonMatch = content.text.match(/\{[\s\S]*\}/)
+        })
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
         if (!jsonMatch) throw new Error()
         structured = JSON.parse(jsonMatch[0])
     } catch {
-        return NextResponse.json({ error: 'Claude could not parse the CV structure' }, { status: 500 })
+        return NextResponse.json({ error: 'AI could not parse the CV structure' }, { status: 500 })
     }
 
     // 9. Deactivate any previous CVs for this user (only one active at a time)

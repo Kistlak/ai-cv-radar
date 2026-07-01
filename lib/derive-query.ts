@@ -1,18 +1,14 @@
-import Anthropic from '@anthropic-ai/sdk'
+import type { AiClient } from '@/lib/ai/provider'
 
 export async function deriveQueriesFromCv(
   cvText: string,
-  anthropicKey: string,
+  ai: AiClient,
   count = 3
 ): Promise<string[]> {
-  const client = new Anthropic({ apiKey: anthropicKey })
-
-  const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 300,
-    messages: [{
-      role: 'user',
-      content: `Based on this CV, generate ${count} complementary job search queries to cast a wide net while staying relevant to the candidate's actual stack.
+  const text = await ai.complete({
+    tier: 'fast',
+    maxTokens: 300,
+    prompt: `Based on this CV, generate ${count} complementary job search queries to cast a wide net while staying relevant to the candidate's actual stack.
 
 Rules:
 - Each query is 2–5 words (like a LinkedIn search)
@@ -25,14 +21,10 @@ Return ONLY a JSON array of ${count} strings, no explanation. Example:
 
 CV:
 ${cvText.slice(0, 4000)}`,
-    }],
   })
 
-  const content = message.content[0]
-  if (content.type !== 'text') return ['Software Engineer']
-
   try {
-    const match = content.text.match(/\[[\s\S]*?\]/)
+    const match = text.match(/\[[\s\S]*?\]/)
     if (!match) throw new Error('No array found')
     const arr = JSON.parse(match[0]) as unknown
     if (!Array.isArray(arr)) throw new Error('Not an array')
@@ -46,10 +38,7 @@ ${cvText.slice(0, 4000)}`,
   }
 }
 
-export async function deriveQueryFromCv(
-  cvText: string,
-  anthropicKey: string
-): Promise<string> {
-  const [first] = await deriveQueriesFromCv(cvText, anthropicKey, 1)
+export async function deriveQueryFromCv(cvText: string, ai: AiClient): Promise<string> {
+  const [first] = await deriveQueriesFromCv(cvText, ai, 1)
   return first ?? 'Software Engineer'
 }

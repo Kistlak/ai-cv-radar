@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { jobResults } from '@/db/schema'
 import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
 import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import type { AiClient } from '@/lib/ai/provider'
 
 // Alias kept for callers that still import TailoredCv/isTailoredCv.
 export type TailoredCv = CvJson
@@ -14,10 +14,8 @@ export const isTailoredCv = isCvJson
 async function generateTailoredCv(
   cvText: string,
   jobBlock: string,
-  anthropicKey: string
+  ai: AiClient
 ): Promise<TailoredCv> {
-  const client = new Anthropic({ apiKey: anthropicKey })
-
   const prompt = `You are a professional CV editor producing an ATS-optimized CV. Restructure the candidate's CV so it is maximally aligned with the specific job below, while staying defensible in an interview.
 
 CANDIDATE CV (primary source of truth):
@@ -78,15 +76,8 @@ Style rules:
 - Prefer concrete CV details over generic phrasing.
 - "title" should reflect the target role aligned to the job while staying honest about the candidate's level.`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 3500,
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type')
-  const match = content.text.match(/\{[\s\S]*\}/)
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
+  const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('No JSON object in response')
 
   const parsed: unknown = JSON.parse(match[0])
@@ -107,14 +98,14 @@ export async function POST(
 
   const loaded = await loadJobAIContext(id, user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { job, cvText, anthropicKey } = loaded.ctx
+  const { job, cvText, ai } = loaded.ctx
 
   if (!regenerate && job.tailoredCv && isCvJson(job.tailoredCv)) {
     return NextResponse.json({ tailoredCv: job.tailoredCv, cached: true })
   }
 
   try {
-    const tailoredCv = await generateTailoredCv(cvText, jobDescriptionForPrompt(job), anthropicKey)
+    const tailoredCv = await generateTailoredCv(cvText, jobDescriptionForPrompt(job), ai)
     await db.update(jobResults).set({ tailoredCv }).where(eq(jobResults.id, id))
     return NextResponse.json({ tailoredCv, cached: false })
   } catch (err) {

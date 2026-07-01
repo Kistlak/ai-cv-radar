@@ -3,19 +3,25 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, ExternalLink, Eye, EyeOff, KeyRound } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Eye, EyeOff, KeyRound, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+type AiProvider = 'anthropic' | 'gemini'
 
 type KeyStatus = {
   anthropic_key: boolean
+  gemini_key: boolean
+  preferred_ai_provider: AiProvider
   apify_token: boolean
   adzuna_app_id: boolean
   adzuna_app_key: boolean
   rapidapi_key: boolean
 }
 
+type KeyFieldId = Exclude<keyof KeyStatus, 'preferred_ai_provider'>
+
 type KeyField = {
-  id: keyof KeyStatus
+  id: KeyFieldId
   label: string
   placeholder: string
   helpUrl: string
@@ -29,8 +35,14 @@ const KEY_FIELDS: KeyField[] = [
     label: 'Anthropic API Key',
     placeholder: 'sk-ant-...',
     helpUrl: 'https://console.anthropic.com/settings/keys',
-    description: 'Required - powers CV parsing and job ranking',
-    required: true,
+    description: 'Powers CV parsing and job ranking. Required for agentic (LinkedIn/Indeed) search.',
+  },
+  {
+    id: 'gemini_key',
+    label: 'Google Gemini API Key',
+    placeholder: 'AIza...',
+    helpUrl: 'https://aistudio.google.com/apikey',
+    description: 'Free-tier alternative. Powers CV parsing and job ranking. Cannot drive agentic search.',
   },
   {
     id: 'apify_token',
@@ -64,10 +76,11 @@ const KEY_FIELDS: KeyField[] = [
 
 export function ApiKeysForm() {
   const [status, setStatus] = useState<KeyStatus | null>(null)
-  const [values, setValues] = useState<Partial<Record<keyof KeyStatus, string>>>({})
-  const [visible, setVisible] = useState<Partial<Record<keyof KeyStatus, boolean>>>({})
-  const [saving, setSaving] = useState<keyof KeyStatus | null>(null)
-  const [saved, setSaved] = useState<keyof KeyStatus | null>(null)
+  const [values, setValues] = useState<Partial<Record<KeyFieldId, string>>>({})
+  const [visible, setVisible] = useState<Partial<Record<KeyFieldId, boolean>>>({})
+  const [saving, setSaving] = useState<KeyFieldId | null>(null)
+  const [saved, setSaved] = useState<KeyFieldId | 'preferred_ai_provider' | null>(null)
+  const [savingProvider, setSavingProvider] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -77,7 +90,7 @@ export function ApiKeysForm() {
       .catch(() => {})
   }, [])
 
-  async function saveKey(id: keyof KeyStatus) {
+  async function saveKey(id: KeyFieldId) {
     const value = values[id]
     if (!value?.trim()) return
     setSaving(id)
@@ -100,11 +113,78 @@ export function ApiKeysForm() {
     setSaving(null)
   }
 
+  async function saveProvider(provider: AiProvider) {
+    if (!status || savingProvider || status.preferred_ai_provider === provider) return
+    setSavingProvider(true)
+    setError(null)
+
+    const res = await fetch('/api/keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferred_ai_provider: provider }),
+    })
+
+    if (res.ok) {
+      setStatus((prev) => (prev ? { ...prev, preferred_ai_provider: provider } : prev))
+      setSaved('preferred_ai_provider')
+      setTimeout(() => setSaved(null), 2500)
+    } else {
+      setError('Failed to update provider. Please try again.')
+    }
+    setSavingProvider(false)
+  }
+
+  const hasAnthropic = !!status?.anthropic_key
+  const hasGemini = !!status?.gemini_key
+  const preferred = status?.preferred_ai_provider ?? 'anthropic'
+
   return (
     <div className="space-y-3">
       {error && (
         <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
           {error}
+        </div>
+      )}
+
+      {status && (hasAnthropic || hasGemini) && (
+        <div
+          className={cn(
+            'glass rounded-2xl p-5 transition-all',
+            saved === 'preferred_ai_provider' && 'ring-1 ring-green-500/40'
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-violet-500" />
+            <h3 className="font-semibold text-sm">Active AI provider</h3>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Used for CV parsing, job scoring, and cover letters. Agentic (LinkedIn/Indeed) search
+            always uses Anthropic.
+          </p>
+          <div className="mt-3 inline-flex rounded-lg bg-muted/40 p-1 ring-1 ring-border">
+            <ProviderPill
+              label="Anthropic"
+              active={preferred === 'anthropic'}
+              disabled={!hasAnthropic || savingProvider}
+              onClick={() => saveProvider('anthropic')}
+            />
+            <ProviderPill
+              label="Gemini (free)"
+              active={preferred === 'gemini'}
+              disabled={!hasGemini || savingProvider}
+              onClick={() => saveProvider('gemini')}
+            />
+          </div>
+          {!hasAnthropic && preferred === 'anthropic' && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+              No Anthropic key set — add one below or switch to Gemini.
+            </p>
+          )}
+          {!hasGemini && preferred === 'gemini' && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+              No Gemini key set — add one below or switch to Anthropic.
+            </p>
+          )}
         </div>
       )}
 
@@ -193,5 +273,34 @@ export function ApiKeysForm() {
         )
       })}
     </div>
+  )
+}
+
+function ProviderPill({
+  label,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+        active
+          ? 'bg-background text-foreground shadow-sm ring-1 ring-border'
+          : 'text-muted-foreground hover:text-foreground',
+        disabled && 'cursor-not-allowed opacity-50 hover:text-muted-foreground'
+      )}
+    >
+      {label}
+    </button>
   )
 }

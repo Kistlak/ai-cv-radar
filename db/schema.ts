@@ -21,6 +21,8 @@ export const userApiKeys = pgTable('user_api_keys', {
     .primaryKey()
     .references(() => profiles.id, { onDelete: 'cascade' }),
   anthropicKey: text('anthropic_key'),
+  geminiKey: text('gemini_key'),
+  preferredAiProvider: text('preferred_ai_provider').notNull().default('anthropic'),
   apifyToken: text('apify_token'),
   adzunaAppId: text('adzuna_app_id'),
   adzunaAppKey: text('adzuna_app_key'),
