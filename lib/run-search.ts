@@ -7,6 +7,7 @@ import { runAgenticSearch } from './agentic-search'
 import { deriveQueriesFromCv } from './derive-query'
 import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
 import type { RawJob } from './job-sources/types'
+import { logger } from './logger'
 import { scoreJobs } from './score-jobs'
 import { createProgressUpdater } from './search-progress'
 
@@ -24,6 +25,8 @@ async function isCancelled(searchId: string): Promise<boolean> {
 
 export async function runSearch(searchId: string, userId: string): Promise<void> {
   const setProgress = createProgressUpdater(searchId)
+  const t0 = Date.now()
+  logger.info({ event: 'run_search.started', searchId, userId })
   try {
     const [search] = await db
       .select()
@@ -54,8 +57,15 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       queries = [userQuery]
     } else {
       await setProgress({ stage: 'deriving-queries' })
+      const tDerive = Date.now()
       queries = await deriveQueriesFromCv(cv.rawText, ai, 3)
-      console.log(`[run-search] auto-matched queries from CV: ${JSON.stringify(queries)}`)
+      logger.info({
+        event: 'run_search.queries_derived',
+        searchId,
+        provider: ai.provider,
+        queries,
+        ms: Date.now() - tDerive,
+      })
       // Persist the primary derived query so the UI shows something sensible.
       await db
         .update(searches)
@@ -88,6 +98,14 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       queries,
       cheapSources,
       agentic: useAgentic,
+    })
+    const tFetch = Date.now()
+    logger.info({
+      event: 'run_search.fetch_started',
+      searchId,
+      cheapSources,
+      useAgentic,
+      queryCount: queries.length,
     })
 
     const cheapJobsPromise = fetchAllSourcesMultiQuery(
@@ -128,7 +146,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
             return jobs
           })
           .catch(async (err) => {
-            console.error('[run-search] agentic path failed, falling back to empty:', err)
+            logger.error({ event: 'run_search.agentic_failed', searchId, err })
             await setProgress({ agenticDone: true, agenticCount: 0 })
             return [] as RawJob[]
           })
@@ -139,16 +157,22 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       agenticJobsPromise,
     ])
     const rawJobs = dedupeJobs([...cheapJobs, ...agenticJobs])
-    console.log(
-      `[run-search] cheap=${cheapJobs.length} agentic=${agenticJobs.length} → ${rawJobs.length} after dedupe`
-    )
+    logger.info({
+      event: 'run_search.fetch_completed',
+      searchId,
+      cheap: cheapJobs.length,
+      agentic: agenticJobs.length,
+      deduped: rawJobs.length,
+      ms: Date.now() - tFetch,
+    })
 
     if (await isCancelled(searchId)) {
-      console.log(`[run-search] ${searchId} cancelled before scoring - bailing`)
+      logger.warn({ event: 'run_search.cancelled', searchId, phase: 'before-scoring' })
       return
     }
 
     if (rawJobs.length === 0) {
+      logger.info({ event: 'run_search.completed', searchId, scoredJobs: 0, ms: Date.now() - t0 })
       await db
         .update(searches)
         .set({ status: 'complete', completedAt: new Date() })
@@ -157,14 +181,22 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     }
 
     await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
+    const tScore = Date.now()
     const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, ai)
+    logger.info({
+      event: 'run_search.scoring_completed',
+      searchId,
+      provider: ai.provider,
+      scored: allScored.length,
+      ms: Date.now() - tScore,
+    })
     // Respect the user's job-count preference by keeping the top-scoring N after scoring.
     const scoredJobs = search.maxResults
       ? [...allScored].sort((a, b) => b.matchScore - a.matchScore).slice(0, search.maxResults)
       : allScored
 
     if (await isCancelled(searchId)) {
-      console.log(`[run-search] ${searchId} cancelled after scoring - skipping persistence`)
+      logger.warn({ event: 'run_search.cancelled', searchId, phase: 'after-scoring' })
       return
     }
 
@@ -199,16 +231,27 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       .update(searches)
       .set({ status: 'complete', completedAt: new Date() })
       .where(eq(searches.id, searchId))
+    logger.info({
+      event: 'run_search.completed',
+      searchId,
+      scoredJobs: scoredJobs.length,
+      ms: Date.now() - t0,
+    })
   } catch (err) {
-    console.error('[runSearch] failed:', err)
-    if (await isCancelled(searchId)) return
-    await db
-      .update(searches)
-      .set({
-        status: 'failed',
-        error: err instanceof Error ? err.message : 'Unknown error',
-        completedAt: new Date(),
-      })
-      .where(eq(searches.id, searchId))
+    logger.error({ event: 'run_search.failed', searchId, err, ms: Date.now() - t0 })
+    if (!(await isCancelled(searchId))) {
+      await db
+        .update(searches)
+        .set({
+          status: 'failed',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          completedAt: new Date(),
+        })
+        .where(eq(searches.id, searchId))
+    }
+  } finally {
+    // Flush any in-flight Axiom ships before the serverless function ends,
+    // otherwise the final events (completed/failed) get dropped.
+    await logger.flush()
   }
 }
