@@ -13,6 +13,11 @@ import { createProgressUpdater } from './search-progress'
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
 const APIFY_SOURCES = new Set(['linkedin', 'indeed', 'glassdoor'])
+// Hard budget for the agentic Claude+Apify call. It must finish comfortably
+// inside the route's maxDuration (300s) or Vercel kills the whole pipeline and
+// the search is stranded in 'running'. On timeout we abort the request and
+// continue with the cheap-source jobs instead.
+const AGENTIC_TIMEOUT_MS = Number(process.env.AGENTIC_TIMEOUT_MS || 210_000)
 
 async function isCancelled(searchId: string): Promise<boolean> {
   const [row] = await db
@@ -127,29 +132,42 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     })
 
     const agenticJobsPromise: Promise<RawJob[]> = useAgentic
-      ? runAgenticSearch({
-          cvText: cv.rawText,
-          userQuery: primaryQuery,
-          location: search.location ?? undefined,
-          remoteOnly: search.remoteOnly,
-          maxResults: search.maxResults,
-          anthropicKey: keys.anthropicKey!,
-          apifyToken: keys.apifyToken!,
-          onEvent: async (e) => {
-            if (e.type === 'mcp_calls') {
-              await setProgress({ agenticMcpCalls: e.count })
+      ? (async () => {
+          const controller = new AbortController()
+          const timer = setTimeout(() => controller.abort(), AGENTIC_TIMEOUT_MS)
+          let jobs: RawJob[] = []
+          try {
+            jobs = await runAgenticSearch({
+              cvText: cv.rawText,
+              userQuery: primaryQuery,
+              location: search.location ?? undefined,
+              remoteOnly: search.remoteOnly,
+              maxResults: search.maxResults,
+              anthropicKey: keys.anthropicKey!,
+              apifyToken: keys.apifyToken!,
+              signal: controller.signal,
+              onEvent: async (e) => {
+                if (e.type === 'mcp_calls') {
+                  await setProgress({ agenticMcpCalls: e.count })
+                }
+              },
+            })
+          } catch (err) {
+            if (controller.signal.aborted) {
+              logger.warn({
+                event: 'run_search.agentic_timeout',
+                searchId,
+                timeoutMs: AGENTIC_TIMEOUT_MS,
+              })
+            } else {
+              logger.error({ event: 'run_search.agentic_failed', searchId, err })
             }
-          },
-        })
-          .then(async (jobs) => {
-            await setProgress({ agenticDone: true, agenticCount: jobs.length })
-            return jobs
-          })
-          .catch(async (err) => {
-            logger.error({ event: 'run_search.agentic_failed', searchId, err })
-            await setProgress({ agenticDone: true, agenticCount: 0 })
-            return [] as RawJob[]
-          })
+          } finally {
+            clearTimeout(timer)
+          }
+          await setProgress({ agenticDone: true, agenticCount: jobs.length })
+          return jobs
+        })()
       : Promise.resolve<RawJob[]>([])
 
     const [cheapJobs, agenticJobs] = await Promise.all([
