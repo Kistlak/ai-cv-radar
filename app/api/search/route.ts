@@ -10,6 +10,13 @@ import { runSearch } from '@/lib/run-search'
 import { z } from 'zod'
 import crypto from 'crypto'
 
+// The response returns in ~1s, but the after() background pipeline (derive →
+// fetch/agentic → score → persist) runs inside this function's duration budget.
+// Without this, Vercel kills the worker at the default limit mid-run and the
+// search is stranded in 'running' with no error. 300s is the Hobby-plan ceiling
+// (requires Fluid Compute, the default for new projects).
+export const maxDuration = 300
+
 const SearchSchema = z.object({
   query: z.string().max(200).optional().default(''),
   location: z.string().max(100).optional(),
