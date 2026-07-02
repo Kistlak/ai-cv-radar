@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { RawJob } from './job-sources/types'
+import { logger } from './logger'
 
 const APIFY_MCP_URL = process.env.APIFY_MCP_URL || 'https://mcp.apify.com'
 const AGENT_MODEL = process.env.AGENT_MODEL || 'claude-sonnet-4-6'
@@ -160,10 +161,16 @@ function toRawJobs(payload: FinalizeJobsInput): RawJob[] {
 
 export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJob[]> {
   const client = new Anthropic({ apiKey: input.anthropicKey })
+  const t0 = Date.now()
 
-  console.log(
-    `[agentic-search] model=${AGENT_MODEL} mcp=${APIFY_MCP_URL} query="${input.userQuery}" location="${input.location ?? ''}" remote=${input.remoteOnly}`
-  )
+  logger.info({
+    event: 'agentic_search.started',
+    model: AGENT_MODEL,
+    mcpUrl: APIFY_MCP_URL,
+    query: input.userQuery,
+    location: input.location ?? '',
+    remoteOnly: input.remoteOnly,
+  })
 
   const response = await client.beta.messages.create({
     model: AGENT_MODEL,
@@ -189,25 +196,40 @@ export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJo
   for (const block of response.content) {
     if (block.type === 'mcp_tool_use') mcpCalls++
   }
-  console.log(
-    `[agentic-search] stop_reason=${response.stop_reason} mcp_calls=${mcpCalls} input_tokens=${response.usage.input_tokens} output_tokens=${response.usage.output_tokens}`
-  )
+  logger.info({
+    event: 'agentic_search.model_returned',
+    stopReason: response.stop_reason,
+    mcpCalls,
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+    ms: Date.now() - t0,
+  })
   if (input.onEvent) {
     try {
       await input.onEvent({ type: 'mcp_calls', count: mcpCalls })
     } catch (err) {
-      console.warn('[agentic-search] onEvent failed:', err)
+      logger.warn({ event: 'agentic_search.on_event_failed', err })
     }
   }
 
   for (const block of response.content) {
     if (block.type === 'tool_use' && block.name === 'finalize_jobs') {
       const jobs = toRawJobs(block.input as FinalizeJobsInput)
-      console.log(`[agentic-search] finalized ${jobs.length} jobs`)
+      logger.info({
+        event: 'agentic_search.finalized',
+        jobs: jobs.length,
+        mcpCalls,
+        ms: Date.now() - t0,
+      })
       return jobs
     }
   }
 
-  console.warn('[agentic-search] model did not call finalize_jobs — returning empty result')
+  logger.warn({
+    event: 'agentic_search.no_finalize',
+    stopReason: response.stop_reason,
+    mcpCalls,
+    ms: Date.now() - t0,
+  })
   return []
 }
