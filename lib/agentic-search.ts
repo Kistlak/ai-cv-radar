@@ -17,6 +17,9 @@ export interface AgenticSearchInput {
   maxResults?: number | null
   anthropicKey: string
   apifyToken: string
+  // Aborts the in-flight Anthropic request (run-search uses this to enforce a
+  // time budget so the serverless function isn't killed mid-pipeline).
+  signal?: AbortSignal
   onEvent?: (event: AgenticEvent) => void | Promise<void>
 }
 
@@ -190,7 +193,7 @@ export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJo
       FINALIZE_JOBS_TOOL,
     ],
     betas: [MCP_BETA],
-  })
+  }, { signal: input.signal })
 
   let mcpCalls = 0
   for (const block of response.content) {
