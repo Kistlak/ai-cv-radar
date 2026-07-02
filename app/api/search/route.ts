@@ -2,8 +2,10 @@ import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { cvs, userApiKeys, searches } from '@/db/schema'
+import { cvs, searches } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { getDecryptedKeys } from '@/app/api/keys/route'
+import { resolveProvider } from '@/lib/ai/provider'
 import { runSearch } from '@/lib/run-search'
 import { z } from 'zod'
 import crypto from 'crypto'
@@ -32,14 +34,15 @@ export async function POST(req: NextRequest) {
   const [cv] = await db.select({ id: cvs.id }).from(cvs).where(eq(cvs.userId, user.id)).limit(1)
   if (!cv) return NextResponse.json({ error: 'Upload a CV before searching' }, { status: 400 })
 
-  // Verify user has an Anthropic key
-  const [keys] = await db
-    .select({ anthropicKey: userApiKeys.anthropicKey })
-    .from(userApiKeys)
-    .where(eq(userApiKeys.userId, user.id))
-    .limit(1)
-  if (!keys?.anthropicKey)
-    return NextResponse.json({ error: 'Anthropic key required' }, { status: 400 })
+  // Verify the user can run AI calls with either provider (their own key or an
+  // operator FALLBACK_* env key). The agentic Apify path additionally needs an
+  // Anthropic key — run-search checks that per-search and falls back gracefully.
+  const keys = await getDecryptedKeys(user.id)
+  if (!resolveProvider(keys.preferredAiProvider, keys))
+    return NextResponse.json(
+      { error: 'Add an Anthropic or Gemini API key in Settings' },
+      { status: 400 }
+    )
 
   // Stable hash of the sources array so the schema constraint is satisfied
   const sourcesHash = crypto
