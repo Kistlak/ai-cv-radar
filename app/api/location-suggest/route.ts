@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUser } from '@/lib/auth'
 
 // Photon is a free OSM-based autocomplete service (https://photon.komoot.io).
 // No key required. Public rate limits are generous for modest use;
@@ -68,6 +69,10 @@ function formatSuggestion(feat: PhotonFeature): Suggestion | null {
 }
 
 export async function GET(req: NextRequest) {
+  // Signed-in users only, so the endpoint isn't an open proxy to Photon.
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+
   const q = (req.nextUrl.searchParams.get('q') || '').trim()
   if (q.length < 2) return NextResponse.json({ suggestions: [] })
 

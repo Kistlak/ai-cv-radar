@@ -1,7 +1,6 @@
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { createClient } from '@/lib/supabase/server'
 import { createAiClient, resolveProvider } from '@/lib/ai/provider'
 import {
     CV_TOO_LARGE_MESSAGE,
@@ -15,12 +14,13 @@ import { consumeQuota, isAiFallback, quotaExceededResponse } from '@/lib/usage-l
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractText, getDocumentProxy } from 'unpdf'
+import { requireUser } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
     // 1. Check the user is logged in
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await requireUser()
+    if (auth.response) return auth.response
+    const { user, supabase } = auth
 
     // 2. Get the uploaded file from the form. Reject an oversized body from its
     //    header before formData() reads it all into memory; file.size below is
