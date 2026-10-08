@@ -4,7 +4,7 @@ AI-powered job search that ranks job listings against your CV and helps you appl
 
 ## What it does
 
-- **Upload your CV once.** A PDF is text-extracted and parsed into structured data (skills, experience, education) by Claude.
+- **Upload your CV once.** A PDF is text-extracted and parsed into structured data (skills, experience, education) by the AI (Claude or Gemini).
 - **Search jobs across multiple sources.** Remotive, Adzuna, and JSearch are free tier prefilters; LinkedIn, Indeed, and Glassdoor run through Apify. When an Apify token is present, Claude drives the search as an agentic loop - calling actors, reading results, and refining the query when results are weak.
 - **Every job gets three AI actions:**
   - **Deep dive** - honest fit analysis: strengths, gaps, and what to emphasize.
@@ -22,7 +22,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
 - **UI:** Tailwind CSS 4, Base UI, lucide-react, sonner
 - **Database:** Supabase Postgres via Drizzle ORM
 - **Auth & storage:** Supabase (CV PDFs in a private bucket)
-- **AI:** Anthropic Claude - Sonnet 4.6 for generation, Haiku 4.5 for scoring
+- **AI:** Anthropic Claude (Sonnet 4.6 for generation, Haiku 4.5 for scoring) or Google Gemini (2.5 Flash, free tier). The agentic LinkedIn / Indeed / Glassdoor search always uses Claude.
 - **Job sources:** Remotive, Adzuna, JSearch (direct APIs); LinkedIn, Indeed, Glassdoor (via Apify)
 - **Document generation:** `docx` (Word output), `unpdf` (PDF parsing)
 - **Browser extension:** Manifest V3 (Chromium-based browsers - Chrome, Edge, Brave, Arc)
@@ -34,7 +34,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
 
 - Node.js 20+
 - A Supabase project
-- An Anthropic API key (each user adds their own in Settings)
+- An Anthropic or Google Gemini API key (each user adds their own in Settings)
 - Optional: Apify token, Adzuna app ID + key, RapidAPI key - for broader source coverage
 
 ### Setup
@@ -55,9 +55,9 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    | --- | --- |
    | `NEXT_PUBLIC_SUPABASE_URL` | From your Supabase project |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | From your Supabase project |
-   | `SUPABASE_SERVICE_ROLE_KEY` | From your Supabase project |
    | `DATABASE_URL` | Supabase connection string (Drizzle uses this) |
    | `APP_ENCRYPTION_KEY` | Encrypts user API keys at rest. Generate with `openssl rand -base64 32` |
+   | `APP_ENCRYPTION_KEY_PREVIOUS` | Optional. Set to the old key while rotating `APP_ENCRYPTION_KEY`, so saved keys still decrypt |
    | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` in dev |
 
    **Optional operator-provided fallback keys.** If you want users without their own keys to still be able to use the app, set any of these. They are used only when the user hasn't configured their own key in Settings.
@@ -65,6 +65,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    | Variable | Falls back for |
    | --- | --- |
    | `FALLBACK_ANTHROPIC_KEY` | Claude (CV parsing, scoring, deep dive, cover letter, tailored CV, agentic search) |
+   | `FALLBACK_GEMINI_KEY` | Gemini (CV parsing, scoring, deep dive, cover letter, tailored CV; not agentic search) |
    | `FALLBACK_APIFY_TOKEN` | LinkedIn / Indeed / Glassdoor scraping + agentic loop |
    | `FALLBACK_ADZUNA_APP_ID` | Adzuna source |
    | `FALLBACK_ADZUNA_APP_KEY` | Adzuna source |
@@ -74,10 +75,11 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    >
    > **Built-in limits.** Calls paid by a `FALLBACK_*` key are capped per user per day (UTC): 5 searches, 30 AI generations (deep dive, cover letters, tailored/general CV), and 5 CV uploads. Every user is also limited to 1 running search at a time. Over the limit, the API returns `429` with a `Retry-After` header. Tune with `QUOTA_SEARCHES_PER_DAY`, `QUOTA_AI_GENERATIONS_PER_DAY`, `QUOTA_CV_UPLOADS_PER_DAY`, and `MAX_CONCURRENT_SEARCHES` (`0` disables a limit). Requires the `usage_counters` table from `supabase/migrations/20261008_add_usage_counters.sql`. Consider sign-up gating too before going public.
 
-3. Push the schema to Supabase:
+3. Create the schema. For a **new, empty** database only:
    ```bash
    npx drizzle-kit push
    ```
+   Then apply `supabase/policies.sql` in the Supabase SQL editor. For an **existing** database, never use `drizzle-kit push`; apply new migration files with `npm run db:apply` (see `supabase/migrations/README.md`).
 
 4. In the Supabase dashboard, create a private Storage bucket named `cvs` for uploaded PDFs.
 
@@ -86,7 +88,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    npm run dev
    ```
 
-6. Sign up, open **Settings**, and paste your Anthropic key (plus optional Apify / Adzuna / RapidAPI keys). Keys are encrypted with `APP_ENCRYPTION_KEY` before they touch the database.
+6. Sign up, open **Settings**, and paste your Anthropic or Gemini key (plus optional Apify / Adzuna / RapidAPI keys). Keys are encrypted with `APP_ENCRYPTION_KEY` before they touch the database.
 
 ### Scripts
 
@@ -95,6 +97,10 @@ npm run dev               # start the dev server
 npm run build             # production build
 npm run start             # run the production build
 npm run lint              # ESLint
+npm run typecheck         # TypeScript, no emit
+npm test                  # unit tests (Vitest)
+npm run test:integration  # cross-user DB tests (hits DATABASE_URL; not run in CI)
+npm run db:apply -- <file> # apply one SQL migration in a transaction
 npm run test:e2e          # run Playwright end-to-end tests
 npm run test:e2e:ui       # Playwright UI mode (interactive debugger)
 npm run test:e2e:report   # open the last HTML test report
@@ -102,7 +108,7 @@ npm run test:e2e:report   # open the last HTML test report
 
 ## How it works
 
-1. **Upload** - your PDF is text-extracted with `unpdf`, structured by Claude, and saved.
+1. **Upload** - your PDF is text-extracted with `unpdf`, structured by the AI, and saved.
 2. **Search** - you pick sources, optional query, optional location. If an Apify token is set, an agentic loop lets Claude call the actors, read the results, and retry with better queries before finalizing.
 3. **Score** - each job is ranked against your CV (0–100) with a one-line reason.
 4. **Apply** - click Deep dive, Cover letter, or Tailor CV on any job. Outputs are cached and downloadable.

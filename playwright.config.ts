@@ -1,7 +1,8 @@
 import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
-// C: drive is full — keep browser binaries on the same drive as the repo (F:).
+// Keep Playwright's browser binaries inside the repo (gitignored) unless
+// PLAYWRIGHT_BROWSERS_PATH is set; CI sets it and caches that folder.
 if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
   process.env.PLAYWRIGHT_BROWSERS_PATH = path.resolve(process.cwd(), '.playwright-browsers')
 }
