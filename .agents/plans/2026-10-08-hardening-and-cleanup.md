@@ -1,6 +1,6 @@
 # Hardening & Cleanup: implementation plan (Tasks T1–T11)
 
-**Status**: Completed (code), 2026-10-08. Review approved: "fix all". DB steps (T8 migrations, T3 integration run, T5 real-row check) await approval; manual checks pending.
+**Status**: Completed, 2026-10-08. Review approved: "fix all". DB steps done: T8 migrations applied, T3 integration tests 9/9, T5 real-row check 7/7. Manual checks (real keys / browser) pending.
 
 **Deviations** (details in the review doc):
 - T4: `adzunaCountry` keeps `gb` for unrecognised places; it skips Adzuna only for known-unsupported countries. US cities were added to the mapping.

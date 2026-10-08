@@ -32,8 +32,8 @@ example by checking `pg_constraint` or `pg_indexes`, or with `\d <table>` in psq
 | `20260418_add_max_results.sql` … `20260702_add_gemini_provider.sql` | before 2026-10 |
 | `20261008_add_usage_counters.sql` | 2026-10-08 |
 | `20261009_add_user_created_indexes.sql` | 2026-10-08 |
-| `20261010_job_results_source_job_id_not_null.sql` | pending |
-| `20261010_searches_status_check.sql` | pending |
+| `20261010_job_results_source_job_id_not_null.sql` | 2026-10-08 |
+| `20261010_searches_status_check.sql` | 2026-10-08 |
 
 The base tables (`profiles`, `user_api_keys`, `cvs`, `searches`, `job_results`)
 predate this folder. RLS policies are in `supabase/policies.sql`.
