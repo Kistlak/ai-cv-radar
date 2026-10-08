@@ -11,13 +11,14 @@ export function createGeminiClient(apiKey: string): AiClient {
 
   return {
     provider: 'gemini',
-    async complete({ prompt, maxTokens, tier, system }: AiCompletionOptions): Promise<string> {
+    async complete({ prompt, maxTokens, tier, system, timeoutMs }: AiCompletionOptions): Promise<string> {
       const response = await client.models.generateContent({
         model: tier === 'fast' ? FAST_MODEL : SMART_MODEL,
         contents: prompt,
         config: {
           maxOutputTokens: maxTokens,
           ...(system ? { systemInstruction: system } : {}),
+          ...(timeoutMs ? { abortSignal: AbortSignal.timeout(timeoutMs) } : {}),
         },
       })
       const text = response.text

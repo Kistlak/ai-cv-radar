@@ -6,6 +6,11 @@ const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR || 'bebity/linkedin-jobs
 const INDEED_ACTOR = process.env.APIFY_INDEED_ACTOR || 'misceres/indeed-scraper'
 const GLASSDOOR_ACTOR = process.env.APIFY_GLASSDOOR_ACTOR || 'bebity/glassdoor-jobs-scraper'
 
+// Without these, actor.call() waits indefinitely and can outlive the route's
+// maxDuration. `timeout` makes Apify stop the run (and the billing); `waitSecs`
+// stops the client waiting. A run that doesn't succeed returns no jobs.
+const ACTOR_CALL_OPTIONS = { waitSecs: 150, timeout: 150 }
+
 function parseDate(raw: unknown): Date | null {
   if (typeof raw !== 'string' || !raw) return null
   const d = new Date(raw)
@@ -51,7 +56,7 @@ export async function fetchApifyLinkedIn(
     urls: [searchUrl],
     count: 25,
     scrapeCompany: false,
-  })
+  }, ACTOR_CALL_OPTIONS)
   console.log(`[apify-linkedin] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 
@@ -135,7 +140,7 @@ export async function fetchApifyIndeed(
     parseCompanyDetails: false,
     saveOnlyUniqueItems: true,
     followApplyRedirects: false,
-  })
+  }, ACTOR_CALL_OPTIONS)
   console.log(`[apify-indeed] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 
@@ -207,7 +212,7 @@ export async function fetchApifyGlassdoor(
   const run = await client.actor(GLASSDOOR_ACTOR).call({
     searchUrls: [searchUrl],
     maxResults: 25,
-  })
+  }, ACTOR_CALL_OPTIONS)
   console.log(`[apify-glassdoor] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 

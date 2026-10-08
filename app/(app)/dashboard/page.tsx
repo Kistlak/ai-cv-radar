@@ -5,6 +5,7 @@ import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import { FileText, Key, Search as SearchIcon, ArrowRight, CheckCircle2, XCircle, Sparkles, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { failStaleSearches } from '@/lib/stale-searches'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -24,6 +25,7 @@ export default async function DashboardPage() {
     .where(eq(userApiKeys.userId, user.id))
     .limit(1)
 
+  await failStaleSearches(user.id)
   const recentSearches = await db
     .select()
     .from(searches)

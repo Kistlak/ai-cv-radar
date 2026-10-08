@@ -9,6 +9,7 @@ import {
   Sparkles, AlertCircle, BadgeCheck, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { failStaleSearches } from '@/lib/stale-searches'
 import SearchPoller from '@/components/search-poller'
 import { JobActions } from '@/components/job-actions'
 
@@ -22,6 +23,7 @@ export default async function SearchResultsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  await failStaleSearches(user.id)
   const [search] = await db
     .select()
     .from(searches)

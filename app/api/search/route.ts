@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs, searches } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { resolveProvider } from '@/lib/ai/provider'
 import { runSearch } from '@/lib/run-search'
+import { failStaleSearches, isStale } from '@/lib/stale-searches'
 import {
   consumeQuota,
   hasTooManyRunningSearches,
@@ -44,8 +45,13 @@ export async function POST(req: NextRequest) {
 
   const { query, location, remoteOnly, sources, maxResults } = parsed.data
 
-  // Verify user has a CV
-  const [cv] = await db.select({ id: cvs.id }).from(cvs).where(eq(cvs.userId, user.id)).limit(1)
+  // Verify user has a CV; the search is pinned to the active (newest) one
+  const [cv] = await db
+    .select({ id: cvs.id })
+    .from(cvs)
+    .where(and(eq(cvs.userId, user.id), eq(cvs.isActive, true)))
+    .orderBy(desc(cvs.createdAt))
+    .limit(1)
   if (!cv) return NextResponse.json({ error: 'Upload a CV before searching' }, { status: 400 })
 
   // Verify the user can run AI calls with either provider (their own key or an
@@ -114,6 +120,17 @@ export async function GET(req: NextRequest) {
 
   if (!search || search.userId !== user.id)
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // This is polled every 2s, so only write when the search looks stranded.
+  if (search.status === 'running' && isStale(search.createdAt)) {
+    await failStaleSearches(user.id)
+    const [updated] = await db
+      .select()
+      .from(searches)
+      .where(eq(searches.id, id))
+      .limit(1)
+    return NextResponse.json({ search: updated ?? search })
+  }
 
   return NextResponse.json({ search })
 }
