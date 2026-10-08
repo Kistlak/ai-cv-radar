@@ -1,6 +1,7 @@
 import SearchForm from '@/components/search-form'
 import { db } from '@/db'
-import { cvs, userApiKeys } from '@/db/schema'
+import { cvs } from '@/db/schema'
+import { canUseAi, getKeyStatus } from '@/lib/key-status'
 import { createClient } from '@/lib/supabase/server'
 import { eq } from 'drizzle-orm'
 import { AlertCircle } from 'lucide-react'
@@ -17,21 +18,12 @@ export default async function SearchPage() {
     .where(eq(cvs.userId, user.id))
     .limit(1)
 
-  const [keys] = await db
-    .select({
-      anthropicKey: userApiKeys.anthropicKey,
-      apifyToken: userApiKeys.apifyToken,
-      adzunaAppId: userApiKeys.adzunaAppId,
-      adzunaAppKey: userApiKeys.adzunaAppKey,
-      rapidapiKey: userApiKeys.rapidapiKey,
-    })
-    .from(userApiKeys)
-    .where(eq(userApiKeys.userId, user.id))
-    .limit(1)
+  // Either AI provider is enough, and operator FALLBACK_* keys count too.
+  const keys = await getKeyStatus(user.id)
 
   const hasCv = Boolean(activeCv)
-  const hasAnthropic = Boolean(keys?.anthropicKey)
-  const ready = hasCv && hasAnthropic
+  const hasAi = canUseAi(keys)
+  const ready = hasCv && hasAi
 
   return (
     <div className="space-y-8 animate-in-fade">
@@ -63,10 +55,10 @@ export default async function SearchPage() {
                     so we can rank jobs against your profile.
                   </li>
                 )}
-                {!hasAnthropic && (
+                {!hasAi && (
                   <li>
                     <Link href="/settings" className="text-violet-600 dark:text-violet-300 hover:underline">
-                      Add your Anthropic API key
+                      Add an Anthropic or Gemini API key
                     </Link>{' '}
                     - required for parsing and matching.
                   </li>
@@ -79,9 +71,9 @@ export default async function SearchPage() {
 
       {ready ? (
         <SearchForm
-          hasApify={Boolean(keys?.apifyToken)}
-          hasAdzuna={Boolean(keys?.adzunaAppId && keys?.adzunaAppKey)}
-          hasJsearch={Boolean(keys?.rapidapiKey)}
+          hasApify={Boolean(keys.apify)}
+          hasAdzuna={Boolean(keys.adzuna)}
+          hasJsearch={Boolean(keys.jsearch)}
         />
       ) : (
         <div className="glass rounded-2xl p-8 opacity-50 pointer-events-none select-none">

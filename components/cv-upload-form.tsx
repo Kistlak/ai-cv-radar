@@ -1,5 +1,6 @@
 'use client'
 
+import { CV_TOO_LARGE_MESSAGE, MAX_CV_BYTES } from '@/lib/cv-upload'
 import { cn } from '@/lib/utils'
 import { Loader2, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -16,6 +17,10 @@ export default function CvUploadForm() {
         // Only accept PDFs
         if (file.type !== 'application/pdf') {
             toast.error('Please upload a PDF file')
+            return
+        }
+        if (file.size > MAX_CV_BYTES) {
+            toast.error(CV_TOO_LARGE_MESSAGE)
             return
         }
 

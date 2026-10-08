@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { cvs, userApiKeys, searches } from '@/db/schema'
+import { cvs, searches } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import { FileText, Key, Search as SearchIcon, ArrowRight, CheckCircle2, XCircle, Sparkles, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { failStaleSearches } from '@/lib/stale-searches'
+import { canUseAi, getKeyStatus, type KeySource } from '@/lib/key-status'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -19,11 +20,7 @@ export default async function DashboardPage() {
     .orderBy(desc(cvs.createdAt))
     .limit(1)
 
-  const [keys] = await db
-    .select()
-    .from(userApiKeys)
-    .where(eq(userApiKeys.userId, user.id))
-    .limit(1)
+  const keys = await getKeyStatus(user.id)
 
   await failStaleSearches(user.id)
   const recentSearches = await db
@@ -33,12 +30,11 @@ export default async function DashboardPage() {
     .orderBy(desc(searches.createdAt))
     .limit(5)
 
-  const hasAnthropic = Boolean(keys?.anthropicKey)
-  const hasApify = Boolean(keys?.apifyToken)
-  const hasAdzuna = Boolean(keys?.adzunaAppId && keys?.adzunaAppKey)
-  const hasJsearch = Boolean(keys?.rapidapiKey)
-  const keyCount = [hasAnthropic, hasApify, hasAdzuna, hasJsearch].filter(Boolean).length
-  const canSearch = Boolean(activeCv) && hasAnthropic
+  // Either AI provider is enough, and operator FALLBACK_* keys count too.
+  const hasAi = canUseAi(keys)
+  const hasSource = Boolean(keys.apify || keys.adzuna || keys.jsearch)
+  const keyCount = [keys.anthropic, keys.gemini, keys.apify, keys.adzuna, keys.jsearch].filter(Boolean).length
+  const canSearch = Boolean(activeCv) && hasAi
 
   return (
     <div className="space-y-8 animate-in-fade">
@@ -64,15 +60,16 @@ export default async function DashboardPage() {
           href="/settings"
           icon={Key}
           title="API Keys"
-          description={`${keyCount} of 4 configured`}
-          status={hasAnthropic ? (keyCount >= 2 ? 'ready' : 'partial') : 'pending'}
+          description={`${keyCount} of 5 configured`}
+          status={hasAi ? (hasSource ? 'ready' : 'partial') : 'pending'}
           cta="Manage Keys"
           extra={
             <div className="mt-3 space-y-1.5 text-xs">
-              <KeyRow label="Anthropic" set={hasAnthropic} />
-              <KeyRow label="Apify" set={hasApify} />
-              <KeyRow label="Adzuna" set={hasAdzuna} />
-              <KeyRow label="JSearch" set={hasJsearch} />
+              <KeyRow label="Anthropic" source={keys.anthropic} />
+              <KeyRow label="Gemini" source={keys.gemini} />
+              <KeyRow label="Apify" source={keys.apify} />
+              <KeyRow label="Adzuna" source={keys.adzuna} />
+              <KeyRow label="JSearch" source={keys.jsearch} />
             </div>
           }
         />
@@ -106,7 +103,7 @@ export default async function DashboardPage() {
             </div>
             <p className="mt-4 font-medium">No searches yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Upload your CV and add an Anthropic key to get started.
+              Upload your CV and add an Anthropic or Gemini key to get started.
             </p>
           </div>
         ) : (
@@ -114,11 +111,8 @@ export default async function DashboardPage() {
             {recentSearches.map((s) => (
               <Link
                 key={s.id}
-                href={s.status === 'complete' ? `/search/${s.id}` : '#'}
-                className={cn(
-                  'flex items-center justify-between gap-4 px-5 py-4 transition-colors',
-                  s.status === 'complete' ? 'hover:bg-accent/50' : 'pointer-events-none'
-                )}
+                href={`/search/${s.id}`}
+                className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-accent/50"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{s.query}</p>
@@ -198,12 +192,23 @@ function StatusDot({ status }: { status: 'ready' | 'pending' | 'partial' }) {
   return <div className={cn('h-2 w-2 rounded-full', classes[status])} />
 }
 
-function KeyRow({ label, set }: { label: string; set: boolean }) {
+function KeyRow({ label, source }: { label: string; source: KeySource }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
-      {set ? (
-        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+      {source ? (
+        <span className="inline-flex items-center gap-1.5">
+          {/* Operator-provided key: usage is capped per day. */}
+          {source === 'shared' && (
+            <span
+              className="text-[10px] text-muted-foreground"
+              title="Provided by the app. Daily limits apply; add your own key in Settings to remove them."
+            >
+              shared
+            </span>
+          )}
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+        </span>
       ) : (
         <XCircle className="h-3.5 w-3.5 text-muted-foreground/40" />
       )}
@@ -216,6 +221,7 @@ function StatusBadge({ status }: { status: string }) {
     complete: { label: 'Complete', className: 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20' },
     running: { label: 'Running', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20' },
     failed: { label: 'Failed', className: 'bg-red-500/10 text-red-600 dark:text-red-400 ring-red-500/20' },
+    cancelled: { label: 'Cancelled', className: 'bg-muted text-muted-foreground ring-border/40' },
   }
   const s = config[status] ?? { label: status, className: 'bg-muted text-muted-foreground' }
   return (
