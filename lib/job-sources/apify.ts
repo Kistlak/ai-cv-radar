@@ -1,4 +1,5 @@
 import { ApifyClient, type ActorRun } from 'apify-client'
+import { guessCountry } from './country'
 import type { RawJob, SearchParams } from './types'
 
 // Default actors - override via env vars if you want to swap any.
@@ -21,6 +22,8 @@ export async function runActor(
   input: unknown,
   signal?: AbortSignal
 ): Promise<ActorRun> {
+  // Already cancelled: don't start (and pay for) a run.
+  if (signal?.aborted) throw signal.reason ?? new Error('Aborted')
   let run = await client.actor(actorId).start(input, { timeout: ACTOR_TIMEOUT_SECS })
   // Slack over Apify's own timeout, in case its final status lags.
   const giveUpAt = Date.now() + (ACTOR_TIMEOUT_SECS + 10) * 1000
@@ -136,18 +139,6 @@ interface MisceresIndeedJob {
   url?: string
   externalApplyLink?: string
   isExpired?: boolean
-}
-
-function guessCountry(location?: string): string {
-  if (!location) return 'us'
-  const loc = location.toLowerCase()
-  if (/\b(uk|united kingdom|england|london|manchester|scotland|wales)\b/.test(loc)) return 'gb'
-  if (/\b(canada|toronto|vancouver|montreal)\b/.test(loc)) return 'ca'
-  if (/\b(australia|sydney|melbourne)\b/.test(loc)) return 'au'
-  if (/\b(india|bangalore|mumbai|delhi|hyderabad)\b/.test(loc)) return 'in'
-  if (/\b(germany|berlin|munich)\b/.test(loc)) return 'de'
-  if (/\b(france|paris)\b/.test(loc)) return 'fr'
-  return 'us'
 }
 
 export async function fetchApifyIndeed(

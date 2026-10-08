@@ -9,6 +9,7 @@ import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
 import type { RawJob } from './job-sources/types'
 import { logger } from './logger'
 import { toHttpUrl } from './safe-url'
+import { searchErrorMessage } from './search-errors'
 import { scoreJobs } from './score-jobs'
 import { createProgressUpdater } from './search-progress'
 
@@ -196,7 +197,12 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     // normalised, so nothing else is ever rendered as a link.
     const rawJobs = deduped.flatMap((job) => {
       const applyUrl = toHttpUrl(job.applyUrl)
-      return applyUrl ? [{ ...job, applyUrl }] : []
+      if (!applyUrl) return []
+      // A missing id would defeat the (search, source, source_job_id) dedupe,
+      // since Postgres treats NULLs as distinct; the apply URL is stable.
+      const sourceJobId =
+        job.sourceJobId && job.sourceJobId !== 'undefined' ? job.sourceJobId : applyUrl
+      return [{ ...job, applyUrl, sourceJobId }]
     })
     if (rawJobs.length < deduped.length) {
       logger.warn({
@@ -304,7 +310,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
         .update(searches)
         .set({
           status: 'failed',
-          error: err instanceof Error ? err.message : 'Unknown error',
+          error: searchErrorMessage(err),
           completedAt: new Date(),
         })
         .where(eq(searches.id, searchId))

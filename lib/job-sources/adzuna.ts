@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger'
+import { adzunaCountry, currencySymbol } from './country'
 import { sourceSignal, type RawJob, type SearchParams } from './types'
 
 interface AdzunaJob {
@@ -22,7 +24,14 @@ export async function fetchAdzuna(
   appId: string,
   appKey: string
 ): Promise<RawJob[]> {
-  const country = 'gb'
+  // Query the index for the search's country; skip Adzuna for countries it
+  // doesn't cover rather than returning another country's jobs.
+  const country = adzunaCountry(params.location)
+  if (!country) {
+    logger.info({ event: 'job_source.adzuna_skipped', location: params.location ?? '' })
+    return []
+  }
+  const symbol = currencySymbol(country)
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`)
   url.searchParams.set('app_id', appId)
   url.searchParams.set('app_key', appKey)
@@ -38,18 +47,19 @@ export async function fetchAdzuna(
   return (data.results ?? []).map((job) => {
     let salary: string | null = null
     if (job.salary_min && job.salary_max) {
-      salary = `£${Math.round(job.salary_min / 1000)}k–£${Math.round(job.salary_max / 1000)}k`
+      salary = `${symbol}${Math.round(job.salary_min / 1000)}k–${symbol}${Math.round(job.salary_max / 1000)}k`
     } else if (job.salary_min) {
-      salary = `from £${Math.round(job.salary_min / 1000)}k`
+      salary = `from ${symbol}${Math.round(job.salary_min / 1000)}k`
     }
 
     return {
       source: 'adzuna',
-      sourceJobId: job.id,
+      sourceJobId: job.id || job.redirect_url,
       title: job.title,
       company: job.company.display_name,
       location: job.location.display_name ?? null,
-      remote: job.contract_time === 'contract' || /remote/i.test(job.location.display_name ?? ''),
+      // A contract role isn't a remote one; only the location says remote.
+      remote: /remote/i.test(job.location.display_name ?? ''),
       salary,
       postedAt: job.created ? new Date(job.created) : null,
       description: job.description ?? null,
