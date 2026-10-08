@@ -1,6 +1,16 @@
 # Hardening & Cleanup: implementation plan (Tasks T1–T11)
 
-**Status**: In Progress (approved 2026-10-08)
+**Status**: Completed (code), 2026-10-08. Review approved: "fix all". DB steps (T8 migrations, T3 integration run, T5 real-row check) await approval; manual checks pending.
+
+**Deviations** (details in the review doc):
+- T4: `adzunaCountry` keeps `gb` for unrecognised places; it skips Adzuna only for known-unsupported countries. US cities were added to the mapping.
+- T5: `derive-query` unchanged (it already validates). After review, `CvStructuredSchema.name` defaults to `''` instead of being required.
+- T7: `nextPreferredProvider` lives in `lib/keys.ts`; a shared `ConfirmButton` component was added. The temporary re-export from the keys route was removed after review.
+- T8: `searches.status` also uses Drizzle's text-enum typing.
+- T11: `shadcn` stays in `dependencies` (its CSS is imported at build time). After review: `next` 16.3.8, `@anthropic-ai/sdk` ^0.91.1; 18 non-critical advisories remain without a safe fix.
+- After review: the Indeed actor schema was checked and `ae` is now sent to Indeed. The country-code casing question is open (needs one paid run to confirm).
+
+**Commits**: `2721a80` T1 · `b530356` T2 · `9e8e7fd` T3 · `8b5d9d5` T4 · `9beb3b8` T5 · `70a9c8b` T6 · `dc51ee6` T7 · `bed6925` T8 · `c29b4ed` T9 · `97b661c` T10 · `f8c2015` T11, plus a review-fixes commit.
 **Date**: 2026-10-08
 **PRD**: `.agents/prd/PRD-hardening-and-cleanup.md` (approved, see its Decisions section)
 **Branch**: `fix/hardening-and-cleanup` from `master` (`e710ea0`). One commit per task, in order. All commits are authored by **Kistlak Rajapaksha <kistlakall@gmail.com>** through the repo-local git config, which is already set and verified.

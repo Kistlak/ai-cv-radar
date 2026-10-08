@@ -61,10 +61,16 @@ describe('CvStructuredSchema (upload parse)', () => {
     expect(out.experience[0]).toEqual({ role: '', company: 'Acme', period: null, description: null })
   })
 
-  it('rejects a parse with no name', () => {
-    expect(CvStructuredSchema.safeParse({ ...valid, name: '' }).success).toBe(false)
-    expect(CvStructuredSchema.safeParse({ ...valid, name: undefined }).success).toBe(false)
+  it('keeps a parse with no name (name becomes empty)', () => {
+    expect(CvStructuredSchema.parse({ ...valid, name: undefined }).name).toBe('')
+    expect(CvStructuredSchema.parse({ ...valid, name: null }).name).toBe('')
+    expect(CvStructuredSchema.parse({ ...valid, name: '  Jane  ' }).name).toBe('Jane')
+  })
+
+  it('rejects output that is not an object or has a non-text name', () => {
     expect(CvStructuredSchema.safeParse([]).success).toBe(false)
+    expect(CvStructuredSchema.safeParse('Jane').success).toBe(false)
+    expect(CvStructuredSchema.safeParse({ ...valid, name: 42 }).success).toBe(false)
   })
 })
 

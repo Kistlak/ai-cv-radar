@@ -56,7 +56,7 @@ export default async function CVPage() {
               <h3 className="font-semibold text-sm">Profile</h3>
             </div>
             <dl className="mt-4 space-y-3 text-sm">
-              <ProfileRow icon={User} label="Name" value={String(structured.name ?? '-')} />
+              <ProfileRow icon={User} label="Name" value={String(structured.name || '-')} />
               <ProfileRow icon={Mail} label="Email" value={String(structured.email ?? '-')} />
               <ProfileRow icon={MapPin} label="Location" value={String(structured.location ?? '-')} />
             </dl>

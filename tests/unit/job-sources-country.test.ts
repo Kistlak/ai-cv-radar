@@ -30,15 +30,15 @@ describe('guessCountry (Indeed)', () => {
     expect(guessCountry('Paris')).toBe('fr')
   })
 
-  it("defaults to 'us' for empty, unknown and unconfirmed places", () => {
+  it("defaults to 'us' for empty, unknown and Indeed-unsupported places", () => {
     expect(guessCountry(undefined)).toBe('us')
     expect(guessCountry('')).toBe('us')
     expect(guessCountry('Kandy')).toBe('us')
-    expect(guessCountry('Dubai')).toBe('us')
     expect(guessCountry('Colombo')).toBe('us')
   })
 
   it('maps the newly added countries', () => {
+    expect(guessCountry('Dubai')).toBe('ae')
     expect(guessCountry('Amsterdam')).toBe('nl')
     expect(guessCountry('Madrid, Spain')).toBe('es')
     expect(guessCountry('Singapore')).toBe('sg')
