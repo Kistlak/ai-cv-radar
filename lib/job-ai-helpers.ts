@@ -4,6 +4,7 @@ import { eq, and, desc } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 import { isAiFallback } from '@/lib/usage-limits'
+import { UNTRUSTED_JOB_RULE, untrusted } from '@/lib/untrusted'
 
 export interface JobAIContext {
   job: typeof jobResults.$inferSelect
@@ -51,17 +52,22 @@ export async function loadJobAIContext(
   }
 }
 
+// The job block is wrapped as untrusted data (see lib/untrusted.ts); the rule
+// line travels with it, so every prompt that embeds the block gets it.
 export function jobDescriptionForPrompt(job: typeof jobResults.$inferSelect): string {
   const desc = (job.description ?? '').replace(/<[^>]+>/g, '').slice(0, 4000)
   return [
-    `Title: ${job.title}`,
-    `Company: ${job.company}`,
-    job.location ? `Location: ${job.location}` : null,
+    `(${UNTRUSTED_JOB_RULE})`,
+    '<job_posting>',
+    `Title: ${untrusted(job.title)}`,
+    `Company: ${untrusted(job.company)}`,
+    job.location ? `Location: ${untrusted(job.location)}` : null,
     job.remote ? `Remote: yes` : null,
-    job.salary ? `Salary: ${job.salary}` : null,
+    job.salary ? `Salary: ${untrusted(job.salary)}` : null,
     '',
     'Description:',
     desc || '(no description provided)',
+    '</job_posting>',
   ]
     .filter((x) => x !== null)
     .join('\n')
