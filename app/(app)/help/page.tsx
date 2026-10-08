@@ -121,9 +121,11 @@ export default function HelpPage() {
               <strong className="text-foreground">Running on a non-localhost URL:</strong> the extension only
               activates on <code className="rounded bg-muted px-1 py-0.5 text-[11px]">localhost:3000</code>,{' '}
               <code className="rounded bg-muted px-1 py-0.5 text-[11px]">127.0.0.1:3000</code>, and{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-[11px]">*.vercel.app</code>. Edit{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-[11px]">extension/manifest.json</code> to add your
-              own origin, then reload the extension.
+              <code className="rounded bg-muted px-1 py-0.5 text-[11px]">ai-cv-radar.vercel.app</code>. Add your
+              own origin to <code className="rounded bg-muted px-1 py-0.5 text-[11px]">extension/manifest.json</code>{' '}
+              and <code className="rounded bg-muted px-1 py-0.5 text-[11px]">ALLOWED_APP_ORIGINS</code> in{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-[11px]">extension/background.js</code>, then reload
+              the extension.
             </li>
           </ul>
         </div>

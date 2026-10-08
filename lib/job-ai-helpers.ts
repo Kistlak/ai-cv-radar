@@ -3,11 +3,14 @@ import { jobResults, searches, cvs } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
+import { isAiFallback } from '@/lib/usage-limits'
 
 export interface JobAIContext {
   job: typeof jobResults.$inferSelect
   cvText: string
   ai: AiClient
+  // True when the AI key is an operator-paid FALLBACK_* key (quota applies).
+  usingFallback: boolean
 }
 
 export async function loadJobAIContext(
@@ -39,7 +42,12 @@ export async function loadJobAIContext(
 
   return {
     ok: true,
-    ctx: { job: row.job, cvText: cv.rawText, ai: createAiClient(resolved.provider, resolved.apiKey) },
+    ctx: {
+      job: row.job,
+      cvText: cv.rawText,
+      ai: createAiClient(resolved.provider, resolved.apiKey),
+      usingFallback: isAiFallback(keys.usingFallback, resolved.provider),
+    },
   }
 }
 

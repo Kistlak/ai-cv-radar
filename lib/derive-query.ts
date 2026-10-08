@@ -3,11 +3,15 @@ import type { AiClient } from '@/lib/ai/provider'
 export async function deriveQueriesFromCv(
   cvText: string,
   ai: AiClient,
-  count = 3
+  count = 3,
+  signal?: AbortSignal
 ): Promise<string[]> {
   const text = await ai.complete({
     tier: 'fast',
     maxTokens: 300,
+    // Runs inside the search pipeline's 300s budget; a hung call must not stall it.
+    timeoutMs: 30_000,
+    signal,
     prompt: `Based on this CV, generate ${count} complementary job search queries to cast a wide net while staying relevant to the candidate's actual stack.
 
 Rules:
