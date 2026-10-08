@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { AiClient } from '@/lib/ai/provider'
 import type { RawJob } from './job-sources/types'
+import { UNTRUSTED_JOB_RULE, untrusted } from './untrusted'
 
 interface ScoredJob extends RawJob {
   matchScore: number
@@ -48,13 +49,13 @@ export function parseScores(text: string): ScoreResult[] {
   return results
 }
 
-function buildPrompt(cvText: string, query: string, jobs: RawJob[]): string {
+export function buildPrompt(cvText: string, query: string, jobs: RawJob[]): string {
   const jobList = jobs
     .map((job, i) => {
       const desc = job.description
         ? job.description.replace(/<[^>]+>/g, '').slice(0, 500)
         : 'No description provided.'
-      return `[${i}] Title: ${job.title} | Company: ${job.company} | Location: ${job.location ?? 'Unknown'} | Remote: ${job.remote}\nDescription: ${desc}`
+      return `<job_posting index="${i}">\n[${i}] Title: ${untrusted(job.title)} | Company: ${untrusted(job.company)} | Location: ${untrusted(job.location ?? 'Unknown')} | Remote: ${job.remote}\nDescription: ${desc}\n</job_posting>`
     })
     .join('\n\n')
 
@@ -78,6 +79,7 @@ CRITICAL RULES:
 3. Do NOT reward mere topical relevance (e.g., "both are backend roles"). Stack alignment is what matters.
 4. Be especially harsh on seniority mismatches: a senior candidate applying to a junior role (or vice versa) should score below 40.
 5. The reason field must explicitly mention the matching (or mismatching) tech/skills — be concrete, not generic.
+6. ${UNTRUSTED_JOB_RULE}
 
 Return ONLY a JSON array, no prose before or after:
 [{"index": 0, "score": 85, "reason": "Requires Laravel + Vue, both strong on CV. Senior level matches 5+ years experience."}, ...]

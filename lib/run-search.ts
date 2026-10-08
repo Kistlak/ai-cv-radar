@@ -8,6 +8,7 @@ import { deriveQueriesFromCv } from './derive-query'
 import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
 import type { RawJob } from './job-sources/types'
 import { logger } from './logger'
+import { toHttpUrl } from './safe-url'
 import { scoreJobs } from './score-jobs'
 import { createProgressUpdater } from './search-progress'
 
@@ -190,7 +191,20 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       cheapJobsPromise,
       agenticJobsPromise,
     ])
-    const rawJobs = dedupeJobs([...cheapJobs, ...agenticJobs])
+    const deduped = dedupeJobs([...cheapJobs, ...agenticJobs])
+    // Apply URLs come from scrapers and the agent: keep only http(s) links,
+    // normalised, so nothing else is ever rendered as a link.
+    const rawJobs = deduped.flatMap((job) => {
+      const applyUrl = toHttpUrl(job.applyUrl)
+      return applyUrl ? [{ ...job, applyUrl }] : []
+    })
+    if (rawJobs.length < deduped.length) {
+      logger.warn({
+        event: 'run_search.invalid_apply_url',
+        searchId,
+        dropped: deduped.length - rawJobs.length,
+      })
+    }
     logger.info({
       event: 'run_search.fetch_completed',
       searchId,
