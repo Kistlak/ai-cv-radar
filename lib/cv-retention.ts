@@ -6,6 +6,12 @@ import { logger } from '@/lib/logger'
 
 const BUCKET = 'cvs'
 
+// Storage errors are objects with a message; the logger serializes Errors, so
+// make sure the message survives.
+function asError(error: { message?: string } | Error): Error {
+  return error instanceof Error ? error : new Error(error.message ?? 'Storage error')
+}
+
 export interface CvListItem {
   id: string
   createdAt: Date
@@ -54,7 +60,7 @@ export async function deleteCv(
 
   const { error } = await supabase.storage.from(BUCKET).remove([cv.filePath])
   if (error) {
-    logger.error({ event: 'cv_retention.storage_delete_failed', userId, cvId, err: error })
+    logger.error({ event: 'cv_retention.storage_delete_failed', userId, cvId, err: asError(error) })
     return { ok: false, reason: 'storage_failed' }
   }
 
@@ -82,7 +88,7 @@ export async function pruneUnusedCvs(userId: string, supabase: SupabaseClient): 
   for (const cv of unused) {
     const { error } = await supabase.storage.from(BUCKET).remove([cv.filePath])
     if (error) {
-      logger.warn({ event: 'cv_retention.prune_storage_failed', userId, cvId: cv.id, err: error })
+      logger.warn({ event: 'cv_retention.prune_storage_failed', userId, cvId: cv.id, err: asError(error) })
       continue
     }
     await db.delete(cvs).where(and(eq(cvs.id, cv.id), eq(cvs.userId, userId)))

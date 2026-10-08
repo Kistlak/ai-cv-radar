@@ -35,9 +35,14 @@ function objList<T extends z.ZodTypeAny>(item: T) {
     }))
 }
 
-// The structured CV saved on upload (cvs.structured).
+// The structured CV saved on upload (cvs.structured). A missing name becomes ''
+// rather than failing the upload: the rest of the parse is still useful, and
+// the name is shown as '-' on the CV page.
 export const CvStructuredSchema = z.object({
-  name: z.string().trim().min(1),
+  name: z
+    .string()
+    .nullish()
+    .transform((v) => v?.trim() ?? ''),
   email: nullStr,
   location: nullStr,
   summary: nullStr,

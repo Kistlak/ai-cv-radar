@@ -36,8 +36,10 @@ export function matchCountry(location?: string | null): string | null {
 }
 
 // Indeed's country: the matched one, or 'us' (as before) when there's no
-// location, it isn't recognised, or it's one we haven't confirmed Indeed covers.
-const INDEED_UNCONFIRMED = new Set(['ae', 'lk'])
+// location, it isn't recognised, or the Indeed actor doesn't list it. Checked
+// against misceres/indeed-scraper's input schema (country enum) on 2026-10-08:
+// every code above is listed except 'lk'.
+const INDEED_UNCONFIRMED = new Set(['lk'])
 export function guessCountry(location?: string | null): string {
   const code = matchCountry(location)
   return code && !INDEED_UNCONFIRMED.has(code) ? code : 'us'

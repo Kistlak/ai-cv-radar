@@ -240,17 +240,17 @@ No other DB changes. Every migration is applied to the hosted DB only with your 
 ## 10. Task Breakdown
 | # | Task | Branch | Size | Depends on | Plan | Status |
 |---|---|---|---|---|---|---|
-| 1 | CI runs unit tests + typecheck | `fix/hardening-and-cleanup` | S | – | plan §T | Not Started |
-| 2 | Untrusted job data: `applyUrl` validation + prompt delimiters | `fix/hardening-and-cleanup` | S–M | 1 | plan §T | Not Started |
-| 3 | App hardening: location-suggest auth, dead callback, security headers, `requireUser`, cross-user tests | `fix/hardening-and-cleanup` | M | 1 | plan §T | Not Started |
-| 4 | Job sources & errors: Adzuna country/currency/remote, `sourceJobId` fallback, Apify pre-start abort, friendly timeout messages | `fix/hardening-and-cleanup` | M | 1 | plan §T | Not Started |
-| 5 | AI output validation (zod) for CV parse, deep-dive, tailored/general CV, derive-query | `fix/hardening-and-cleanup` | M–L | 1 | plan §T | Not Started |
-| 6 | CV consistency: `getActiveCv` helper; job AI uses the search's pinned CV | `fix/hardening-and-cleanup` | S–M | 5 | plan §T | Not Started |
-| 7 | Keys: `lib/keys.ts`, versioned + tolerant decrypt, remove-key API + UI | `fix/hardening-and-cleanup` | M | 1 | plan §T | Not Started |
-| 8 | Data integrity: `source_job_id` NOT NULL, status CHECK, Drizzle checks, migration workflow doc + apply script | `fix/hardening-and-cleanup` | M | 4 | plan §T | Not Started |
-| 9 | CV retention: delete non-active CVs + auto-prune unused | `fix/hardening-and-cleanup` | M | 6 | plan §T | Not Started |
-| 10 | Logging: `console.*` → `logger` | `fix/hardening-and-cleanup` | S | 4 | plan §T | Not Started |
-| 11 | Repo & dependency cleanup | `fix/hardening-and-cleanup` | S | 1 | plan §T | Not Started |
+| 1 | CI runs unit tests + typecheck | `fix/hardening-and-cleanup` | S | – | plan §T | Completed |
+| 2 | Untrusted job data: `applyUrl` validation + prompt delimiters | `fix/hardening-and-cleanup` | S–M | 1 | plan §T | Completed |
+| 3 | App hardening: location-suggest auth, dead callback, security headers, `requireUser`, cross-user tests | `fix/hardening-and-cleanup` | M | 1 | plan §T | Completed |
+| 4 | Job sources & errors: Adzuna country/currency/remote, `sourceJobId` fallback, Apify pre-start abort, friendly timeout messages | `fix/hardening-and-cleanup` | M | 1 | plan §T | Completed |
+| 5 | AI output validation (zod) for CV parse, deep-dive, tailored/general CV, derive-query | `fix/hardening-and-cleanup` | M–L | 1 | plan §T | Completed |
+| 6 | CV consistency: `getActiveCv` helper; job AI uses the search's pinned CV | `fix/hardening-and-cleanup` | S–M | 5 | plan §T | Completed |
+| 7 | Keys: `lib/keys.ts`, versioned + tolerant decrypt, remove-key API + UI | `fix/hardening-and-cleanup` | M | 1 | plan §T | Completed |
+| 8 | Data integrity: `source_job_id` NOT NULL, status CHECK, Drizzle checks, migration workflow doc + apply script | `fix/hardening-and-cleanup` | M | 4 | plan §T | Completed (migrations not yet applied) |
+| 9 | CV retention: delete non-active CVs + auto-prune unused | `fix/hardening-and-cleanup` | M | 6 | plan §T | Completed |
+| 10 | Logging: `console.*` → `logger` | `fix/hardening-and-cleanup` | S | 4 | plan §T | Completed |
+| 11 | Repo & dependency cleanup | `fix/hardening-and-cleanup` | S | 1 | plan §T | Completed |
 | – | Prompt caching | – | – | – | – | Deferred (§4) |
 | – | Model upgrade eval | – | – | – | – | Deferred (§4) |
 

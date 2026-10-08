@@ -118,6 +118,3 @@ export async function DELETE(request: Request) {
   await db.update(userApiKeys).set(updates).where(eq(userApiKeys.userId, user.id))
   return NextResponse.json({ success: true })
 }
-
-// Moved to lib/keys.ts; re-exported for any caller still importing from here.
-export { getDecryptedKeys, type ResolvedKeys } from '@/lib/keys'
