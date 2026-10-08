@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import { isCvJson, parseCvJson, type CvJson } from '@/lib/cv-docx'
+import { extractJson } from '@/lib/ai/parse-json'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
@@ -55,12 +56,9 @@ Style rules for maximum ATS score + recruiter readability:
 - Do not use first-person pronouns in bullets.
 - Make section content copy-pastable plain text (no markdown, no emojis, no decorative punctuation).`
 
-  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('No JSON object in response')
-
-  const parsed: unknown = JSON.parse(match[0])
-  if (!isCvJson(parsed)) throw new Error('Response did not match expected CV shape')
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt, json: true })
+  const parsed = parseCvJson(extractJson(text, 'object'))
+  if (!parsed) throw new Error('Response did not match expected CV shape')
   return parsed
 }
 

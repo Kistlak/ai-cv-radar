@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { jobResults } from '@/db/schema'
 import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
-import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import { isCvJson, parseCvJson, type CvJson } from '@/lib/cv-docx'
+import { extractJson } from '@/lib/ai/parse-json'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
@@ -77,12 +78,9 @@ Style rules:
 - Prefer concrete CV details over generic phrasing.
 - "title" should reflect the target role aligned to the job while staying honest about the candidate's level.`
 
-  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('No JSON object in response')
-
-  const parsed: unknown = JSON.parse(match[0])
-  if (!isCvJson(parsed)) throw new Error('Response did not match expected CV shape')
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt, json: true })
+  const parsed = parseCvJson(extractJson(text, 'object'))
+  if (!parsed) throw new Error('Response did not match expected CV shape')
   return parsed
 }
 

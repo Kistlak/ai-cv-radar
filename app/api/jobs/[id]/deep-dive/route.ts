@@ -6,23 +6,13 @@ import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
+import { extractJson } from '@/lib/ai/parse-json'
+import { DeepDiveSchema, type DeepDive } from '@/lib/ai/schemas'
 
-export interface DeepDive {
-  fitSummary: string
-  strengths: string[]
-  gaps: string[]
-  emphasis: string[]
-}
+export type { DeepDive }
 
 function isDeepDive(v: unknown): v is DeepDive {
-  if (!v || typeof v !== 'object') return false
-  const o = v as Record<string, unknown>
-  return (
-    typeof o.fitSummary === 'string' &&
-    Array.isArray(o.strengths) &&
-    Array.isArray(o.gaps) &&
-    Array.isArray(o.emphasis)
-  )
+  return DeepDiveSchema.safeParse(v).success
 }
 
 async function generateDeepDive(
@@ -51,13 +41,10 @@ Rules:
 - If a gap is a hard blocker (e.g., required cert the candidate lacks), say so in fitSummary.
 - Keep each bullet under 25 words.`
 
-  const text = await ai.complete({ tier: 'fast', maxTokens: 1200, prompt })
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('No JSON object in response')
-
-  const parsed: unknown = JSON.parse(match[0])
-  if (!isDeepDive(parsed)) throw new Error('Response did not match expected shape')
-  return parsed
+  const text = await ai.complete({ tier: 'fast', maxTokens: 1200, prompt, json: true })
+  const parsed = DeepDiveSchema.safeParse(extractJson(text, 'object'))
+  if (!parsed.success) throw new Error('Response did not match expected shape')
+  return parsed.data
 }
 
 export async function POST(
