@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
 import { createAiClient, resolveProvider } from '@/lib/ai/provider'
+import { consumeQuota, isAiFallback, quotaExceededResponse } from '@/lib/usage-limits'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractText, getDocumentProxy } from 'unpdf'
@@ -35,6 +36,13 @@ export async function POST(req: NextRequest) {
     const rawText = Array.isArray(text) ? text.join('\n') : text
     if (!rawText.trim())
         return NextResponse.json({ error: 'Could not extract text from PDF' }, { status: 400 })
+
+    // Count the upload only once the PDF is readable, and before storing it so
+    // an over-limit request doesn't leave an orphaned file behind.
+    if (isAiFallback(keys.usingFallback, resolved.provider)) {
+        const quota = await consumeQuota(user.id, 'cv_upload')
+        if (!quota.ok) return quotaExceededResponse(quota)
+    }
 
     // 6. Upload the original PDF to Supabase Storage
     //    Path format: {userId}/{timestamp}.pdf - matches our storage policy
