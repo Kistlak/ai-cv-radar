@@ -6,6 +6,9 @@ const APIFY_MCP_URL = process.env.APIFY_MCP_URL || 'https://mcp.apify.com'
 const AGENT_MODEL = process.env.AGENT_MODEL || 'claude-sonnet-4-6'
 const AGENT_MAX_TOKENS = Number(process.env.AGENT_MAX_TOKENS || 16000)
 const MCP_BETA = 'mcp-client-2025-11-20'
+const MAX_REQUESTS = 4
+const FINALIZE_NOW_PROMPT =
+  'You ran out of output space. Call finalize_jobs now with the best jobs you have already found. Keep each description under 300 characters.'
 
 export type AgenticEvent = { type: 'mcp_calls'; count: number }
 
@@ -162,8 +165,33 @@ function toRawJobs(payload: FinalizeJobsInput): RawJob[] {
   return jobs
 }
 
-export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJob[]> {
-  const client = new Anthropic({ apiKey: input.anthropicKey })
+// Drops trailing tool calls that have no result in the same content: after a
+// max_tokens cut-off they may be incomplete, and the API rejects an assistant
+// turn ending in an unanswered tool call.
+export function trimUnansweredToolCalls(
+  content: Anthropic.Beta.Messages.BetaContentBlock[]
+): Anthropic.Beta.Messages.BetaContentBlock[] {
+  const answered = new Set(
+    content.flatMap((b) => (b.type === 'mcp_tool_result' ? [b.tool_use_id] : []))
+  )
+  const out = [...content]
+  while (out.length > 0) {
+    const last = out[out.length - 1]
+    if (last.type === 'tool_use' || (last.type === 'mcp_tool_use' && !answered.has(last.id))) {
+      out.pop()
+    } else {
+      break
+    }
+  }
+  return out
+}
+
+type AgenticClient = { beta: { messages: Pick<Anthropic['beta']['messages'], 'create'> } }
+
+export async function runAgenticSearch(
+  input: AgenticSearchInput,
+  client: AgenticClient = new Anthropic({ apiKey: input.anthropicKey })
+): Promise<RawJob[]> {
   const t0 = Date.now()
 
   logger.info({
@@ -175,62 +203,98 @@ export async function runAgenticSearch(input: AgenticSearchInput): Promise<RawJo
     remoteOnly: input.remoteOnly,
   })
 
-  const response = await client.beta.messages.create({
-    model: AGENT_MODEL,
-    max_tokens: AGENT_MAX_TOKENS,
-    system: buildSystemPrompt(input.maxResults ?? null),
-    messages: [{ role: 'user', content: buildUserPrompt(input) }],
-    mcp_servers: [
-      {
-        type: 'url',
-        url: APIFY_MCP_URL,
-        name: 'apify',
-        authorization_token: input.apifyToken,
-      },
-    ],
-    tools: [
-      { type: 'mcp_toolset', mcp_server_name: 'apify' },
-      FINALIZE_JOBS_TOOL,
-    ],
-    betas: [MCP_BETA],
-  }, { signal: input.signal })
-
+  const messages: Anthropic.Beta.Messages.BetaMessageParam[] = [
+    { role: 'user', content: buildUserPrompt(input) },
+  ]
   let mcpCalls = 0
-  for (const block of response.content) {
-    if (block.type === 'mcp_tool_use') mcpCalls++
-  }
-  logger.info({
-    event: 'agentic_search.model_returned',
-    stopReason: response.stop_reason,
-    mcpCalls,
-    inputTokens: response.usage.input_tokens,
-    outputTokens: response.usage.output_tokens,
-    ms: Date.now() - t0,
-  })
-  if (input.onEvent) {
-    try {
-      await input.onEvent({ type: 'mcp_calls', count: mcpCalls })
-    } catch (err) {
-      logger.warn({ event: 'agentic_search.on_event_failed', err })
-    }
-  }
+  let recovered = false
+  let stopReason: string | null = null
 
-  for (const block of response.content) {
-    if (block.type === 'tool_use' && block.name === 'finalize_jobs') {
-      const jobs = toRawJobs(block.input as FinalizeJobsInput)
-      logger.info({
-        event: 'agentic_search.finalized',
-        jobs: jobs.length,
-        mcpCalls,
-        ms: Date.now() - t0,
-      })
-      return jobs
+  // 1 request plus up to MAX_REQUESTS - 1 continuations (pause_turn, or one
+  // max_tokens recovery). The caller's abort signal bounds the total time.
+  for (let request = 1; request <= MAX_REQUESTS; request++) {
+    const response = await client.beta.messages.create({
+      model: AGENT_MODEL,
+      max_tokens: AGENT_MAX_TOKENS,
+      system: buildSystemPrompt(input.maxResults ?? null),
+      messages,
+      mcp_servers: [
+        {
+          type: 'url',
+          url: APIFY_MCP_URL,
+          name: 'apify',
+          authorization_token: input.apifyToken,
+        },
+      ],
+      tools: [
+        { type: 'mcp_toolset', mcp_server_name: 'apify' },
+        FINALIZE_JOBS_TOOL,
+      ],
+      betas: [MCP_BETA],
+    }, { signal: input.signal })
+
+    stopReason = response.stop_reason
+    for (const block of response.content) {
+      if (block.type === 'mcp_tool_use') mcpCalls++
     }
+    logger.info({
+      event: 'agentic_search.model_returned',
+      request,
+      stopReason,
+      mcpCalls,
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      ms: Date.now() - t0,
+    })
+    if (input.onEvent) {
+      try {
+        await input.onEvent({ type: 'mcp_calls', count: mcpCalls })
+      } catch (err) {
+        logger.warn({ event: 'agentic_search.on_event_failed', err })
+      }
+    }
+
+    // A finalize_jobs call cut off by max_tokens may carry a partial list, so
+    // it goes through the recovery below first; after that, partial beats none.
+    const truncated = response.stop_reason === 'max_tokens'
+    for (const block of response.content) {
+      if (block.type === 'tool_use' && block.name === 'finalize_jobs' && (!truncated || recovered)) {
+        const jobs = toRawJobs(block.input as FinalizeJobsInput)
+        logger.info({
+          event: 'agentic_search.finalized',
+          jobs: jobs.length,
+          mcpCalls,
+          requests: request,
+          truncated,
+          ms: Date.now() - t0,
+        })
+        return jobs
+      }
+    }
+
+    // A long server-side tool turn was paused: re-send with the paused turn
+    // appended as-is, no new user message.
+    if (response.stop_reason === 'pause_turn') {
+      messages.push({ role: 'assistant', content: response.content })
+      continue
+    }
+
+    // Ran out of output before finalizing: ask once for what it already has.
+    if (response.stop_reason === 'max_tokens' && !recovered) {
+      const content = trimUnansweredToolCalls(response.content)
+      if (content.length === 0) break
+      messages.push({ role: 'assistant', content })
+      messages.push({ role: 'user', content: FINALIZE_NOW_PROMPT })
+      recovered = true
+      continue
+    }
+
+    break
   }
 
   logger.warn({
     event: 'agentic_search.no_finalize',
-    stopReason: response.stop_reason,
+    stopReason,
     mcpCalls,
     ms: Date.now() - t0,
   })

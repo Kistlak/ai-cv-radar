@@ -24,7 +24,11 @@ async function safeCall<T extends RawJob[]>(
   try {
     return await fn()
   } catch (err) {
-    console.error(`[${label}] failed:`, err instanceof Error ? err.message : err)
+    // A cancelled search aborts with AbortError; that isn't a source failure.
+    // Timeouts (TimeoutError) and real errors are still logged.
+    if (!(err instanceof Error && err.name === 'AbortError')) {
+      console.error(`[${label}] failed:`, err instanceof Error ? err.message : err)
+    }
     return []
   }
 }

@@ -90,7 +90,8 @@ async function scoreBatch(
   ai: AiClient,
   cvText: string,
   query: string,
-  batch: RawJob[]
+  batch: RawJob[],
+  signal?: AbortSignal
 ): Promise<ScoreResult[]> {
   try {
     const text = await ai.complete({
@@ -98,6 +99,7 @@ async function scoreBatch(
       maxTokens: 1500,
       prompt: buildPrompt(cvText, query, batch),
       timeoutMs: BATCH_TIMEOUT_MS,
+      signal,
     })
     return parseScores(text)
   } catch {
@@ -111,12 +113,14 @@ function unavailable(batch: RawJob[]): ScoreResult[] {
 
 // `deadline` (epoch ms): batches not started by then get the fallback score
 // instead of a model call, so the caller still has time to save results.
+// `signal`: once aborted (search cancelled), no more model calls are made.
 export async function scoreJobs(
   jobs: RawJob[],
   cvText: string,
   query: string,
   ai: AiClient,
-  deadline?: number
+  deadline?: number,
+  signal?: AbortSignal
 ): Promise<ScoredJob[]> {
   if (jobs.length === 0) return []
 
@@ -132,9 +136,9 @@ export async function scoreJobs(
     while (next < batches.length) {
       const b = next++
       batchResults[b] =
-        deadline !== undefined && Date.now() >= deadline
+        signal?.aborted || (deadline !== undefined && Date.now() >= deadline)
           ? unavailable(batches[b])
-          : await scoreBatch(ai, cvText, query, batches[b])
+          : await scoreBatch(ai, cvText, query, batches[b], signal)
     }
   }
   await Promise.all(

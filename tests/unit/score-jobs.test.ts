@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AiClient } from '@/lib/ai/types'
 import type { RawJob } from '@/lib/job-sources/types'
 import { parseScores, scoreJobs } from '@/lib/score-jobs'
@@ -136,6 +136,32 @@ describe('scoreJobs', () => {
     expect(scored).toHaveLength(50)
     expect(scored.slice(0, 30).every((j) => j.matchScore === 90)).toBe(true)
     expect(scored.slice(30).every((j) => j.matchScore === 30 && j.matchReason === 'Score unavailable')).toBe(true)
+  })
+
+  it('makes no model calls once the signal is aborted, but keeps every job', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const complete = vi.fn(async () => '[]')
+    const scored = await scoreJobs(
+      Array.from({ length: 25 }, (_, i) => job(i)),
+      'cv',
+      'query',
+      fakeAi(complete),
+      undefined,
+      controller.signal
+    )
+    expect(complete).not.toHaveBeenCalled()
+    expect(scored).toHaveLength(25)
+  })
+
+  it('passes the signal to the AI client', async () => {
+    const controller = new AbortController()
+    let signal: AbortSignal | undefined
+    await scoreJobs([job(0)], 'cv', 'query', fakeAi(async (opts) => {
+      signal = opts.signal
+      return '[]'
+    }), undefined, controller.signal)
+    expect(signal).toBe(controller.signal)
   })
 
   it('runs at most 3 batches at once', async () => {
