@@ -6,6 +6,7 @@ import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 async function generateCoverLetter(
   cvText: string,
@@ -63,7 +64,7 @@ export async function POST(
     await db.update(jobResults).set({ coverLetter }).where(eq(jobResults.id, id))
     return NextResponse.json({ coverLetter, cached: false })
   } catch (err) {
-    console.error('[cover-letter] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'cover-letter', err })
     return NextResponse.json({ error: 'Cover letter generation failed' }, { status: 500 })
   }
 }

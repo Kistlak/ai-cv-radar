@@ -6,6 +6,7 @@ import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 async function generateGeneralCoverLetter(cvText: string, ai: AiClient): Promise<string> {
   const prompt = `Write a polished, reusable general cover letter for this candidate. The candidate will customize it for specific jobs by replacing the bracketed placeholders, so keep it strong but adaptable.
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     await db.update(cvs).set({ generalCoverLetter: coverLetter }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ coverLetter, cached: false })
   } catch (err) {
-    console.error('[general-cover-letter] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'general-cover-letter', err })
     return NextResponse.json({ error: 'Cover letter generation failed' }, { status: 500 })
   }
 }
