@@ -10,12 +10,43 @@ const PENDING_KEY = 'pendingFills'
 const APP_ORIGINS_KEY = 'appOrigins'
 const EXPIRY_MS = 10 * 60 * 1000
 
+// Only these origins are treated as the CV Radar app. Keep in sync with the
+// content_scripts matches in manifest.json.
+const ALLOWED_APP_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://ai-cv-radar.vercel.app',
+]
+
+function originOf(url) {
+  try {
+    return new URL(url).origin
+  } catch {
+    return null
+  }
+}
+
+function isAllowedAppOrigin(origin) {
+  return ALLOWED_APP_ORIGINS.includes(origin)
+}
+
+function isHttpUrl(url) {
+  try {
+    const { protocol } = new URL(url)
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 async function getAppOrigins() {
   const { [APP_ORIGINS_KEY]: origins } = await chrome.storage.local.get(APP_ORIGINS_KEY)
-  return Array.isArray(origins) ? origins : []
+  // Drop anything not on the allow-list (e.g. origins remembered by older versions).
+  return Array.isArray(origins) ? origins.filter(isAllowedAppOrigin) : []
 }
 
 async function rememberAppOrigin(origin) {
+  if (!isAllowedAppOrigin(origin)) return
   const existing = await getAppOrigins()
   if (existing.includes(origin)) return
   await chrome.storage.local.set({ [APP_ORIGINS_KEY]: [...existing, origin] })
@@ -73,6 +104,12 @@ async function handleAutoApply({ appOrigin, payload }) {
   if (!appOrigin || !payload?.applyUrl) {
     throw new Error('Missing applyUrl or appOrigin')
   }
+  if (!isAllowedAppOrigin(appOrigin)) {
+    throw new Error('Auto Apply is only available from the CV Radar app')
+  }
+  if (!isHttpUrl(payload.applyUrl)) {
+    throw new Error('Invalid apply URL')
+  }
   await rememberAppOrigin(appOrigin)
 
   const profile = await fetchProfile(appOrigin)
@@ -96,13 +133,16 @@ async function handleAutoApply({ appOrigin, payload }) {
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || typeof msg !== 'object') return
 
-  if (msg.type === 'REGISTER_APP_ORIGIN' && typeof msg.origin === 'string') {
-    rememberAppOrigin(msg.origin).catch(() => {})
+  // Trust the sender's real origin, not the one claimed in the message.
+  const senderOrigin = originOf(sender.url)
+
+  if (msg.type === 'REGISTER_APP_ORIGIN') {
+    if (senderOrigin) rememberAppOrigin(senderOrigin).catch(() => {})
     return
   }
 
   if (msg.type === 'AUTO_APPLY') {
-    handleAutoApply(msg)
+    handleAutoApply({ appOrigin: senderOrigin, payload: msg.payload })
       .then(() => sendResponse({ ok: true }))
       .catch((err) => {
         console.error('[cv-radar] AUTO_APPLY failed', err)
@@ -121,6 +161,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // peek instead of consuming; it expires naturally after EXPIRY_MS.
     peekPendingFill(tabId)
       .then(async (pending) => {
+        // Manual fills are scoped to the page they were started on. sender.tab.url
+        // is the top-level URL, so embedded ATS iframes still match.
+        if (pending?.targetOrigin && pending.targetOrigin !== originOf(sender.tab?.url)) {
+          sendResponse({ pending: null })
+          return
+        }
         if (pending && !pending.job?.manual) await consumePendingFill(tabId)
         sendResponse({ pending })
       })
@@ -173,6 +219,7 @@ async function handleFillActiveTab() {
   await setPendingFill(tab.id, {
     profile,
     job: { manual: true },
+    targetOrigin: originOf(tab.url),
     appOrigin: origins[0],
     expiresAt: Date.now() + EXPIRY_MS,
   })
@@ -201,6 +248,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   const map = await getPendingFills()
   const entry = map[tabId]
   if (!entry) return
+  // Manual fills inject the filler themselves — never re-inject on later loads.
+  // If the tab moved to a different site, drop the profile entirely.
+  if (entry.job?.manual) {
+    if (entry.targetOrigin !== originOf(tab.url)) await consumePendingFill(tabId)
+    return
+  }
   if (!tab.url || tab.url.startsWith('chrome://')) return
 
   chrome.scripting
