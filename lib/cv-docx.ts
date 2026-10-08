@@ -5,6 +5,7 @@ import {
   Paragraph,
   TextRun,
 } from 'docx'
+import { CvJsonSchema } from '@/lib/ai/schemas'
 
 export interface CvJson {
   name: string
@@ -34,19 +35,14 @@ export interface CvJson {
   certifications?: string[]
 }
 
+// Validates (and normalises) a CV from the model or the cache; null if invalid.
+export function parseCvJson(v: unknown): CvJson | null {
+  const r = CvJsonSchema.safeParse(v)
+  return r.success ? r.data : null
+}
+
 export function isCvJson(v: unknown): v is CvJson {
-  if (!v || typeof v !== 'object') return false
-  const o = v as Record<string, unknown>
-  return (
-    typeof o.name === 'string' &&
-    typeof o.title === 'string' &&
-    typeof o.summary === 'string' &&
-    typeof o.contact === 'object' &&
-    o.contact !== null &&
-    Array.isArray(o.experience) &&
-    Array.isArray(o.education) &&
-    Array.isArray(o.skills)
-  )
+  return CvJsonSchema.safeParse(v).success
 }
 
 // ATS-friendly defaults: Calibri 11pt body, plain bold headings, no columns,

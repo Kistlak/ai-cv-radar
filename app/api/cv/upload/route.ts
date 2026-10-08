@@ -10,6 +10,8 @@ import {
     textForParsing,
 } from '@/lib/cv-upload'
 import { logger } from '@/lib/logger'
+import { extractJson } from '@/lib/ai/parse-json'
+import { CvStructuredSchema, type CvStructured } from '@/lib/ai/schemas'
 import { consumeQuota, isAiFallback, quotaExceededResponse } from '@/lib/usage-limits'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
@@ -71,11 +73,12 @@ export async function POST(req: NextRequest) {
     const parse = textForParsing(rawText)
     if (parse.truncated)
         logger.warn({ event: 'cv_upload.text_truncated', userId: user.id, chars: rawText.length })
-    let structured: Record<string, unknown>
+    let structured: CvStructured
     try {
         const text = await ai.complete({
             tier: 'smart',
             maxTokens: 2048,
+            json: true,
             prompt: `Extract structured data from this CV. Return ONLY valid JSON matching this exact shape, no explanation:
   {
     "name": string,
@@ -90,9 +93,9 @@ export async function POST(req: NextRequest) {
   CV text:
   ${parse.text}`,
         })
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) throw new Error()
-        structured = JSON.parse(jsonMatch[0])
+        // Validate before storing: a malformed parse would otherwise be saved and
+        // break the CV page, downloads and the extension profile later.
+        structured = CvStructuredSchema.parse(extractJson(text, 'object'))
     } catch {
         return NextResponse.json({ error: 'AI could not parse the CV structure' }, { status: 500 })
     }

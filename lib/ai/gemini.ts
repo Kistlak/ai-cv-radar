@@ -11,7 +11,7 @@ export function createGeminiClient(apiKey: string): AiClient {
 
   return {
     provider: 'gemini',
-    async complete({ prompt, maxTokens, tier, system, timeoutMs, signal }: AiCompletionOptions): Promise<string> {
+    async complete({ prompt, maxTokens, tier, system, timeoutMs, signal, json }: AiCompletionOptions): Promise<string> {
       const abortSignal = completionSignal({ signal, timeoutMs })
       const response = await client.models.generateContent({
         model: tier === 'fast' ? FAST_MODEL : SMART_MODEL,
@@ -20,6 +20,7 @@ export function createGeminiClient(apiKey: string): AiClient {
           maxOutputTokens: maxTokens,
           ...(system ? { systemInstruction: system } : {}),
           ...(abortSignal ? { abortSignal } : {}),
+          ...(json ? { responseMimeType: 'application/json' } : {}),
         },
       })
       const text = response.text
