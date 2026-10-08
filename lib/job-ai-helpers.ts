@@ -1,10 +1,11 @@
 import { db } from '@/db'
 import { jobResults, searches, cvs } from '@/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 import { isAiFallback } from '@/lib/usage-limits'
 import { UNTRUSTED_JOB_RULE, untrusted } from '@/lib/untrusted'
+import { getActiveCv } from '@/lib/cv'
 
 export interface JobAIContext {
   job: typeof jobResults.$inferSelect
@@ -27,12 +28,15 @@ export async function loadJobAIContext(
 
   if (!row) return { ok: false, error: 'Job not found', status: 404 }
 
-  const [cv] = await db
+  // Use the CV the job's search was scored against, so the deep-dive, cover
+  // letter and tailored CV match the score shown. Fall back to the current CV
+  // if that one is gone (can't happen today: deleting a CV deletes its searches).
+  const [pinned] = await db
     .select({ rawText: cvs.rawText })
     .from(cvs)
-    .where(eq(cvs.userId, userId))
-    .orderBy(desc(cvs.createdAt))
+    .where(and(eq(cvs.id, row.search.cvId), eq(cvs.userId, userId)))
     .limit(1)
+  const cv = pinned ?? (await getActiveCv(userId))
   if (!cv) return { ok: false, error: 'No CV on file', status: 400 }
 
   const keys = await getDecryptedKeys(userId)

@@ -1,22 +1,15 @@
 import { CvPolishActions } from '@/components/cv-polish-actions'
 import CvUploadForm from '@/components/cv-upload-form'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
-import { desc, eq } from 'drizzle-orm'
 import { CheckCircle2, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
+import { getActiveCv } from '@/lib/cv'
 
 export default async function CVPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [activeCv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const activeCv = await getActiveCv(user.id)
 
   const structured = activeCv?.structured as Record<string, unknown> | undefined
   const skills = Array.isArray(structured?.skills) ? (structured!.skills as string[]) : []

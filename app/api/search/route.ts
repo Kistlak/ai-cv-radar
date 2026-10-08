@@ -1,8 +1,8 @@
 import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
-import { cvs, searches } from '@/db/schema'
-import { and, desc, eq } from 'drizzle-orm'
+import { searches } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { resolveProvider } from '@/lib/ai/provider'
 import { runSearch } from '@/lib/run-search'
@@ -17,6 +17,7 @@ import {
 import { z } from 'zod'
 import crypto from 'crypto'
 import { requireUser } from '@/lib/auth'
+import { getActiveCv } from '@/lib/cv'
 
 // The response returns in ~1s, but the after() background pipeline (derive →
 // fetch/agentic → score → persist) runs inside this function's duration budget.
@@ -46,12 +47,7 @@ export async function POST(req: NextRequest) {
   const { query, location, remoteOnly, sources, maxResults } = parsed.data
 
   // Verify user has a CV; the search is pinned to the active (newest) one
-  const [cv] = await db
-    .select({ id: cvs.id })
-    .from(cvs)
-    .where(and(eq(cvs.userId, user.id), eq(cvs.isActive, true)))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const cv = await getActiveCv(user.id)
   if (!cv) return NextResponse.json({ error: 'Upload a CV before searching' }, { status: 400 })
 
   // Verify the user can run AI calls with either provider (their own key or an

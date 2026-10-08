@@ -1,7 +1,5 @@
-import { desc, eq, and } from 'drizzle-orm'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import { getActiveCv } from '@/lib/cv'
 
 export interface ApplicationProfile {
   firstName: string | null
@@ -61,22 +59,7 @@ export async function buildApplicationProfile(
   userId: string,
   userEmail: string | null
 ): Promise<{ ok: true; profile: ApplicationProfile } | { ok: false; error: string; status: number }> {
-  const [activeCv] = await db
-    .select()
-    .from(cvs)
-    .where(and(eq(cvs.userId, userId), eq(cvs.isActive, true)))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
-
-  const [cv] = activeCv
-    ? [activeCv]
-    : await db
-        .select()
-        .from(cvs)
-        .where(eq(cvs.userId, userId))
-        .orderBy(desc(cvs.createdAt))
-        .limit(1)
-
+  const cv = await getActiveCv(userId)
   if (!cv) return { ok: false, error: 'Upload a CV first', status: 400 }
 
   const general: CvJson | null = isCvJson(cv.generalCv) ? cv.generalCv : null

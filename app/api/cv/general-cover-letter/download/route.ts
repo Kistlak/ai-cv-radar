@@ -1,22 +1,15 @@
 import { NextResponse } from 'next/server'
-import { desc, eq } from 'drizzle-orm'
 import { Packer } from 'docx'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { buildCoverLetterDocx, isCvJson, safeFilename, type CvJson } from '@/lib/cv-docx'
 import { requireUser } from '@/lib/auth'
+import { getActiveCv } from '@/lib/cv'
 
 export async function GET() {
   const auth = await requireUser()
   if (auth.response) return auth.response
   const { user } = auth
 
-  const [cv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const cv = await getActiveCv(user.id)
   if (!cv) return NextResponse.json({ error: 'No CV on file' }, { status: 404 })
   if (!cv.generalCoverLetter) {
     return NextResponse.json({ error: 'Generate your cover letter first' }, { status: 400 })
