@@ -1,5 +1,6 @@
 'use client'
 
+import { ConfirmButton } from '@/components/confirm-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -74,6 +75,16 @@ const KEY_FIELDS: KeyField[] = [
   },
 ]
 
+// The DELETE /api/keys field for each input. Adzuna's id and key are removed together.
+const DELETE_FIELD: Record<KeyFieldId, string> = {
+  anthropic_key: 'anthropic_key',
+  gemini_key: 'gemini_key',
+  apify_token: 'apify_token',
+  adzuna_app_id: 'adzuna',
+  adzuna_app_key: 'adzuna',
+  rapidapi_key: 'rapidapi_key',
+}
+
 export function ApiKeysForm() {
   const [status, setStatus] = useState<KeyStatus | null>(null)
   const [values, setValues] = useState<Partial<Record<KeyFieldId, string>>>({})
@@ -132,6 +143,20 @@ export function ApiKeysForm() {
       setError('Failed to update provider. Please try again.')
     }
     setSavingProvider(false)
+  }
+
+  async function removeKey(id: KeyFieldId): Promise<boolean> {
+    setError(null)
+    const res = await fetch(`/api/keys?field=${DELETE_FIELD[id]}`, { method: 'DELETE' })
+    if (!res.ok) {
+      setError('Failed to remove key. Please try again.')
+      return false
+    }
+    // Re-read: removing a key can also clear its pair (Adzuna) or switch the
+    // preferred AI provider.
+    const next = await fetch('/api/keys').then((r) => r.json()).catch(() => null)
+    if (next) setStatus(next)
+    return true
   }
 
   const hasAnthropic = !!status?.anthropic_key
@@ -269,6 +294,22 @@ export function ApiKeysForm() {
                 {isSaving ? 'Saving…' : justSaved ? 'Saved ✓' : 'Save'}
               </Button>
             </div>
+
+            {isSet && (
+              <div className="mt-2 flex justify-end">
+                <ConfirmButton
+                  label="Remove"
+                  title={`Remove ${field.id.startsWith('adzuna') ? 'Adzuna keys' : field.label}?`}
+                  description={
+                    field.id.startsWith('adzuna')
+                      ? 'This removes both the Adzuna App ID and App Key. You can add them again any time.'
+                      : 'Features using this key will use the shared key if one is available, or stop until you add it again.'
+                  }
+                  confirmLabel="Remove"
+                  onConfirm={() => removeKey(field.id)}
+                />
+              </div>
+            )}
           </div>
         )
       })}

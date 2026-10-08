@@ -1,4 +1,4 @@
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createAiClient, resolveProvider } from '@/lib/ai/provider'

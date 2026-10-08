@@ -1,5 +1,5 @@
 import { cvs } from '@/db/schema'
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 import { isAiFallback } from '@/lib/usage-limits'
 import { getActiveCv } from '@/lib/cv'

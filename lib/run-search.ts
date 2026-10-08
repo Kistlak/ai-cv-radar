@@ -1,4 +1,4 @@
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
