@@ -1,24 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { cvs, searches } from '@/db/schema'
+import { searches } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import Link from 'next/link'
 import { FileText, Key, Search as SearchIcon, ArrowRight, CheckCircle2, XCircle, Sparkles, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { failStaleSearches } from '@/lib/stale-searches'
 import { canUseAi, getKeyStatus, type KeySource } from '@/lib/key-status'
+import { getActiveCv } from '@/lib/cv'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [activeCv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const activeCv = await getActiveCv(user.id)
 
   const keys = await getKeyStatus(user.id)
 

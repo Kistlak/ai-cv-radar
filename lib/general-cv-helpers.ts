@@ -1,9 +1,8 @@
-import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { desc, eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 import { isAiFallback } from '@/lib/usage-limits'
+import { getActiveCv } from '@/lib/cv'
 
 export interface GeneralCvContext {
   cv: typeof cvs.$inferSelect
@@ -15,12 +14,7 @@ export interface GeneralCvContext {
 export async function loadGeneralCvContext(
   userId: string
 ): Promise<{ ok: true; ctx: GeneralCvContext } | { ok: false; error: string; status: number }> {
-  const [cv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, userId))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const cv = await getActiveCv(userId)
   if (!cv) return { ok: false, error: 'Upload a CV first', status: 400 }
 
   const keys = await getDecryptedKeys(userId)
