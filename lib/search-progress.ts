@@ -1,6 +1,7 @@
 import { db } from '@/db'
 import { searches } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { logger } from '@/lib/logger'
 
 export type SearchStage =
   | 'starting'
@@ -43,7 +44,7 @@ export function createProgressUpdater(searchId: string) {
         .set({ progress: { ...state } })
         .where(eq(searches.id, searchId))
     } catch (err) {
-      console.warn('[progress] write failed:', err)
+      logger.warn({ event: 'search_progress.write_failed', searchId, err })
     }
   }
 }

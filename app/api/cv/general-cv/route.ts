@@ -8,6 +8,7 @@ import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 async function generateGeneralCv(cvText: string, ai: AiClient): Promise<CvJson> {
   const prompt = `You are a professional CV editor producing an ATS-optimized, polished general-purpose CV. This CV is NOT tailored to a specific job — it should be a strong, reusable version the candidate can send for similar roles that fit their background.
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     await db.update(cvs).set({ generalCv }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ generalCv, cached: false })
   } catch (err) {
-    console.error('[general-cv] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'general-cv', err })
     return NextResponse.json({ error: 'General CV generation failed' }, { status: 500 })
   }
 }

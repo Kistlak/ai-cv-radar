@@ -8,6 +8,7 @@ import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
 import { extractJson } from '@/lib/ai/parse-json'
 import { DeepDiveSchema, type DeepDive } from '@/lib/ai/schemas'
+import { logger } from '@/lib/logger'
 
 export type { DeepDive }
 
@@ -76,7 +77,7 @@ export async function POST(
     await db.update(jobResults).set({ deepDive }).where(eq(jobResults.id, id))
     return NextResponse.json({ deepDive, cached: false })
   } catch (err) {
-    console.error('[deep-dive] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'deep-dive', err })
     return NextResponse.json({ error: 'Deep-dive generation failed' }, { status: 500 })
   }
 }

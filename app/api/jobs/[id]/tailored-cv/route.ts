@@ -8,6 +8,7 @@ import { extractJson } from '@/lib/ai/parse-json'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 // Alias kept for callers that still import TailoredCv/isTailoredCv.
 export type TailoredCv = CvJson
@@ -113,7 +114,7 @@ export async function POST(
     await db.update(jobResults).set({ tailoredCv }).where(eq(jobResults.id, id))
     return NextResponse.json({ tailoredCv, cached: false })
   } catch (err) {
-    console.error('[tailored-cv] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'tailored-cv', err })
     return NextResponse.json({ error: 'Tailored CV generation failed' }, { status: 500 })
   }
 }
