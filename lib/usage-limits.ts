@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { and, count, eq, gt, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { searches, usageCounters } from '@/db/schema'
-import type { ResolvedKeys } from '@/app/api/keys/route'
+import type { ResolvedKeys } from '@/lib/keys'
 import type { AiProvider } from '@/lib/ai/provider'
 
 // Daily quotas apply only when an operator-paid FALLBACK_* key would pay for

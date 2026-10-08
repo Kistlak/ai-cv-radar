@@ -1,7 +1,7 @@
 import { db } from '@/db'
 import { jobResults, searches, cvs } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
 import { isAiFallback } from '@/lib/usage-limits'
 import { UNTRUSTED_JOB_RULE, untrusted } from '@/lib/untrusted'
