@@ -1,4 +1,4 @@
-import { SOURCE_TIMEOUT_MS, type RawJob, type SearchParams } from './types'
+import { sourceSignal, type RawJob, type SearchParams } from './types'
 
 interface RemotiveJob {
   id: number
@@ -24,7 +24,7 @@ export async function fetchRemotive(params: SearchParams): Promise<RawJob[]> {
   url.searchParams.set('search', params.query)
   url.searchParams.set('limit', '20')
 
-  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(SOURCE_TIMEOUT_MS) })
+  const res = await fetch(url.toString(), { signal: sourceSignal(params) })
   if (!res.ok) throw new Error(`Remotive error: ${res.status}`)
   const data: RemotiveResponse = await res.json()
 

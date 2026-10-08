@@ -1,4 +1,4 @@
-import { SOURCE_TIMEOUT_MS, type RawJob, type SearchParams } from './types'
+import { sourceSignal, type RawJob, type SearchParams } from './types'
 
 interface JSearchJob {
   job_id: string
@@ -40,7 +40,7 @@ export async function fetchJSearch(
       'X-RapidAPI-Key': rapidapiKey,
       'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
     },
-    signal: AbortSignal.timeout(SOURCE_TIMEOUT_MS),
+    signal: sourceSignal(params),
   })
   if (!res.ok) throw new Error(`JSearch error: ${res.status}`)
   const data: JSearchResponse = await res.json()
