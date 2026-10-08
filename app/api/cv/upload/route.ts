@@ -3,6 +3,14 @@ import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
 import { createAiClient, resolveProvider } from '@/lib/ai/provider'
+import {
+    CV_TOO_LARGE_MESSAGE,
+    MAX_CV_BYTES,
+    MULTIPART_OVERHEAD_BYTES,
+    isPdfBytes,
+    textForParsing,
+} from '@/lib/cv-upload'
+import { logger } from '@/lib/logger'
 import { consumeQuota, isAiFallback, quotaExceededResponse } from '@/lib/usage-limits'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
@@ -14,11 +22,17 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // 2. Get the uploaded file from the form
+    // 2. Get the uploaded file from the form. Reject an oversized body from its
+    //    header before formData() reads it all into memory; file.size below is
+    //    the authoritative check (the header can be absent).
+    if (Number(req.headers.get('content-length') ?? 0) > MAX_CV_BYTES + MULTIPART_OVERHEAD_BYTES)
+        return NextResponse.json({ error: CV_TOO_LARGE_MESSAGE }, { status: 413 })
     const formData = await req.formData()
     const file = formData.get('file') as File | null
     if (!file || file.type !== 'application/pdf')
         return NextResponse.json({ error: 'A PDF file is required' }, { status: 400 })
+    if (file.size > MAX_CV_BYTES)
+        return NextResponse.json({ error: CV_TOO_LARGE_MESSAGE }, { status: 413 })
 
     // 3. Fetch keys and resolve the active AI provider (Anthropic or Gemini)
     const keys = await getDecryptedKeys(user.id)
@@ -29,11 +43,19 @@ export async function POST(req: NextRequest) {
 
     // 4. Convert the file to a Buffer (raw bytes) so we can parse and upload it
     const buffer = Buffer.from(await file.arrayBuffer())
+    // The browser-reported type is only a claim; check the bytes are a PDF.
+    if (!isPdfBytes(buffer))
+        return NextResponse.json({ error: 'A PDF file is required' }, { status: 400 })
 
     // 5. Extract plain text from the PDF using unpdf
-    const pdf = await getDocumentProxy(new Uint8Array(buffer))
-    const { text } = await extractText(pdf, { mergePages: true })
-    const rawText = Array.isArray(text) ? text.join('\n') : text
+    let rawText: string
+    try {
+        const pdf = await getDocumentProxy(new Uint8Array(buffer))
+        const { text } = await extractText(pdf, { mergePages: true })
+        rawText = Array.isArray(text) ? text.join('\n') : text
+    } catch {
+        return NextResponse.json({ error: 'Could not read this PDF' }, { status: 400 })
+    }
     if (!rawText.trim())
         return NextResponse.json({ error: 'Could not extract text from PDF' }, { status: 400 })
 
@@ -44,16 +66,11 @@ export async function POST(req: NextRequest) {
         if (!quota.ok) return quotaExceededResponse(quota)
     }
 
-    // 6. Upload the original PDF to Supabase Storage
-    //    Path format: {userId}/{timestamp}.pdf - matches our storage policy
-    const filePath = `${user.id}/${Date.now()}.pdf`
-    const { error: storageError } = await supabase.storage
-        .from('cvs')
-        .upload(filePath, buffer, { contentType: 'application/pdf', upsert: true })
-    if (storageError)
-        return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
-
-    // 7. Ask the active AI provider to extract structured data from the raw CV text
+    // 6. Ask the active AI provider to extract structured data from the CV text.
+    //    Only the parse prompt is capped; the full text is saved below.
+    const parse = textForParsing(rawText)
+    if (parse.truncated)
+        logger.warn({ event: 'cv_upload.text_truncated', userId: user.id, chars: rawText.length })
     let structured: Record<string, unknown>
     try {
         const text = await ai.complete({
@@ -71,7 +88,7 @@ export async function POST(req: NextRequest) {
   }
 
   CV text:
-  ${rawText}`,
+  ${parse.text}`,
         })
         const jsonMatch = text.match(/\{[\s\S]*\}/)
         if (!jsonMatch) throw new Error()
@@ -79,6 +96,16 @@ export async function POST(req: NextRequest) {
     } catch {
         return NextResponse.json({ error: 'AI could not parse the CV structure' }, { status: 500 })
     }
+
+    // 7. Upload the original PDF to Supabase Storage, only now that parsing
+    //    worked, so a failed parse doesn't leave an orphaned file.
+    //    Path format: {userId}/{timestamp}.pdf - matches our storage policy
+    const filePath = `${user.id}/${Date.now()}.pdf`
+    const { error: storageError } = await supabase.storage
+        .from('cvs')
+        .upload(filePath, buffer, { contentType: 'application/pdf', upsert: true })
+    if (storageError)
+        return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
 
     // 9. Deactivate any previous CVs for this user (only one active at a time)
     await db.update(cvs).set({ isActive: false }).where(eq(cvs.userId, user.id))

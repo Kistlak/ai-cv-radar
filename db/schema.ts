@@ -44,7 +44,9 @@ export const cvs = pgTable('cvs', {
   generalCoverLetter: text('general_cover_letter'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (table) => [
+  index('cvs_user_created_idx').on(table.userId, table.createdAt.desc()),
+])
 
 export const searches = pgTable('searches', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -65,7 +67,9 @@ export const searches = pgTable('searches', {
   progress: jsonb('progress'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
-})
+}, (table) => [
+  index('searches_user_created_idx').on(table.userId, table.createdAt.desc()),
+])
 
 export const jobResults = pgTable(
   'job_results',
