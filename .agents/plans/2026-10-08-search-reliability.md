@@ -16,7 +16,11 @@
 
 ## Outcome (2026-10-08)
 - Unit tests 31/31 (19 new), `tsc` clean, lint 0 errors (1 pre-existing warning in `search-form.tsx`).
-- **Still to do:** run the manual DB checks in the Testing Strategy section, then commit and push on your go-ahead.
+- Committed as `2b08ae6` on `fix/search-reliability` (not pushed).
+- **Manual DB checks (2026-10-08, hosted DB):**
+  - Check 1 passed: every user with CVs has exactly one active CV.
+  - Checks 3–4 passed: running the real `failStaleSearches` on temporary rows marked a 10-minute-old `running` search `failed` with "Search timed out. Please try again." and left a 2-minute-old one `running`. That also proves the interval SQL runs on Postgres. The rows were removed afterwards.
+- **Still to do:** check 2 (upload a new CV mid-search; results stay on `search.cv_id`). It needs a live search with real keys.
 **Date**: 2026-10-08
 **Source**: `.agents/plans/reviews/2026-10-07-full-project-review.md`, Critical items 5, 6 and 7
 **PRD**: none. One pipeline (search), one task; no handover expected.
