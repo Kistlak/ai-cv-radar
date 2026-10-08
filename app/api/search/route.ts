@@ -1,6 +1,5 @@
 import { after } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs, searches } from '@/db/schema'
 import { and, desc, eq } from 'drizzle-orm'
@@ -17,6 +16,7 @@ import {
 } from '@/lib/usage-limits'
 import { z } from 'zod'
 import crypto from 'crypto'
+import { requireUser } from '@/lib/auth'
 
 // The response returns in ~1s, but the after() background pipeline (derive →
 // fetch/agentic → score → persist) runs inside this function's duration budget.
@@ -34,9 +34,9 @@ const SearchSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const body = await req.json().catch(() => null)
   const parsed = SearchSchema.safeParse(body)
@@ -104,9 +104,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')

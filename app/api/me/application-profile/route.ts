@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth'
 import { buildApplicationProfile } from '@/lib/application-profile'
 
 // Comma-separated extension origins (e.g. chrome-extension://<id>) allowed to read
@@ -28,11 +28,9 @@ export async function OPTIONS(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const headers = corsHeaders(req.headers.get('origin'))
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers })
+  const auth = await requireUser(headers)
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const result = await buildApplicationProfile(user.id, user.email ?? null)
   if (!result.ok) {
