@@ -53,7 +53,17 @@ All 11 tasks are implemented as planned, with five small, documented deviations 
 
 Re-checked: 135 unit tests, `tsc`, full-repo lint (0 errors), `next build`, and `npm ci` on the new lock all pass.
 
-## DB steps awaiting your approval
+## DB steps: done (2026-10-08, approved)
+1. **T8 migrations.**
+   - Pre-check: statuses were only cancelled (2), complete (11) and failed (4), and 0 of 38 job results had a missing or empty `source_job_id`.
+   - Both files were applied with `npm run db:apply`.
+   - Verified: `source_job_id` is NOT NULL and `searches_status_check` exists. Re-running the status migration is a no-op.
+2. **T3 integration tests:** `npm run test:integration` passed 9/9 (owner control, six cross-user 404s including CV delete, signed-out 401). No test rows left behind.
+3. **T5 real-row check (read-only):**
+   - `cvs.structured` 1/1, `cvs.general_cv` 1/1, `job_results.tailored_cv` 4/4 and `job_results.deep_dive` 1/1 pass the new schemas.
+   - Only counts were printed, never content.
+
+## DB steps (original request, kept for history)
 1. **T8 migrations:**
    - First a read-only pre-check: `SELECT DISTINCT status FROM searches` and a count of NULL/''/'undefined' `source_job_id`.
    - Then `npm run db:apply` for both files, then verify the constraint exists and no NULLs remain.

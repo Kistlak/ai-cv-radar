@@ -247,7 +247,7 @@ No other DB changes. Every migration is applied to the hosted DB only with your 
 | 5 | AI output validation (zod) for CV parse, deep-dive, tailored/general CV, derive-query | `fix/hardening-and-cleanup` | M–L | 1 | plan §T | Completed |
 | 6 | CV consistency: `getActiveCv` helper; job AI uses the search's pinned CV | `fix/hardening-and-cleanup` | S–M | 5 | plan §T | Completed |
 | 7 | Keys: `lib/keys.ts`, versioned + tolerant decrypt, remove-key API + UI | `fix/hardening-and-cleanup` | M | 1 | plan §T | Completed |
-| 8 | Data integrity: `source_job_id` NOT NULL, status CHECK, Drizzle checks, migration workflow doc + apply script | `fix/hardening-and-cleanup` | M | 4 | plan §T | Completed (migrations not yet applied) |
+| 8 | Data integrity: `source_job_id` NOT NULL, status CHECK, Drizzle checks, migration workflow doc + apply script | `fix/hardening-and-cleanup` | M | 4 | plan §T | Completed (migrations applied 2026-10-08) |
 | 9 | CV retention: delete non-active CVs + auto-prune unused | `fix/hardening-and-cleanup` | M | 6 | plan §T | Completed |
 | 10 | Logging: `console.*` → `logger` | `fix/hardening-and-cleanup` | S | 4 | plan §T | Completed |
 | 11 | Repo & dependency cleanup | `fix/hardening-and-cleanup` | S | 1 | plan §T | Completed |
