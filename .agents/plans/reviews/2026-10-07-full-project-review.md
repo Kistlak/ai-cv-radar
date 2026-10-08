@@ -1,7 +1,41 @@
 # Code Review: Full project review — AI CV Radar (A to Z)
 **Date**: 2026-10-07
-**Status**: Pending Approval
+**Status**: Approved, resolved (2026-10-08). Every item is fixed or deliberately deferred; see "Resolution" below. Remaining work is tracked in `.agents/prd/PRD-hardening-and-cleanup.md`.
 **Scope**: Whole repo at `b206dc0` (master). Read-only review, no code changed.
+
+## Resolution (2026-10-08)
+Commits `9598bb0`–`06edbe2` are merged to `master` (PR #12). `2721a80`–T11 are on `fix/hardening-and-cleanup`.
+
+| Review item | Resolved by |
+|---|---|
+| **Critical** | |
+| Manual fill leaks profile to other sites; any `*.vercel.app` trusted; CORS reflects any extension | `9598bb0` |
+| No rate limiting / quotas | `9be8190` |
+| Search uses latest CV, not `search.cvId` | `2b08ae6` |
+| Unvalidated scores crash the insert | `2b08ae6` |
+| Searches stranded in `running` | `2b08ae6` |
+| **Important** | |
+| Cancel doesn't stop work | `d680134` |
+| Agentic `pause_turn` / `max_tokens` | `d680134` |
+| Adzuna hard-coded `gb` + contract→remote | T4 `8b5d9d5` |
+| Dashboard Anthropic-only check; running/failed searches not clickable | `1257c7b` |
+| Regex AI JSON parsing | T5 `9beb3b8` (derive-query already validated; left as-is) |
+| Upload: size/MIME, parse-before-store, text cap | `1257c7b`; old CVs never deleted: T9 `c29b4ed` |
+| Prompt caching | **Deferred**: below the cacheable minimum on Haiku 4.5 (PRD §4) |
+| Missing indexes | `1257c7b` |
+| NULL `source_job_id` dedupe | T4 `8b5d9d5` + T8 `bed6925` |
+| CHECK constraint only in SQL; free-text status; migration workflow | T8 `bed6925` (status is a CHECK + TS enum rather than `pgEnum`) |
+| RLS bypassed | T3 `9e8e7fd` (`requireUser` + cross-user integration tests). DB-level enforcement **deferred** |
+| Untrusted `applyUrl` / prompt injection | T2 `b530356` |
+| `getDecryptedKeys` in a route; no key versioning; can't delete keys | T7 `dc51ee6` |
+| **Suggestions** | |
+| Duplicate auth callback; unauthenticated location-suggest; security headers | T3 `9e8e7fd` (full CSP **deferred**) |
+| Mixed `console.log` / logger | T10 `97b661c` |
+| Model upgrade | **Deferred** (needs an eval) |
+| Repo hygiene | T11. `docs/*.docx` and `scripts/generate-*.py` kept (owner's choice). `npm audit`: 39 → 22; the rest need breaking upgrades, including a critical `next` advisory (16.2.4 → 16.4.0) |
+| CI (GitHub Actions vs Bitbucket) | Remote is GitHub, so CI stays on Actions. T1 adds typecheck and unit tests |
+| **Testing gaps** | 134 unit tests and the cross-user integration suite. Authenticated Playwright flows are still open |
+| **Product ideas** | Out of scope |
 
 ## Summary
 The product is solid for an MVP. Structure is clean (Next 16 App Router, Drizzle, a provider-agnostic AI layer), keys are encrypted with AES-256-GCM, every route checks auth, and the search pipeline has structured logging and a time budget. The main weaknesses are:
