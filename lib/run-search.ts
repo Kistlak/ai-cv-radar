@@ -1,7 +1,7 @@
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { createAiClient, resolveProvider } from './ai/provider'
 import { runAgenticSearch } from './agentic-search'
 import { deriveQueriesFromCv } from './derive-query'
@@ -18,6 +18,9 @@ const APIFY_SOURCES = new Set(['linkedin', 'indeed', 'glassdoor'])
 // the search is stranded in 'running'. On timeout we abort the request and
 // continue with the cheap-source jobs instead.
 const AGENTIC_TIMEOUT_MS = Number(process.env.AGENTIC_TIMEOUT_MS || 210_000)
+// No new scoring batch starts after this point (from run start). With the 45s
+// per-batch cap, scoring ends by ~275s, leaving time to persist before 300s.
+const SCORING_START_DEADLINE_MS = 230_000
 
 async function isCancelled(searchId: string): Promise<boolean> {
   const [row] = await db
@@ -43,8 +46,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     const [cv] = await db
       .select()
       .from(cvs)
-      .where(eq(cvs.userId, userId))
-      .orderBy(desc(cvs.createdAt))
+      .where(and(eq(cvs.id, search.cvId), eq(cvs.userId, userId)))
       .limit(1)
     if (!cv) throw new Error('No CV found for user')
 
@@ -200,7 +202,13 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
 
     await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
     const tScore = Date.now()
-    const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, ai)
+    const allScored = await scoreJobs(
+      rawJobs,
+      cv.rawText,
+      primaryQuery,
+      ai,
+      t0 + SCORING_START_DEADLINE_MS
+    )
     logger.info({
       event: 'run_search.scoring_completed',
       searchId,

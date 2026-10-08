@@ -1,4 +1,4 @@
-import type { RawJob, SearchParams } from './types'
+import { SOURCE_TIMEOUT_MS, type RawJob, type SearchParams } from './types'
 
 interface AdzunaJob {
   id: string
@@ -31,7 +31,7 @@ export async function fetchAdzuna(
   if (params.location) url.searchParams.set('where', params.location)
   if (params.remoteOnly) url.searchParams.set('what_and', 'remote')
 
-  const res = await fetch(url.toString())
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(SOURCE_TIMEOUT_MS) })
   if (!res.ok) throw new Error(`Adzuna error: ${res.status}`)
   const data: AdzunaResponse = await res.json()
 
