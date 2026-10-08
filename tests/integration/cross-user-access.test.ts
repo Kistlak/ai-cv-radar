@@ -27,9 +27,11 @@ import { POST as deepDive } from '@/app/api/jobs/[id]/deep-dive/route'
 import { POST as coverLetter } from '@/app/api/jobs/[id]/cover-letter/route'
 import { POST as tailoredCv } from '@/app/api/jobs/[id]/tailored-cv/route'
 import { GET as tailoredCvDownload } from '@/app/api/jobs/[id]/tailored-cv/download/route'
+import { DELETE as deleteCvRoute } from '@/app/api/cv/[id]/route'
 
 const userA = crypto.randomUUID()
 const userB = crypto.randomUUID()
+let cvA = ''
 let searchA = ''
 let jobA = ''
 
@@ -61,6 +63,7 @@ beforeAll(async () => {
       tailoredCv: { name: 'x' },
     })
     .returning({ id: jobResults.id })
+  cvA = cv.id
   searchA = search.id
   jobA = job.id
 })
@@ -104,6 +107,13 @@ describe("user B cannot reach user A's data", () => {
   it('tailored CV → 404', async () => {
     auth.userId = userB
     expect((await tailoredCv(req(`/api/jobs/${jobA}/tailored-cv`, 'POST'), params(jobA))).status).toBe(404)
+  })
+
+  it('CV delete → 404 (and the CV is untouched)', async () => {
+    auth.userId = userB
+    expect((await deleteCvRoute(req(`/api/cv/${cvA}`, 'DELETE'), params(cvA))).status).toBe(404)
+    const [row] = await db.select({ id: cvs.id }).from(cvs).where(inArray(cvs.id, [cvA]))
+    expect(row?.id).toBe(cvA)
   })
 
   it('tailored CV download → 404', async () => {

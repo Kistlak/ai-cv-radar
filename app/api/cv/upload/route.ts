@@ -17,6 +17,7 @@ import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractText, getDocumentProxy } from 'unpdf'
 import { requireUser } from '@/lib/auth'
+import { pruneUnusedCvs } from '@/lib/cv-retention'
 
 export async function POST(req: NextRequest) {
     // 1. Check the user is logged in
@@ -121,6 +122,13 @@ export async function POST(req: NextRequest) {
         structured,
         isActive: true,
     }).returning()
+
+    // 11. Remove old CVs that no search uses. Best-effort: never fails the upload.
+    try {
+        await pruneUnusedCvs(user.id, supabase)
+    } catch (err) {
+        logger.warn({ event: 'cv_upload.prune_failed', userId: user.id, err })
+    }
 
     return NextResponse.json({ cv: newCv })
 }

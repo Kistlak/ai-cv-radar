@@ -3,6 +3,8 @@ import CvUploadForm from '@/components/cv-upload-form'
 import { createClient } from '@/lib/supabase/server'
 import { CheckCircle2, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
 import { getActiveCv } from '@/lib/cv'
+import { listCvs } from '@/lib/cv-retention'
+import { PreviousCvs } from '@/components/previous-cvs'
 
 export default async function CVPage() {
   const supabase = await createClient()
@@ -10,6 +12,9 @@ export default async function CVPage() {
   if (!user) return null
 
   const activeCv = await getActiveCv(user.id)
+  const previousCvs = (await listCvs(user.id))
+    .filter((cv) => cv.id !== activeCv?.id)
+    .map((cv) => ({ id: cv.id, createdAt: cv.createdAt.toISOString(), searchCount: cv.searchCount }))
 
   const structured = activeCv?.structured as Record<string, unknown> | undefined
   const skills = Array.isArray(structured?.skills) ? (structured!.skills as string[]) : []
@@ -106,6 +111,8 @@ export default async function CVPage() {
           )}
         </div>
       )}
+
+      <PreviousCvs cvs={previousCvs} />
     </div>
   )
 }
