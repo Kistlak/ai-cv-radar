@@ -12,10 +12,13 @@
 
 ## Outcome (2026-10-08)
 - Unit tests 12/12, `tsc` clean, lint 0 errors (1 pre-existing warning).
-- **Still to do:**
-  1. Apply `supabase/migrations/20261008_add_usage_counters.sql` to the hosted DB. My attempt was blocked by a tool permission; the user will apply it.
-  2. Run the manual DB checklist in the Testing Strategy section.
-  3. Deploy only after step 1.
+- **Done (2026-10-08):**
+  1. Migration `20261008_add_usage_counters.sql` applied to the hosted DB (approved by the user). Verified: 4 columns, composite primary key, foreign key to `profiles`, RLS enabled.
+  2. DB checks run against the hosted DB by calling the real `lib/usage-limits.ts` functions (temporary rows only, removed afterwards):
+     - With `QUOTA_SEARCHES_PER_DAY=2`, searches 1–2 were allowed and the 3rd was refused with `retryAfterSeconds > 0`.
+     - The counter row was 2, so the refused call wasn't counted. `ai_generation` is counted separately.
+     - A fresh running search blocks a new one, and a new one is allowed once it completes.
+- **Still to do:** the route-level checks need a logged-in session with a fallback key set. That covers checklist items 1–2 over HTTP (429 + `Retry-After` header), item 3 (a cached deep dive isn't counted twice; `?regenerate=1` is) and item 4 (own-key users aren't limited).
 **Date**: 2026-10-08
 **Source**: `.agents/plans/reviews/2026-10-07-full-project-review.md`, Critical item "No rate limiting / quotas"
 **PRD**: none (one concern: a shared helper plus a check at each AI entry point).
