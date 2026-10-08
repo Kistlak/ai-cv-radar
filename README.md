@@ -2,7 +2,7 @@
 
 AI-powered job search that ranks job listings against your CV and helps you apply faster - with fit analysis, tailored cover letters, and ATS-friendly CV Word documents generated per role.
 
-## What it does
+## What it does.
 
 - **Upload your CV once.** A PDF is text-extracted and parsed into structured data (skills, experience, education) by Claude.
 - **Search jobs across multiple sources.** Remotive, Adzuna, and JSearch are free tier prefilters; LinkedIn, Indeed, and Glassdoor run through Apify. When an Apify token is present, Claude drives the search as an agentic loop - calling actors, reading results, and refining the query when results are weak.
