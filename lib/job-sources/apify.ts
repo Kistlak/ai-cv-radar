@@ -1,10 +1,43 @@
-import { ApifyClient } from 'apify-client'
+import { ApifyClient, type ActorRun } from 'apify-client'
 import type { RawJob, SearchParams } from './types'
 
 // Default actors - override via env vars if you want to swap any.
 const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR || 'bebity/linkedin-jobs-scraper'
 const INDEED_ACTOR = process.env.APIFY_INDEED_ACTOR || 'misceres/indeed-scraper'
 const GLASSDOOR_ACTOR = process.env.APIFY_GLASSDOOR_ACTOR || 'bebity/glassdoor-jobs-scraper'
+
+// Apify stops the run itself after this (and the billing with it), so a run
+// can't outlive the route's maxDuration. A run that doesn't succeed returns no jobs.
+const ACTOR_TIMEOUT_SECS = 150
+// The wait is sliced so a cancelled search is noticed within a few seconds.
+const WAIT_SLICE_SECS = 5
+const TERMINAL_STATUSES = new Set(['SUCCEEDED', 'FAILED', 'TIMED-OUT', 'ABORTED'])
+
+// Starts an actor and waits for it to finish. If `signal` aborts first, the
+// run is aborted on Apify (so it stops billing) and this throws.
+export async function runActor(
+  client: ApifyClient,
+  actorId: string,
+  input: unknown,
+  signal?: AbortSignal
+): Promise<ActorRun> {
+  let run = await client.actor(actorId).start(input, { timeout: ACTOR_TIMEOUT_SECS })
+  // Slack over Apify's own timeout, in case its final status lags.
+  const giveUpAt = Date.now() + (ACTOR_TIMEOUT_SECS + 10) * 1000
+
+  while (!TERMINAL_STATUSES.has(run.status) && Date.now() < giveUpAt) {
+    if (signal?.aborted) {
+      await client.run(run.id).abort().catch(() => {})
+      throw signal.reason ?? new Error('Aborted')
+    }
+    run = await client.run(run.id).waitForFinish({ waitSecs: WAIT_SLICE_SECS })
+  }
+  if (signal?.aborted && !TERMINAL_STATUSES.has(run.status)) {
+    await client.run(run.id).abort().catch(() => {})
+    throw signal.reason ?? new Error('Aborted')
+  }
+  return run
+}
 
 function parseDate(raw: unknown): Date | null {
   if (typeof raw !== 'string' || !raw) return null
@@ -47,11 +80,11 @@ export async function fetchApifyLinkedIn(
   const searchUrl = buildLinkedInSearchUrl(params)
   console.log(`[apify-linkedin] actor=${LINKEDIN_ACTOR} url=${searchUrl}`)
 
-  const run = await client.actor(LINKEDIN_ACTOR).call({
+  const run = await runActor(client, LINKEDIN_ACTOR, {
     urls: [searchUrl],
     count: 25,
     scrapeCompany: false,
-  })
+  }, params.signal)
   console.log(`[apify-linkedin] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 
@@ -127,7 +160,7 @@ export async function fetchApifyIndeed(
 
   console.log(`[apify-indeed] actor=${INDEED_ACTOR} position="${params.query}" country=${country} location="${locationStr}"`)
 
-  const run = await client.actor(INDEED_ACTOR).call({
+  const run = await runActor(client, INDEED_ACTOR, {
     position: params.query,
     country,
     location: locationStr,
@@ -135,7 +168,7 @@ export async function fetchApifyIndeed(
     parseCompanyDetails: false,
     saveOnlyUniqueItems: true,
     followApplyRedirects: false,
-  })
+  }, params.signal)
   console.log(`[apify-indeed] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 
@@ -204,10 +237,10 @@ export async function fetchApifyGlassdoor(
   const searchUrl = buildGlassdoorSearchUrl(params)
   console.log(`[apify-glassdoor] actor=${GLASSDOOR_ACTOR} url=${searchUrl}`)
 
-  const run = await client.actor(GLASSDOOR_ACTOR).call({
+  const run = await runActor(client, GLASSDOOR_ACTOR, {
     searchUrls: [searchUrl],
     maxResults: 25,
-  })
+  }, params.signal)
   console.log(`[apify-glassdoor] run ${run.id} status=${run.status}`)
   if (run.status !== 'SUCCEEDED') return []
 

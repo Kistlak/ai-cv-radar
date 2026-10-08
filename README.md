@@ -70,7 +70,9 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
    | `FALLBACK_ADZUNA_APP_KEY` | Adzuna source |
    | `FALLBACK_RAPIDAPI_KEY` | JSearch source |
 
-   > **Cost warning.** Anything you put in a `FALLBACK_*` var is billed to *your* account every time a user without their own key uses that feature. Anthropic and Apify costs scale fast - a single agentic search can run several Claude turns and dozens of Apify actor calls. Only set these if you're prepared to pay for shared usage, and consider rate-limiting or sign-up gating before going public.
+   > **Cost warning.** Anything you put in a `FALLBACK_*` var is billed to *your* account every time a user without their own key uses that feature. Anthropic and Apify costs scale fast - a single agentic search can run several Claude turns and dozens of Apify actor calls. Only set these if you're prepared to pay for shared usage.
+   >
+   > **Built-in limits.** Calls paid by a `FALLBACK_*` key are capped per user per day (UTC): 5 searches, 30 AI generations (deep dive, cover letters, tailored/general CV), and 5 CV uploads. Every user is also limited to 1 running search at a time. Over the limit, the API returns `429` with a `Retry-After` header. Tune with `QUOTA_SEARCHES_PER_DAY`, `QUOTA_AI_GENERATIONS_PER_DAY`, `QUOTA_CV_UPLOADS_PER_DAY`, and `MAX_CONCURRENT_SEARCHES` (`0` disables a limit). Requires the `usage_counters` table from `supabase/migrations/20261008_add_usage_counters.sql`. Consider sign-up gating too before going public.
 
 3. Push the schema to Supabase:
    ```bash

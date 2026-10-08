@@ -7,7 +7,7 @@
   "host_permissions": [
     "http://localhost:3000/*",
     "http://127.0.0.1:3000/*",
-    "https://*.vercel.app/*",
+    "https://ai-cv-radar.vercel.app/*",
     "<all_urls>"
   ],
   "background": {
@@ -19,7 +19,7 @@
       "matches": [
         "http://localhost:3000/*",
         "http://127.0.0.1:3000/*",
-        "https://*.vercel.app/*"
+        "https://ai-cv-radar.vercel.app/*"
       ],
       "js": ["content-connector.js"],
       "run_at": "document_start"

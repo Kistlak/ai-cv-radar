@@ -6,6 +6,7 @@ import { jobResults } from '@/db/schema'
 import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
 import { isCvJson, type CvJson } from '@/lib/cv-docx'
 import type { AiClient } from '@/lib/ai/provider'
+import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 
 // Alias kept for callers that still import TailoredCv/isTailoredCv.
 export type TailoredCv = CvJson
@@ -98,10 +99,15 @@ export async function POST(
 
   const loaded = await loadJobAIContext(id, user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { job, cvText, ai } = loaded.ctx
+  const { job, cvText, ai, usingFallback } = loaded.ctx
 
   if (!regenerate && job.tailoredCv && isCvJson(job.tailoredCv)) {
     return NextResponse.json({ tailoredCv: job.tailoredCv, cached: true })
+  }
+
+  if (usingFallback) {
+    const quota = await consumeQuota(user.id, 'ai_generation')
+    if (!quota.ok) return quotaExceededResponse(quota)
   }
 
   try {

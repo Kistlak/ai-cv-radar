@@ -1,7 +1,7 @@
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { createAiClient, resolveProvider } from './ai/provider'
 import { runAgenticSearch } from './agentic-search'
 import { deriveQueriesFromCv } from './derive-query'
@@ -18,6 +18,12 @@ const APIFY_SOURCES = new Set(['linkedin', 'indeed', 'glassdoor'])
 // the search is stranded in 'running'. On timeout we abort the request and
 // continue with the cheap-source jobs instead.
 const AGENTIC_TIMEOUT_MS = Number(process.env.AGENTIC_TIMEOUT_MS || 210_000)
+// No new scoring batch starts after this point (from run start). With the 45s
+// per-batch cap, scoring ends by ~275s, leaving time to persist before 300s.
+const SCORING_START_DEADLINE_MS = 230_000
+// How often a running search checks whether the user cancelled it. On cancel,
+// the run-wide signal aborts in-flight AI, source and Apify calls.
+const CANCEL_POLL_MS = 3_000
 
 async function isCancelled(searchId: string): Promise<boolean> {
   const [row] = await db
@@ -32,6 +38,14 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
   const setProgress = createProgressUpdater(searchId)
   const t0 = Date.now()
   logger.info({ event: 'run_search.started', searchId, userId })
+  const cancel = new AbortController()
+  const cancelWatcher = setInterval(() => {
+    isCancelled(searchId)
+      .then((cancelled) => {
+        if (cancelled) cancel.abort()
+      })
+      .catch(() => {})
+  }, CANCEL_POLL_MS)
   try {
     const [search] = await db
       .select()
@@ -43,8 +57,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     const [cv] = await db
       .select()
       .from(cvs)
-      .where(eq(cvs.userId, userId))
-      .orderBy(desc(cvs.createdAt))
+      .where(and(eq(cvs.id, search.cvId), eq(cvs.userId, userId)))
       .limit(1)
     if (!cv) throw new Error('No CV found for user')
 
@@ -63,7 +76,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     } else {
       await setProgress({ stage: 'deriving-queries' })
       const tDerive = Date.now()
-      queries = await deriveQueriesFromCv(cv.rawText, ai, 3)
+      queries = await deriveQueriesFromCv(cv.rawText, ai, 3, cancel.signal)
       logger.info({
         event: 'run_search.queries_derived',
         searchId,
@@ -118,6 +131,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       {
         location: search.location ?? undefined,
         remoteOnly: search.remoteOnly,
+        signal: cancel.signal,
       },
       {
         apifyToken: keys.apifyToken,
@@ -145,7 +159,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
               maxResults: search.maxResults,
               anthropicKey: keys.anthropicKey!,
               apifyToken: keys.apifyToken!,
-              signal: controller.signal,
+              signal: AbortSignal.any([controller.signal, cancel.signal]),
               onEvent: async (e) => {
                 if (e.type === 'mcp_calls') {
                   await setProgress({ agenticMcpCalls: e.count })
@@ -153,7 +167,9 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
               },
             })
           } catch (err) {
-            if (controller.signal.aborted) {
+            if (cancel.signal.aborted) {
+              logger.warn({ event: 'run_search.agentic_cancelled', searchId })
+            } else if (controller.signal.aborted) {
               logger.warn({
                 event: 'run_search.agentic_timeout',
                 searchId,
@@ -184,7 +200,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       ms: Date.now() - tFetch,
     })
 
-    if (await isCancelled(searchId)) {
+    if (cancel.signal.aborted || (await isCancelled(searchId))) {
       logger.warn({ event: 'run_search.cancelled', searchId, phase: 'before-scoring' })
       return
     }
@@ -200,7 +216,14 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
 
     await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
     const tScore = Date.now()
-    const allScored = await scoreJobs(rawJobs, cv.rawText, primaryQuery, ai)
+    const allScored = await scoreJobs(
+      rawJobs,
+      cv.rawText,
+      primaryQuery,
+      ai,
+      t0 + SCORING_START_DEADLINE_MS,
+      cancel.signal
+    )
     logger.info({
       event: 'run_search.scoring_completed',
       searchId,
@@ -213,7 +236,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       ? [...allScored].sort((a, b) => b.matchScore - a.matchScore).slice(0, search.maxResults)
       : allScored
 
-    if (await isCancelled(searchId)) {
+    if (cancel.signal.aborted || (await isCancelled(searchId))) {
       logger.warn({ event: 'run_search.cancelled', searchId, phase: 'after-scoring' })
       return
     }
@@ -256,7 +279,12 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       ms: Date.now() - t0,
     })
   } catch (err) {
-    logger.error({ event: 'run_search.failed', searchId, err, ms: Date.now() - t0 })
+    // An abort from the cancel watcher surfaces as an error; it's not a failure.
+    if (cancel.signal.aborted) {
+      logger.warn({ event: 'run_search.cancelled', searchId, phase: 'aborted', ms: Date.now() - t0 })
+    } else {
+      logger.error({ event: 'run_search.failed', searchId, err, ms: Date.now() - t0 })
+    }
     if (!(await isCancelled(searchId))) {
       await db
         .update(searches)
@@ -268,6 +296,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
         .where(eq(searches.id, searchId))
     }
   } finally {
+    clearInterval(cancelWatcher)
     // Flush any in-flight Axiom ships before the serverless function ends,
     // otherwise the final events (completed/failed) get dropped.
     await logger.flush()

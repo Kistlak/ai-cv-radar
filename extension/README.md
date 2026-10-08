@@ -31,15 +31,23 @@ field and clicks submit themselves.
 
 ## Configured app origins
 
-The connector script is matched against these patterns (edit `manifest.json` if
-you deploy elsewhere):
+The connector script is matched against these patterns:
 
 - `http://localhost:3000/*`
 - `http://127.0.0.1:3000/*`
-- `https://*.vercel.app/*`
+- `https://ai-cv-radar.vercel.app/*`
 
-The background worker also records each origin the connector announces, so the
-popup shows which app instances the extension has seen.
+If you deploy elsewhere, add your origin in **both** `manifest.json`
+(`content_scripts.matches` and `host_permissions`) and the
+`ALLOWED_APP_ORIGINS` list in `background.js`. The background worker ignores
+messages from any origin not on that list, and only http(s) apply URLs are
+opened.
+
+The background worker also records each allowed origin the connector
+announces, so the popup shows which app instances the extension has seen.
+
+A manual **Fill this form** only fills the page it was started on. Navigating
+the tab to another site discards the profile.
 
 ## What is not filled
 

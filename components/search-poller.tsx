@@ -18,6 +18,9 @@ const STAGE_ORDER: SearchStage[] = [
   'persisting',
 ]
 
+// Longer than the server's 6-minute stale cut-off, so the refresh shows the result.
+const MAX_POLL_MS = 7 * 60 * 1000
+
 function stageIndex(stage: SearchStage | undefined): number {
   if (!stage) return 0
   const i = STAGE_ORDER.indexOf(stage)
@@ -30,7 +33,15 @@ export default function SearchPoller({ searchId }: SearchPollerProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    const startedAt = Date.now()
     const poll = async () => {
+      // Past this, the server has marked the search failed (see
+      // lib/stale-searches.ts); stop polling and re-render to show it.
+      if (Date.now() - startedAt > MAX_POLL_MS) {
+        if (intervalRef.current) clearInterval(intervalRef.current)
+        router.refresh()
+        return
+      }
       try {
         const res = await fetch(`/api/search?id=${searchId}`)
         if (!res.ok) return

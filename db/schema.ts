@@ -8,6 +8,8 @@ import {
   integer,
   index,
   unique,
+  date,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 
 export const profiles = pgTable('profiles', {
@@ -42,7 +44,9 @@ export const cvs = pgTable('cvs', {
   generalCoverLetter: text('general_cover_letter'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (table) => [
+  index('cvs_user_created_idx').on(table.userId, table.createdAt.desc()),
+])
 
 export const searches = pgTable('searches', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -63,7 +67,9 @@ export const searches = pgTable('searches', {
   progress: jsonb('progress'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
-})
+}, (table) => [
+  index('searches_user_created_idx').on(table.userId, table.createdAt.desc()),
+])
 
 export const jobResults = pgTable(
   'job_results',
@@ -97,6 +103,21 @@ export const jobResults = pgTable(
       table.sourceJobId
     ),
   ]
+)
+
+// Per-user daily usage of operator-paid (FALLBACK_*) keys. One row per
+// user + action + UTC day; see lib/usage-limits.ts.
+export const usageCounters = pgTable(
+  'usage_counters',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    action: text('action').notNull(),
+    day: date('day', { mode: 'string' }).notNull(),
+    count: integer('count').default(0).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.action, table.day] })]
 )
 
 export type Profile = typeof profiles.$inferSelect
