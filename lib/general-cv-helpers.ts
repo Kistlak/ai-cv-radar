@@ -3,10 +3,13 @@ import { cvs } from '@/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { createAiClient, resolveProvider, type AiClient } from '@/lib/ai/provider'
+import { isAiFallback } from '@/lib/usage-limits'
 
 export interface GeneralCvContext {
   cv: typeof cvs.$inferSelect
   ai: AiClient
+  // True when the AI key is an operator-paid FALLBACK_* key (quota applies).
+  usingFallback: boolean
 }
 
 export async function loadGeneralCvContext(
@@ -26,5 +29,12 @@ export async function loadGeneralCvContext(
     return { ok: false, error: 'Add an Anthropic or Gemini API key in Settings', status: 400 }
   }
 
-  return { ok: true, ctx: { cv, ai: createAiClient(resolved.provider, resolved.apiKey) } }
+  return {
+    ok: true,
+    ctx: {
+      cv,
+      ai: createAiClient(resolved.provider, resolved.apiKey),
+      usingFallback: isAiFallback(keys.usingFallback, resolved.provider),
+    },
+  }
 }

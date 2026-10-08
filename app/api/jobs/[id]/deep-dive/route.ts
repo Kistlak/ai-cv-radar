@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { jobResults } from '@/db/schema'
 import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
 import type { AiClient } from '@/lib/ai/provider'
+import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 
 export interface DeepDive {
   fitSummary: string
@@ -72,10 +73,15 @@ export async function POST(
 
   const loaded = await loadJobAIContext(id, user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { job, cvText, ai } = loaded.ctx
+  const { job, cvText, ai, usingFallback } = loaded.ctx
 
   if (!regenerate && job.deepDive && isDeepDive(job.deepDive)) {
     return NextResponse.json({ deepDive: job.deepDive, cached: true })
+  }
+
+  if (usingFallback) {
+    const quota = await consumeQuota(user.id, 'ai_generation')
+    if (!quota.ok) return quotaExceededResponse(quota)
   }
 
   try {

@@ -6,6 +6,7 @@ import { cvs } from '@/db/schema'
 import { isCvJson, type CvJson } from '@/lib/cv-docx'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
+import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 
 async function generateGeneralCv(cvText: string, ai: AiClient): Promise<CvJson> {
   const prompt = `You are a professional CV editor producing an ATS-optimized, polished general-purpose CV. This CV is NOT tailored to a specific job — it should be a strong, reusable version the candidate can send for similar roles that fit their background.
@@ -72,10 +73,15 @@ export async function POST(req: NextRequest) {
 
   const loaded = await loadGeneralCvContext(user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { cv, ai } = loaded.ctx
+  const { cv, ai, usingFallback } = loaded.ctx
 
   if (!regenerate && cv.generalCv && isCvJson(cv.generalCv)) {
     return NextResponse.json({ generalCv: cv.generalCv, cached: true })
+  }
+
+  if (usingFallback) {
+    const quota = await consumeQuota(user.id, 'ai_generation')
+    if (!quota.ok) return quotaExceededResponse(quota)
   }
 
   try {

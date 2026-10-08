@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
+import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
 
 async function generateGeneralCoverLetter(cvText: string, ai: AiClient): Promise<string> {
   const prompt = `Write a polished, reusable general cover letter for this candidate. The candidate will customize it for specific jobs by replacing the bracketed placeholders, so keep it strong but adaptable.
@@ -36,10 +37,15 @@ export async function POST(req: NextRequest) {
 
   const loaded = await loadGeneralCvContext(user.id)
   if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: loaded.status })
-  const { cv, ai } = loaded.ctx
+  const { cv, ai, usingFallback } = loaded.ctx
 
   if (!regenerate && cv.generalCoverLetter) {
     return NextResponse.json({ coverLetter: cv.generalCoverLetter, cached: true })
+  }
+
+  if (usingFallback) {
+    const quota = await consumeQuota(user.id, 'ai_generation')
+    if (!quota.ok) return quotaExceededResponse(quota)
   }
 
   try {

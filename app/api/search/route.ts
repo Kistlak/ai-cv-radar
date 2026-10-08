@@ -7,6 +7,13 @@ import { eq } from 'drizzle-orm'
 import { getDecryptedKeys } from '@/app/api/keys/route'
 import { resolveProvider } from '@/lib/ai/provider'
 import { runSearch } from '@/lib/run-search'
+import {
+  consumeQuota,
+  hasTooManyRunningSearches,
+  quotaExceededResponse,
+  searchUsesFallback,
+  tooManyRunningSearchesResponse,
+} from '@/lib/usage-limits'
 import { z } from 'zod'
 import crypto from 'crypto'
 
@@ -45,11 +52,19 @@ export async function POST(req: NextRequest) {
   // operator FALLBACK_* env key). The agentic Apify path additionally needs an
   // Anthropic key — run-search checks that per-search and falls back gracefully.
   const keys = await getDecryptedKeys(user.id)
-  if (!resolveProvider(keys.preferredAiProvider, keys))
+  const resolved = resolveProvider(keys.preferredAiProvider, keys)
+  if (!resolved)
     return NextResponse.json(
       { error: 'Add an Anthropic or Gemini API key in Settings' },
       { status: 400 }
     )
+
+  if (await hasTooManyRunningSearches(user.id)) return tooManyRunningSearchesResponse()
+
+  if (searchUsesFallback(keys.usingFallback, resolved.provider, sources)) {
+    const quota = await consumeQuota(user.id, 'search')
+    if (!quota.ok) return quotaExceededResponse(quota)
+  }
 
   // Stable hash of the sources array so the schema constraint is satisfied
   const sourcesHash = crypto

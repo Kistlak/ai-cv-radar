@@ -8,6 +8,8 @@ import {
   integer,
   index,
   unique,
+  date,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 
 export const profiles = pgTable('profiles', {
@@ -97,6 +99,21 @@ export const jobResults = pgTable(
       table.sourceJobId
     ),
   ]
+)
+
+// Per-user daily usage of operator-paid (FALLBACK_*) keys. One row per
+// user + action + UTC day; see lib/usage-limits.ts.
+export const usageCounters = pgTable(
+  'usage_counters',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    action: text('action').notNull(),
+    day: date('day', { mode: 'string' }).notNull(),
+    count: integer('count').default(0).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.action, table.day] })]
 )
 
 export type Profile = typeof profiles.$inferSelect
