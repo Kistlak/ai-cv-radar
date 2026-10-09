@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { AiClient } from '@/lib/ai/provider'
 import type { RawJob } from './job-sources/types'
+import { logger } from './logger'
 import { UNTRUSTED_JOB_RULE, untrusted } from './untrusted'
 
 interface ScoredJob extends RawJob {
@@ -104,7 +105,12 @@ async function scoreBatch(
       signal,
     })
     return parseScores(text)
-  } catch {
+  } catch (err) {
+    // A failure here only shows up as the fallback score, so log it: a broken
+    // model or key would otherwise look like 30 for every job.
+    if (!signal?.aborted) {
+      logger.warn({ event: 'score_jobs.batch_failed', provider: ai.provider, jobs: batch.length, err })
+    }
     return unavailable(batch)
   }
 }
