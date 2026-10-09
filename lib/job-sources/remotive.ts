@@ -30,7 +30,7 @@ export async function fetchRemotive(params: SearchParams): Promise<RawJob[]> {
 
   return (data.jobs ?? []).map((job) => ({
     source: 'remotive',
-    sourceJobId: String(job.id),
+    sourceJobId: job.id != null ? String(job.id) : job.url,
     title: job.title,
     company: job.company_name,
     location: job.candidate_required_location || 'Remote',

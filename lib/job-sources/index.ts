@@ -3,6 +3,7 @@ import { fetchApifyGlassdoor, fetchApifyIndeed, fetchApifyLinkedIn } from './api
 import { fetchJSearch } from './jsearch'
 import { fetchRemotive } from './remotive'
 import type { RawJob, SearchParams } from './types'
+import { logger } from '@/lib/logger'
 
 export type { RawJob, SearchParams }
 
@@ -27,7 +28,7 @@ async function safeCall<T extends RawJob[]>(
     // A cancelled search aborts with AbortError; that isn't a source failure.
     // Timeouts (TimeoutError) and real errors are still logged.
     if (!(err instanceof Error && err.name === 'AbortError')) {
-      console.error(`[${label}] failed:`, err instanceof Error ? err.message : err)
+      logger.error({ event: 'job_source.failed', source: label, err })
     }
     return []
   }
@@ -100,7 +101,7 @@ export async function fetchAllSourcesMultiQuery(
 
   const tasks = queries.map((query, i) => {
     const sources = i === 0 ? enabledSources : cheapEnabled
-    console.log(`[multi-query] query #${i + 1}: "${query}" - sources: ${sources.join(', ')}`)
+    logger.info({ event: 'job_source.multi_query', index: i + 1, query, sources })
     return fetchSources({ ...baseParams, query }, keys, sources)
   })
 
@@ -108,6 +109,6 @@ export async function fetchAllSourcesMultiQuery(
   const all = results.flat()
   const deduped = dedupeJobs(all)
 
-  console.log(`[multi-query] ${all.length} raw jobs → ${deduped.length} after dedupe`)
+  logger.info({ event: 'job_source.multi_query_done', raw: all.length, deduped: deduped.length })
   return deduped
 }

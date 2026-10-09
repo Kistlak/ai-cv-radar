@@ -1,4 +1,4 @@
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -8,6 +8,8 @@ import { deriveQueriesFromCv } from './derive-query'
 import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
 import type { RawJob } from './job-sources/types'
 import { logger } from './logger'
+import { toHttpUrl } from './safe-url'
+import { searchErrorMessage } from './search-errors'
 import { scoreJobs } from './score-jobs'
 import { createProgressUpdater } from './search-progress'
 
@@ -190,7 +192,25 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       cheapJobsPromise,
       agenticJobsPromise,
     ])
-    const rawJobs = dedupeJobs([...cheapJobs, ...agenticJobs])
+    const deduped = dedupeJobs([...cheapJobs, ...agenticJobs])
+    // Apply URLs come from scrapers and the agent: keep only http(s) links,
+    // normalised, so nothing else is ever rendered as a link.
+    const rawJobs = deduped.flatMap((job) => {
+      const applyUrl = toHttpUrl(job.applyUrl)
+      if (!applyUrl) return []
+      // A missing id would defeat the (search, source, source_job_id) dedupe,
+      // since Postgres treats NULLs as distinct; the apply URL is stable.
+      const sourceJobId =
+        job.sourceJobId && job.sourceJobId !== 'undefined' ? job.sourceJobId : applyUrl
+      return [{ ...job, applyUrl, sourceJobId }]
+    })
+    if (rawJobs.length < deduped.length) {
+      logger.warn({
+        event: 'run_search.invalid_apply_url',
+        searchId,
+        dropped: deduped.length - rawJobs.length,
+      })
+    }
     logger.info({
       event: 'run_search.fetch_completed',
       searchId,
@@ -290,7 +310,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
         .update(searches)
         .set({
           status: 'failed',
-          error: err instanceof Error ? err.message : 'Unknown error',
+          error: searchErrorMessage(err),
           completedAt: new Date(),
         })
         .where(eq(searches.id, searchId))

@@ -1,22 +1,20 @@
 import { CvPolishActions } from '@/components/cv-polish-actions'
 import CvUploadForm from '@/components/cv-upload-form'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { createClient } from '@/lib/supabase/server'
-import { desc, eq } from 'drizzle-orm'
 import { CheckCircle2, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
+import { getActiveCv } from '@/lib/cv'
+import { listCvs } from '@/lib/cv-retention'
+import { PreviousCvs } from '@/components/previous-cvs'
 
 export default async function CVPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [activeCv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const activeCv = await getActiveCv(user.id)
+  const previousCvs = (await listCvs(user.id))
+    .filter((cv) => cv.id !== activeCv?.id)
+    .map((cv) => ({ id: cv.id, createdAt: cv.createdAt.toISOString(), searchCount: cv.searchCount }))
 
   const structured = activeCv?.structured as Record<string, unknown> | undefined
   const skills = Array.isArray(structured?.skills) ? (structured!.skills as string[]) : []
@@ -58,7 +56,7 @@ export default async function CVPage() {
               <h3 className="font-semibold text-sm">Profile</h3>
             </div>
             <dl className="mt-4 space-y-3 text-sm">
-              <ProfileRow icon={User} label="Name" value={String(structured.name ?? '-')} />
+              <ProfileRow icon={User} label="Name" value={String(structured.name || '-')} />
               <ProfileRow icon={Mail} label="Email" value={String(structured.email ?? '-')} />
               <ProfileRow icon={MapPin} label="Location" value={String(structured.location ?? '-')} />
             </dl>
@@ -113,6 +111,8 @@ export default async function CVPage() {
           )}
         </div>
       )}
+
+      <PreviousCvs cvs={previousCvs} />
     </div>
   )
 }

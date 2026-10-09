@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 // Photon is a free OSM-based autocomplete service (https://photon.komoot.io).
 // No key required. Public rate limits are generous for modest use;
@@ -68,6 +70,10 @@ function formatSuggestion(feat: PhotonFeature): Suggestion | null {
 }
 
 export async function GET(req: NextRequest) {
+  // Signed-in users only, so the endpoint isn't an open proxy to Photon.
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+
   const q = (req.nextUrl.searchParams.get('q') || '').trim()
   if (q.length < 2) return NextResponse.json({ suggestions: [] })
 
@@ -89,7 +95,7 @@ export async function GET(req: NextRequest) {
       headers: { 'User-Agent': 'ai-cv-radar/1.0 (location-autocomplete)' },
     })
     if (!res.ok) {
-      console.error('[location-suggest] photon', res.status)
+      logger.warn({ event: 'location_suggest.photon_error', status: res.status })
       return NextResponse.json({ suggestions: [] })
     }
     const body = (await res.json()) as { features?: PhotonFeature[] }
@@ -108,7 +114,7 @@ export async function GET(req: NextRequest) {
     cacheSet(key, suggestions)
     return NextResponse.json({ suggestions })
   } catch (err) {
-    console.error('[location-suggest] failed:', err instanceof Error ? err.message : err)
+    logger.error({ event: 'location_suggest.failed', err })
     return NextResponse.json({ suggestions: [] })
   }
 }

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import { isCvJson, parseCvJson, type CvJson } from '@/lib/cv-docx'
+import { extractJson } from '@/lib/ai/parse-json'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 async function generateGeneralCv(cvText: string, ai: AiClient): Promise<CvJson> {
   const prompt = `You are a professional CV editor producing an ATS-optimized, polished general-purpose CV. This CV is NOT tailored to a specific job — it should be a strong, reusable version the candidate can send for similar roles that fit their background.
@@ -55,19 +57,16 @@ Style rules for maximum ATS score + recruiter readability:
 - Do not use first-person pronouns in bullets.
 - Make section content copy-pastable plain text (no markdown, no emojis, no decorative punctuation).`
 
-  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('No JSON object in response')
-
-  const parsed: unknown = JSON.parse(match[0])
-  if (!isCvJson(parsed)) throw new Error('Response did not match expected CV shape')
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt, json: true })
+  const parsed = parseCvJson(extractJson(text, 'object'))
+  if (!parsed) throw new Error('Response did not match expected CV shape')
   return parsed
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const regenerate = new URL(req.url).searchParams.get('regenerate') === '1'
 
@@ -89,7 +88,7 @@ export async function POST(req: NextRequest) {
     await db.update(cvs).set({ generalCv }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ generalCv, cached: false })
   } catch (err) {
-    console.error('[general-cv] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'general-cv', err })
     return NextResponse.json({ error: 'General CV generation failed' }, { status: 500 })
   }
 }

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { failStaleSearches } from '@/lib/stale-searches'
+import { toHttpUrl } from '@/lib/safe-url'
 import SearchPoller from '@/components/search-poller'
 import { JobActions } from '@/components/job-actions'
 
@@ -144,6 +145,8 @@ export default async function SearchResultsPage({
 type Job = typeof jobResults.$inferSelect
 
 function JobCard({ job }: { job: Job }) {
+  // Older rows were stored before ingest validation: never render a non-http(s) link.
+  const applyUrl = toHttpUrl(job.applyUrl)
   const score = job.matchScore ?? 0
   const scoreColor =
     score >= 75 ? 'text-green-600 dark:text-green-400' :
@@ -188,19 +191,25 @@ function JobCard({ job }: { job: Job }) {
               </div>
             </div>
 
-            <a
-              href={job.applyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                'inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
-                'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white',
-                'shadow-md shadow-violet-500/20 hover:shadow-violet-500/40 hover:scale-105 active:scale-100'
-              )}
-            >
-              Apply
-              <ExternalLink className="h-3 w-3" />
-            </a>
+            {applyUrl ? (
+              <a
+                href={applyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
+                  'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white',
+                  'shadow-md shadow-violet-500/20 hover:shadow-violet-500/40 hover:scale-105 active:scale-100'
+                )}
+              >
+                Apply
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <span className="shrink-0 rounded-lg px-3 py-1.5 text-xs text-muted-foreground ring-1 ring-border/40">
+                No apply link
+              </span>
+            )}
           </div>
 
           {job.matchReason && (
@@ -214,7 +223,7 @@ function JobCard({ job }: { job: Job }) {
             jobId={job.id}
             jobTitle={job.title}
             company={job.company}
-            applyUrl={job.applyUrl}
+            applyUrl={applyUrl ?? undefined}
           />
 
           <div className="mt-2 flex items-center justify-between">

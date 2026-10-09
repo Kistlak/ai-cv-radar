@@ -1,5 +1,7 @@
 import { ApifyClient, type ActorRun } from 'apify-client'
+import { guessCountry } from './country'
 import type { RawJob, SearchParams } from './types'
+import { logger } from '@/lib/logger'
 
 // Default actors - override via env vars if you want to swap any.
 const LINKEDIN_ACTOR = process.env.APIFY_LINKEDIN_ACTOR || 'bebity/linkedin-jobs-scraper'
@@ -21,6 +23,8 @@ export async function runActor(
   input: unknown,
   signal?: AbortSignal
 ): Promise<ActorRun> {
+  // Already cancelled: don't start (and pay for) a run.
+  if (signal?.aborted) throw signal.reason ?? new Error('Aborted')
   let run = await client.actor(actorId).start(input, { timeout: ACTOR_TIMEOUT_SECS })
   // Slack over Apify's own timeout, in case its final status lags.
   const giveUpAt = Date.now() + (ACTOR_TIMEOUT_SECS + 10) * 1000
@@ -78,18 +82,18 @@ export async function fetchApifyLinkedIn(
 ): Promise<RawJob[]> {
   const client = new ApifyClient({ token: apifyToken })
   const searchUrl = buildLinkedInSearchUrl(params)
-  console.log(`[apify-linkedin] actor=${LINKEDIN_ACTOR} url=${searchUrl}`)
+  logger.info({ event: 'job_source.apify_start', source: 'linkedin', actor: LINKEDIN_ACTOR, url: searchUrl })
 
   const run = await runActor(client, LINKEDIN_ACTOR, {
     urls: [searchUrl],
     count: 25,
     scrapeCompany: false,
   }, params.signal)
-  console.log(`[apify-linkedin] run ${run.id} status=${run.status}`)
+  logger.info({ event: 'job_source.apify_run', source: 'linkedin', runId: run.id, status: run.status })
   if (run.status !== 'SUCCEEDED') return []
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems()
-  console.log(`[apify-linkedin] got ${items.length} items`)
+  logger.info({ event: 'job_source.apify_items', source: 'linkedin', items: items.length })
 
   const jobs: RawJob[] = []
   for (const raw of items) {
@@ -138,18 +142,6 @@ interface MisceresIndeedJob {
   isExpired?: boolean
 }
 
-function guessCountry(location?: string): string {
-  if (!location) return 'us'
-  const loc = location.toLowerCase()
-  if (/\b(uk|united kingdom|england|london|manchester|scotland|wales)\b/.test(loc)) return 'gb'
-  if (/\b(canada|toronto|vancouver|montreal)\b/.test(loc)) return 'ca'
-  if (/\b(australia|sydney|melbourne)\b/.test(loc)) return 'au'
-  if (/\b(india|bangalore|mumbai|delhi|hyderabad)\b/.test(loc)) return 'in'
-  if (/\b(germany|berlin|munich)\b/.test(loc)) return 'de'
-  if (/\b(france|paris)\b/.test(loc)) return 'fr'
-  return 'us'
-}
-
 export async function fetchApifyIndeed(
   params: SearchParams,
   apifyToken: string
@@ -158,7 +150,7 @@ export async function fetchApifyIndeed(
   const country = guessCountry(params.location)
   const locationStr = params.remoteOnly ? 'Remote' : params.location ?? ''
 
-  console.log(`[apify-indeed] actor=${INDEED_ACTOR} position="${params.query}" country=${country} location="${locationStr}"`)
+  logger.info({ event: 'job_source.apify_start', source: 'indeed', actor: INDEED_ACTOR, query: params.query, country, location: locationStr })
 
   const run = await runActor(client, INDEED_ACTOR, {
     position: params.query,
@@ -169,11 +161,11 @@ export async function fetchApifyIndeed(
     saveOnlyUniqueItems: true,
     followApplyRedirects: false,
   }, params.signal)
-  console.log(`[apify-indeed] run ${run.id} status=${run.status}`)
+  logger.info({ event: 'job_source.apify_run', source: 'indeed', runId: run.id, status: run.status })
   if (run.status !== 'SUCCEEDED') return []
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems()
-  console.log(`[apify-indeed] got ${items.length} items`)
+  logger.info({ event: 'job_source.apify_items', source: 'indeed', items: items.length })
 
   const jobs: RawJob[] = []
   for (const raw of items) {
@@ -235,17 +227,17 @@ export async function fetchApifyGlassdoor(
 ): Promise<RawJob[]> {
   const client = new ApifyClient({ token: apifyToken })
   const searchUrl = buildGlassdoorSearchUrl(params)
-  console.log(`[apify-glassdoor] actor=${GLASSDOOR_ACTOR} url=${searchUrl}`)
+  logger.info({ event: 'job_source.apify_start', source: 'glassdoor', actor: GLASSDOOR_ACTOR, url: searchUrl })
 
   const run = await runActor(client, GLASSDOOR_ACTOR, {
     searchUrls: [searchUrl],
     maxResults: 25,
   }, params.signal)
-  console.log(`[apify-glassdoor] run ${run.id} status=${run.status}`)
+  logger.info({ event: 'job_source.apify_run', source: 'glassdoor', runId: run.id, status: run.status })
   if (run.status !== 'SUCCEEDED') return []
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems()
-  console.log(`[apify-glassdoor] got ${items.length} items`)
+  logger.info({ event: 'job_source.apify_items', source: 'glassdoor', items: items.length })
 
   const jobs: RawJob[] = []
   for (const raw of items) {
