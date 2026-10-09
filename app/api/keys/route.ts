@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { userApiKeys } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { encrypt, decrypt } from '@/lib/crypto'
+import { encrypt } from '@/lib/crypto'
 import type { AiProvider } from '@/lib/ai/provider'
 import { z } from 'zod'
+import { requireUser } from '@/lib/auth'
+import { nextPreferredProvider, type DeletableKeyField } from '@/lib/keys'
 
 const SaveKeysSchema = z.object({
   anthropic_key: z.string().min(1).optional(),
@@ -18,9 +19,9 @@ const SaveKeysSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const body = await request.json()
   const parsed = SaveKeysSchema.safeParse(body)
@@ -56,9 +57,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const [keys] = await db
     .select()
@@ -77,65 +78,43 @@ export async function GET() {
   })
 }
 
-export interface ResolvedKeys {
-  anthropicKey?: string
-  geminiKey?: string
-  preferredAiProvider: AiProvider
-  apifyToken?: string
-  adzunaAppId?: string
-  adzunaAppKey?: string
-  rapidapiKey?: string
-  // Per-key flag set when the value came from the operator-provided FALLBACK_*
-  // env var instead of the user's own configured key. Useful for telemetry,
-  // rate limiting, or showing a "shared key" badge in the UI.
-  usingFallback: {
-    anthropicKey: boolean
-    geminiKey: boolean
-    apifyToken: boolean
-    adzunaAppId: boolean
-    adzunaAppKey: boolean
-    rapidapiKey: boolean
-  }
+// Which saved key to remove. `adzuna` clears both the app id and the key.
+const DeleteKeySchema = z.enum(['anthropic_key', 'gemini_key', 'apify_token', 'adzuna', 'rapidapi_key']) satisfies z.ZodType<DeletableKeyField>
+
+const COLUMNS_FOR_FIELD: Record<DeletableKeyField, Array<keyof typeof userApiKeys.$inferInsert>> = {
+  anthropic_key: ['anthropicKey'],
+  gemini_key: ['geminiKey'],
+  apify_token: ['apifyToken'],
+  adzuna: ['adzunaAppId', 'adzunaAppKey'],
+  rapidapi_key: ['rapidapiKey'],
 }
 
-export async function getDecryptedKeys(userId: string): Promise<ResolvedKeys> {
+export async function DELETE(request: Request) {
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
+
+  const parsed = DeleteKeySchema.safeParse(new URL(request.url).searchParams.get('field'))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Unknown key field' }, { status: 400 })
+  }
+  const field = parsed.data
+
   const [row] = await db
     .select()
     .from(userApiKeys)
-    .where(eq(userApiKeys.userId, userId))
+    .where(eq(userApiKeys.userId, user.id))
     .limit(1)
+  if (!row) return NextResponse.json({ success: true })
 
-  const userAnthropic = row?.anthropicKey ? decrypt(row.anthropicKey) : undefined
-  const userGemini = row?.geminiKey ? decrypt(row.geminiKey) : undefined
-  const userApify = row?.apifyToken ? decrypt(row.apifyToken) : undefined
-  const userAdzunaId = row?.adzunaAppId ?? undefined
-  const userAdzunaKey = row?.adzunaAppKey ? decrypt(row.adzunaAppKey) : undefined
-  const userRapidapi = row?.rapidapiKey ? decrypt(row.rapidapiKey) : undefined
-
-  const fallbackAnthropic = process.env.FALLBACK_ANTHROPIC_KEY || undefined
-  const fallbackGemini = process.env.FALLBACK_GEMINI_KEY || undefined
-  const fallbackApify = process.env.FALLBACK_APIFY_TOKEN || undefined
-  const fallbackAdzunaId = process.env.FALLBACK_ADZUNA_APP_ID || undefined
-  const fallbackAdzunaKey = process.env.FALLBACK_ADZUNA_APP_KEY || undefined
-  const fallbackRapidapi = process.env.FALLBACK_RAPIDAPI_KEY || undefined
-
-  const preferred = (row?.preferredAiProvider === 'gemini' ? 'gemini' : 'anthropic') as AiProvider
-
-  return {
-    anthropicKey: userAnthropic ?? fallbackAnthropic,
-    geminiKey: userGemini ?? fallbackGemini,
-    preferredAiProvider: preferred,
-    apifyToken: userApify ?? fallbackApify,
-    adzunaAppId: userAdzunaId ?? fallbackAdzunaId,
-    adzunaAppKey: userAdzunaKey ?? fallbackAdzunaKey,
-    rapidapiKey: userRapidapi ?? fallbackRapidapi,
-    usingFallback: {
-      anthropicKey: !userAnthropic && !!fallbackAnthropic,
-      geminiKey: !userGemini && !!fallbackGemini,
-      apifyToken: !userApify && !!fallbackApify,
-      adzunaAppId: !userAdzunaId && !!fallbackAdzunaId,
-      adzunaAppKey: !userAdzunaKey && !!fallbackAdzunaKey,
-      rapidapiKey: !userRapidapi && !!fallbackRapidapi,
-    },
+  const updates: Partial<typeof userApiKeys.$inferInsert> = {}
+  for (const column of COLUMNS_FOR_FIELD[field]) {
+    ;(updates as Record<string, null>)[column] = null
   }
+  // Removing the preferred AI provider's key: switch to the other provider if
+  // its key is still saved, so AI features keep working.
+  updates.preferredAiProvider = nextPreferredProvider(field, row)
+
+  await db.update(userApiKeys).set(updates).where(eq(userApiKeys.userId, user.id))
+  return NextResponse.json({ success: true })
 }

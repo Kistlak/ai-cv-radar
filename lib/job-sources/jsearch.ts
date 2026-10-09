@@ -58,7 +58,7 @@ export async function fetchJSearch(
 
     return {
       source: 'jsearch',
-      sourceJobId: job.job_id,
+      sourceJobId: job.job_id || job.job_apply_link,
       title: job.job_title,
       company: job.employer_name,
       location,

@@ -1,7 +1,6 @@
-import { getDecryptedKeys } from '@/app/api/keys/route'
+import { getDecryptedKeys } from '@/lib/keys'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
-import { createClient } from '@/lib/supabase/server'
 import { createAiClient, resolveProvider } from '@/lib/ai/provider'
 import {
     CV_TOO_LARGE_MESSAGE,
@@ -11,16 +10,20 @@ import {
     textForParsing,
 } from '@/lib/cv-upload'
 import { logger } from '@/lib/logger'
+import { extractJson } from '@/lib/ai/parse-json'
+import { CvStructuredSchema, type CvStructured } from '@/lib/ai/schemas'
 import { consumeQuota, isAiFallback, quotaExceededResponse } from '@/lib/usage-limits'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractText, getDocumentProxy } from 'unpdf'
+import { requireUser } from '@/lib/auth'
+import { pruneUnusedCvs } from '@/lib/cv-retention'
 
 export async function POST(req: NextRequest) {
     // 1. Check the user is logged in
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await requireUser()
+    if (auth.response) return auth.response
+    const { user, supabase } = auth
 
     // 2. Get the uploaded file from the form. Reject an oversized body from its
     //    header before formData() reads it all into memory; file.size below is
@@ -71,11 +74,12 @@ export async function POST(req: NextRequest) {
     const parse = textForParsing(rawText)
     if (parse.truncated)
         logger.warn({ event: 'cv_upload.text_truncated', userId: user.id, chars: rawText.length })
-    let structured: Record<string, unknown>
+    let structured: CvStructured
     try {
         const text = await ai.complete({
             tier: 'smart',
             maxTokens: 2048,
+            json: true,
             prompt: `Extract structured data from this CV. Return ONLY valid JSON matching this exact shape, no explanation:
   {
     "name": string,
@@ -90,9 +94,9 @@ export async function POST(req: NextRequest) {
   CV text:
   ${parse.text}`,
         })
-        const jsonMatch = text.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) throw new Error()
-        structured = JSON.parse(jsonMatch[0])
+        // Validate before storing: a malformed parse would otherwise be saved and
+        // break the CV page, downloads and the extension profile later.
+        structured = CvStructuredSchema.parse(extractJson(text, 'object'))
     } catch {
         return NextResponse.json({ error: 'AI could not parse the CV structure' }, { status: 500 })
     }
@@ -118,6 +122,13 @@ export async function POST(req: NextRequest) {
         structured,
         isActive: true,
     }).returning()
+
+    // 11. Remove old CVs that no search uses. Best-effort: never fails the upload.
+    try {
+        await pruneUnusedCvs(user.id, supabase)
+    } catch (err) {
+        logger.warn({ event: 'cv_upload.prune_failed', userId: user.id, err })
+    }
 
     return NextResponse.json({ cv: newCv })
 }

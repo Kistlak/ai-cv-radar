@@ -3,6 +3,7 @@ import { fetchSources } from '@/lib/job-sources'
 import { fetchRemotive } from '@/lib/job-sources/remotive'
 import { runActor } from '@/lib/job-sources/apify'
 import { completionSignal } from '@/lib/ai/types'
+import { logger } from '@/lib/logger'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -36,8 +37,8 @@ describe('source fetchers', () => {
 
 describe('fetchSources on cancel', () => {
   it('returns [] without logging an error for a cancelled source', async () => {
-    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errors = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    vi.spyOn(logger, 'info').mockImplementation(() => {})
     const controller = new AbortController()
     controller.abort()
     vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
@@ -52,7 +53,8 @@ describe('fetchSources on cancel', () => {
   })
 
   it('still logs real source failures', async () => {
-    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const errors = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    vi.spyOn(logger, 'info').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn(async () => new Response('down', { status: 503 })))
 
     expect(await fetchSources({ query: 'laravel' }, {}, ['remotive'])).toEqual([])

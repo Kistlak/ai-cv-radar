@@ -11,6 +11,9 @@ export interface AiCompletionOptions {
   timeoutMs?: number
   // Aborts the call from outside, e.g. when the user cancels the search.
   signal?: AbortSignal
+  // The caller expects a JSON object back. Gemini then uses its JSON response
+  // mode; Anthropic ignores it (the caller validates with a schema either way).
+  json?: boolean
 }
 
 // One signal for whichever of `signal` / `timeoutMs` is set, or undefined.

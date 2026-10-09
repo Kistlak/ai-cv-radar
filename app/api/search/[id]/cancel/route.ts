@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq } from 'drizzle-orm'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { searches } from '@/db/schema'
+import { requireUser } from '@/lib/auth'
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const { id } = await params
 

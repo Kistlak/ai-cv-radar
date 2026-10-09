@@ -10,7 +10,14 @@ import {
   unique,
   date,
   primaryKey,
+  check,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+
+// The only values searches.status takes. Typed via the column enum and
+// enforced by the searches_status_check constraint.
+export const SEARCH_STATUSES = ['running', 'complete', 'failed', 'cancelled'] as const
+export type SearchStatus = (typeof SEARCH_STATUSES)[number]
 
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
@@ -30,7 +37,11 @@ export const userApiKeys = pgTable('user_api_keys', {
   adzunaAppKey: text('adzuna_app_key'),
   rapidapiKey: text('rapidapi_key'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (table) => [
+  // Added by 20260702_add_gemini_provider.sql; declared here so drizzle-kit
+  // doesn't see it as drift and try to drop it.
+  check('user_api_keys_preferred_ai_provider_check', sql`${table.preferredAiProvider} IN ('anthropic', 'gemini')`),
+])
 
 export const cvs = pgTable('cvs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -62,13 +73,14 @@ export const searches = pgTable('searches', {
   sources: text('sources').array().notNull(),
   sourcesHash: text('sources_hash'),
   maxResults: integer('max_results'),
-  status: text('status').notNull().default('running'),
+  status: text('status', { enum: SEARCH_STATUSES }).notNull().default('running'),
   error: text('error'),
   progress: jsonb('progress'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
 }, (table) => [
   index('searches_user_created_idx').on(table.userId, table.createdAt.desc()),
+  check('searches_status_check', sql`${table.status} IN ('running', 'complete', 'failed', 'cancelled')`),
 ])
 
 export const jobResults = pgTable(
@@ -79,7 +91,9 @@ export const jobResults = pgTable(
       .notNull()
       .references(() => searches.id, { onDelete: 'cascade' }),
     source: text('source').notNull(),
-    sourceJobId: text('source_job_id'),
+    // Falls back to the apply URL when a source has no id (see run-search), so
+    // the (search, source, source_job_id) dedupe always applies.
+    sourceJobId: text('source_job_id').notNull(),
     title: text('title').notNull(),
     company: text('company').notNull(),
     location: text('location'),

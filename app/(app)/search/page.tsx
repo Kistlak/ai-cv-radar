@@ -1,22 +1,16 @@
 import SearchForm from '@/components/search-form'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { canUseAi, getKeyStatus } from '@/lib/key-status'
 import { createClient } from '@/lib/supabase/server'
-import { eq } from 'drizzle-orm'
 import { AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import { getActiveCv } from '@/lib/cv'
 
 export default async function SearchPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [activeCv] = await db
-    .select({ id: cvs.id })
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .limit(1)
+  const activeCv = await getActiveCv(user.id)
 
   // Either AI provider is enough, and operator FALLBACK_* keys count too.
   const keys = await getKeyStatus(user.id)

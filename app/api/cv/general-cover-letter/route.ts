@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { cvs } from '@/db/schema'
 import { loadGeneralCvContext } from '@/lib/general-cv-helpers'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 async function generateGeneralCoverLetter(cvText: string, ai: AiClient): Promise<string> {
   const prompt = `Write a polished, reusable general cover letter for this candidate. The candidate will customize it for specific jobs by replacing the bracketed placeholders, so keep it strong but adaptable.
@@ -29,9 +30,9 @@ Rules:
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const regenerate = new URL(req.url).searchParams.get('regenerate') === '1'
 
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     await db.update(cvs).set({ generalCoverLetter: coverLetter }).where(eq(cvs.id, cv.id))
     return NextResponse.json({ coverLetter, cached: false })
   } catch (err) {
-    console.error('[general-cover-letter] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'general-cover-letter', err })
     return NextResponse.json({ error: 'Cover letter generation failed' }, { status: 500 })
   }
 }

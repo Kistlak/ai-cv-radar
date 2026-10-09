@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { desc, eq } from 'drizzle-orm'
 import { Packer } from 'docx'
-import { createClient } from '@/lib/supabase/server'
-import { db } from '@/db'
-import { cvs } from '@/db/schema'
 import { buildCvDocx, isCvJson, safeFilename } from '@/lib/cv-docx'
+import { requireUser } from '@/lib/auth'
+import { getActiveCv } from '@/lib/cv'
 
 export async function GET(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const withPhoto = new URL(req.url).searchParams.get('photo') === '1'
 
-  const [cv] = await db
-    .select()
-    .from(cvs)
-    .where(eq(cvs.userId, user.id))
-    .orderBy(desc(cvs.createdAt))
-    .limit(1)
+  const cv = await getActiveCv(user.id)
   if (!cv) return NextResponse.json({ error: 'No CV on file' }, { status: 404 })
   const general = cv.generalCv
   if (!general || !isCvJson(general)) {

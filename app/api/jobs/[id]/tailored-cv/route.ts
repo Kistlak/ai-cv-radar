@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { jobResults } from '@/db/schema'
 import { loadJobAIContext, jobDescriptionForPrompt } from '@/lib/job-ai-helpers'
-import { isCvJson, type CvJson } from '@/lib/cv-docx'
+import { isCvJson, parseCvJson, type CvJson } from '@/lib/cv-docx'
+import { extractJson } from '@/lib/ai/parse-json'
 import type { AiClient } from '@/lib/ai/provider'
 import { consumeQuota, quotaExceededResponse } from '@/lib/usage-limits'
+import { requireUser } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 // Alias kept for callers that still import TailoredCv/isTailoredCv.
 export type TailoredCv = CvJson
@@ -77,12 +79,9 @@ Style rules:
 - Prefer concrete CV details over generic phrasing.
 - "title" should reflect the target role aligned to the job while staying honest about the candidate's level.`
 
-  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt })
-  const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('No JSON object in response')
-
-  const parsed: unknown = JSON.parse(match[0])
-  if (!isCvJson(parsed)) throw new Error('Response did not match expected CV shape')
+  const text = await ai.complete({ tier: 'smart', maxTokens: 3500, prompt, json: true })
+  const parsed = parseCvJson(extractJson(text, 'object'))
+  if (!parsed) throw new Error('Response did not match expected CV shape')
   return parsed
 }
 
@@ -90,9 +89,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireUser()
+  if (auth.response) return auth.response
+  const { user } = auth
 
   const { id } = await params
   const regenerate = new URL(req.url).searchParams.get('regenerate') === '1'
@@ -115,7 +114,7 @@ export async function POST(
     await db.update(jobResults).set({ tailoredCv }).where(eq(jobResults.id, id))
     return NextResponse.json({ tailoredCv, cached: false })
   } catch (err) {
-    console.error('[tailored-cv] failed:', err)
+    logger.error({ event: 'ai_route.generation_failed', route: 'tailored-cv', err })
     return NextResponse.json({ error: 'Tailored CV generation failed' }, { status: 500 })
   }
 }
