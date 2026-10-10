@@ -1,0 +1,6 @@
+{
+  "queries": ["Warehouse Supervisor", "Distribution Centre Supervisor", "Shift Supervisor Warehouse"],
+  "location": "Toronto, Canada",
+  "remoteOnly": false,
+  "maxResults": 10
+}

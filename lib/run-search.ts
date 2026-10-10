@@ -10,7 +10,7 @@ import type { RawJob } from './job-sources/types'
 import { logger } from './logger'
 import { toHttpUrl } from './safe-url'
 import { searchErrorMessage } from './search-errors'
-import { scoreJobs } from './score-jobs'
+import { rankJobs } from './match-pipeline'
 import { createProgressUpdater } from './search-progress'
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
@@ -234,16 +234,19 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       return
     }
 
-    await setProgress({ stage: 'scoring', totalJobs: rawJobs.length })
     const tScore = Date.now()
-    const allScored = await scoreJobs(
-      rawJobs,
-      cv.rawText,
-      primaryQuery,
+    const { scored: allScored, top: scoredJobs } = await rankJobs(rawJobs, {
+      queries,
+      cvText: cv.rawText,
       ai,
-      t0 + SCORING_START_DEADLINE_MS,
-      cancel.signal
-    )
+      maxResults: search.maxResults,
+      deadline: t0 + SCORING_START_DEADLINE_MS,
+      signal: cancel.signal,
+      onPool: async (fetched, pool) => {
+        logger.info({ event: 'run_search.scoring_pool', searchId, fetched, pool })
+        await setProgress({ stage: 'scoring', totalJobs: pool })
+      },
+    })
     logger.info({
       event: 'run_search.scoring_completed',
       searchId,
@@ -251,10 +254,6 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       scored: allScored.length,
       ms: Date.now() - tScore,
     })
-    // Respect the user's job-count preference by keeping the top-scoring N after scoring.
-    const scoredJobs = search.maxResults
-      ? [...allScored].sort((a, b) => b.matchScore - a.matchScore).slice(0, search.maxResults)
-      : allScored
 
     if (cancel.signal.aborted || (await isCancelled(searchId))) {
       logger.warn({ event: 'run_search.cancelled', searchId, phase: 'after-scoring' })

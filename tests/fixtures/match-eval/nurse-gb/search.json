@@ -1,0 +1,6 @@
+{
+  "queries": ["Critical Care Staff Nurse", "ICU Senior Staff Nurse", "Band 6 Nurse"],
+  "location": "Manchester, UK",
+  "remoteOnly": false,
+  "maxResults": 10
+}

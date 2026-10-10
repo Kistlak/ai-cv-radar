@@ -1,0 +1,229 @@
+{
+  "hospitality-sg-01": {
+    "label": "ok",
+    "why": "Adjacent reservations role that uses her Opera and front office background but she has no dedicated reservations or channel-distribution experience."
+  },
+  "hospitality-sg-02": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Entry-level front desk agent role, three or more levels below a Front Office Manager with 10 years of experience."
+  },
+  "hospitality-sg-03": {
+    "label": "good",
+    "why": "Front Office Manager role in a 5-star Singapore hotel requiring Opera and 4-5 star experience, which she has, and open to PRs."
+  },
+  "hospitality-sg-04": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching Front Office Manager role but on-site in Dubai, while she is searching for work in Singapore."
+  },
+  "hospitality-sg-05": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Kitchen role requiring culinary training and chef experience, a different field from front office management."
+  },
+  "hospitality-sg-06": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Would be a good Front Office Manager match in Singapore but was posted 58 days ago."
+  },
+  "hospitality-sg-07": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title contains \"Front Office\" but it is a student internship, far below a manager with 10 years of experience."
+  },
+  "hospitality-sg-08": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A front office manager role under a different title, leading a 12-person reception team on Opera, matching her experience exactly."
+  },
+  "hospitality-sg-09": {
+    "label": "ok",
+    "why": "Same department and skills but one level below her current Front Office Manager role."
+  },
+  "hospitality-sg-10": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires business-level Japanese (JLPT N1), which she does not have."
+  },
+  "hospitality-sg-11": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Plausible adjacent remote role, but limited to US residents and she lives in Singapore."
+  },
+  "hospitality-sg-12": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Front Office Manager role at a 5-star Singapore hotel needing Opera and team leadership, all of which she has; requirements appear only after a long company intro."
+  },
+  "hospitality-sg-13": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Hotel engineering role requiring an engineering diploma and M&E experience, a different field from front office."
+  },
+  "hospitality-sg-14": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Requires 5 years as a hotel General Manager with full P&L, two or more levels above a department-level Front Office Manager."
+  },
+  "hospitality-sg-15": {
+    "label": "ok",
+    "why": "A natural next step that fits her front office background, but it asks for housekeeping management experience she lacks and is a level up."
+  },
+  "hospitality-sg-16": {
+    "label": "good",
+    "why": "Front Office Manager at a Singapore resort with a team of about 16 on Opera, matching her experience and size of team."
+  },
+  "hospitality-sg-17": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title contains \"Hotel Front Desk\" but it is a commission-based recruitment sales job, a different field."
+  },
+  "hospitality-sg-18": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Otherwise a good match, but restricted to Singapore Citizens only and she is a Permanent Resident."
+  },
+  "hospitality-sg-19": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Would be a good guest services management match in Singapore but was posted 67 days ago."
+  },
+  "hospitality-sg-20": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires near-native Korean (TOPIK 5) as a mandatory condition, which she does not speak."
+  },
+  "hospitality-sg-21": {
+    "label": "good",
+    "why": "Front office leadership role at a 5-star Singapore hotel needing Opera, Mandarin and team leadership, all of which she has."
+  },
+  "hospitality-sg-22": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "HR and payroll administration role needing payroll and HR qualifications, unrelated to front office management."
+  },
+  "hospitality-sg-23": {
+    "label": "ok",
+    "why": "Front office management in a smaller serviced-apartment operation with leasing duties and a different PMS, adjacent to her hotel background."
+  },
+  "hospitality-sg-24": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching luxury Front Office Manager role but resident on an island in the Maldives, outside her Singapore search."
+  },
+  "hospitality-sg-25": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Entry-level night audit role, several levels below her Front Office Manager position."
+  },
+  "hospitality-sg-26": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Leads a 15-person front office in a 5-star Singapore hotel on Opera with English and Mandarin, matching her profile; requirements come after a long intro."
+  },
+  "hospitality-sg-27": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title matches \"Front Office Manager\" but it is a small dental clinic admin role with medical billing duties, a different field and lower level."
+  },
+  "hospitality-sg-28": {
+    "label": "ok",
+    "why": "Explicitly hires hotel front office managers, but it moves her into a hospital admissions setting, which is adjacent rather than her core field."
+  },
+  "hospitality-sg-29": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires Singapore Nursing Board registration and clinical nursing experience, which she does not have."
+  },
+  "hospitality-sg-30": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Relevant guest experience management role but remote only for EU-based candidates with EU work rights, which excludes her."
+  },
+  "hospitality-sg-31": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A 5-star front office manager role under a different title, with a team of 16, group arrivals and Opera, matching her experience."
+  },
+  "hospitality-sg-32": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Digital marketing role needing a marketing degree and campaign experience, a different field from front office operations."
+  },
+  "hospitality-sg-33": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Would be a good front desk manager match in Singapore but was posted 48 days ago."
+  },
+  "hospitality-sg-34": {
+    "label": "ok",
+    "why": "Adjacent front-of-house role with private check-in and VIP recognition, but a smaller team and an F&B service component she has less experience in."
+  },
+  "hospitality-sg-35": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Regional VP role needing 15+ years and multi-property leadership, several levels above a single-hotel Front Office Manager."
+  },
+  "hospitality-sg-36": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching Front Office Manager role but on-site in Bangkok, outside her Singapore search."
+  },
+  "hospitality-sg-37": {
+    "label": "good",
+    "why": "Pre-opening Front Office Manager in Singapore needing Opera Cloud, team building and 4-5 star experience, which matches her Opera Cloud migration and team of 15."
+  },
+  "hospitality-sg-38": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title contains \"Front Office\" and \"Hotel\" but it is a quota-carrying SaaS sales job needing B2B sales experience she lacks."
+  },
+  "hospitality-sg-39": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires fluent French at C1 level as a mandatory condition, which she does not have."
+  },
+  "hospitality-sg-40": {
+    "label": "ok",
+    "why": "Shift-based duty manager role close to her front office work but without department ownership, a small step down in scope."
+  },
+  "hospitality-sg-41": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Matching Front Office Manager role, but it needs full Australian working rights with no sponsorship, which she does not hold."
+  },
+  "hospitality-sg-42": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Retail store management role driven by sales targets and inventory, a different field that asks for retail management experience."
+  },
+  "hospitality-sg-43": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Front Office Manager of a 5-star Singapore hotel needing Opera, 4-5 star experience and Mandarin or Malay, all of which she has; requirements follow a long intro."
+  },
+  "hospitality-sg-44": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Part-time entry-level guest service agent role, far below a Front Office Manager."
+  },
+  "hospitality-sg-45": {
+    "label": "ok",
+    "why": "Adjacent systems-training role that uses her Opera Cloud migration and training experience but moves away from running a front office."
+  },
+  "hospitality-sg-46": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Would be a good Front Office Manager match in Singapore but was posted 84 days ago."
+  },
+  "hospitality-sg-47": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Relevant guest services management role but remote only for UK residents with UK work rights, which excludes her."
+  },
+  "hospitality-sg-48": {
+    "label": "good",
+    "why": "Senior Front Office Manager in Singapore needing 8+ years, Opera, group arrivals and Mandarin, which her 10 years and team leadership cover."
+  }
+}
