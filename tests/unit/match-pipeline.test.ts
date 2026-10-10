@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { CvStructuredSchema } from '@/lib/ai/schemas'
 import type { AiClient } from '@/lib/ai/types'
 import type { RawJob } from '@/lib/job-sources/types'
 import { rankJobs } from '@/lib/match-pipeline'
@@ -103,5 +104,19 @@ describe('rankJobs', () => {
     })
     expect(ai.complete).not.toHaveBeenCalled()
     expect(past.scored[0].matchScore).toBe(30)
+  })
+
+  it('passes the CV profile to the pre-rank', async () => {
+    const ai = fakeAi()
+    // 41 jobs and a pool of 40: only the CV skill keeps "Figma 99" in the pool.
+    const jobs = [...Array.from({ length: 40 }, (_, i) => job(i + 1)), job(99, 'Figma 99')]
+    const ctx = { queries: ['x'], cvText: 'cv', ai, maxResults: 10 }
+    const without = await rankJobs(jobs, ctx)
+    expect(without.scored.map((j) => j.title)).not.toContain('Figma 99')
+    const withCv = await rankJobs(jobs, {
+      ...ctx,
+      cvProfile: CvStructuredSchema.parse({ skills: ['Figma'] }),
+    })
+    expect(withCv.scored.map((j) => j.title)).toContain('Figma 99')
   })
 })

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CvStructuredSchema } from '@/lib/ai/schemas'
 import type { RawJob } from '@/lib/job-sources/types'
 import { preRankJobs, scoringPoolSize } from '@/lib/score-pool'
 
@@ -92,5 +93,68 @@ describe('preRankJobs', () => {
     const jobs = [job('a', 'Accountant'), job('b', 'Laravel Developer')]
     preRankJobs(jobs, ['laravel'])
     expect(ids(jobs)).toEqual(['a', 'b'])
+  })
+
+  it('matches terms that start with punctuation inside words (.net in ASP.NET)', () => {
+    const jobs = [
+      job('java', 'Java Developer'),
+      job('asp', 'ASP.NET Core Developer'),
+      job('dotnet', '.NET Developer'),
+    ]
+    expect(ids(preRankJobs(jobs, ['.net']))).toEqual(['asp', 'dotnet', 'java'])
+  })
+
+  it('counts description text up to 3,000 characters', () => {
+    const filler = 'x '.repeat(600)
+    const jobs = [
+      job('none', 'Role A', 'nothing relevant'),
+      job('late', 'Role B', `${filler}Requires Laravel experience.`),
+      job('tooLate', 'Role C', `${'x '.repeat(1600)}Requires Laravel experience.`),
+    ]
+    expect(ids(preRankJobs(jobs, ['laravel']))).toEqual(['late', 'none', 'tooLate'])
+  })
+})
+
+describe('preRankJobs with a CV profile', () => {
+  const cv = (skills: string[], roles: string[] = []) =>
+    CvStructuredSchema.parse({
+      skills,
+      experience: roles.map((role) => ({ role, company: 'Company' })),
+    })
+
+  it('uses CV role titles to keep synonym-title jobs', () => {
+    const jobs = [job('a', 'Office Manager'), job('b', 'Product Designer')]
+    expect(ids(preRankJobs(jobs, ['ux']))).toEqual(['a', 'b'])
+    expect(ids(preRankJobs(jobs, ['ux'], cv([], ['Product Designer'])))).toEqual(['b', 'a'])
+  })
+
+  it('ranks a CV skill in the title above one only in the description', () => {
+    const jobs = [job('desc', 'Designer', 'Uses Figma daily'), job('title', 'Figma Specialist')]
+    expect(ids(preRankJobs(jobs, ['ux'], cv(['Figma'])))).toEqual(['title', 'desc'])
+  })
+
+  it('weighs a query term in the title above a CV term in the title', () => {
+    const jobs = [job('cv', 'Figma Specialist'), job('query', 'UX Specialist')]
+    expect(ids(preRankJobs(jobs, ['ux'], cv(['Figma'])))).toEqual(['query', 'cv'])
+  })
+
+  it('does not count a term twice when it is in both the query and the CV', () => {
+    // Counted twice, "Figma" (3 + 2) would beat "Sketch" + description (3 + 1).
+    const jobs = [job('p', 'Figma'), job('q', 'Sketch', 'figma')]
+    expect(ids(preRankJobs(jobs, ['figma sketch'], cv(['Figma'])))).toEqual(['q', 'p'])
+  })
+
+  it('behaves as before without a usable CV', () => {
+    const jobs = [job('a', 'Accountant'), job('b', 'Laravel Developer', 'php'), job('c', 'PHP')]
+    const before = ids(preRankJobs(jobs, ['laravel php']))
+    expect(ids(preRankJobs(jobs, ['laravel php'], null))).toEqual(before)
+    expect(ids(preRankJobs(jobs, ['laravel php'], cv([])))).toEqual(before)
+  })
+
+  it('caps the number of CV terms', () => {
+    const skills = Array.from({ length: 100 }, (_, i) => `skill${i + 1}`)
+    // skill95 is past the cap of 80, so only skill5 counts.
+    const jobs = [job('a', 'skill95'), job('b', 'skill5')]
+    expect(ids(preRankJobs(jobs, ['ux'], cv(skills)))).toEqual(['b', 'a'])
   })
 })

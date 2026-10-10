@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { cvs, jobResults, searches } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { createAiClient, resolveProvider } from './ai/provider'
+import { CvStructuredSchema } from './ai/schemas'
 import { runAgenticSearch } from './agentic-search'
 import { deriveQueriesFromCv } from './derive-query'
 import { dedupeJobs, fetchAllSourcesMultiQuery } from './job-sources'
@@ -238,6 +239,8 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     const { scored: allScored, top: scoredJobs } = await rankJobs(rawJobs, {
       queries,
       cvText: cv.rawText,
+      // An older or malformed profile falls back to a query-only pre-rank.
+      cvProfile: CvStructuredSchema.safeParse(cv.structured).data ?? null,
       ai,
       maxResults: search.maxResults,
       deadline: t0 + SCORING_START_DEADLINE_MS,

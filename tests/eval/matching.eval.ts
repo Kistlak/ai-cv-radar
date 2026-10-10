@@ -180,6 +180,7 @@ describe.skipIf(!!combineLabel || !apiKey)('match quality', () => {
       const { scored, top } = await rankJobs(c.jobs, {
         queries: c.search.queries,
         cvText: c.cvText,
+        cvProfile: c.profile,
         ai,
         maxResults: c.search.maxResults,
         onPool: (_fetched, size) => {
