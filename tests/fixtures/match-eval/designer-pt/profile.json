@@ -1,0 +1,68 @@
+{
+  "name": "Inês Carvalho",
+  "email": "ines.carvalho@example.com",
+  "location": "Lisbon, Portugal",
+  "summary": "UX/UI designer with 4 years of experience designing web and mobile products for fintech, e-commerce and agency clients. Works end to end from discovery interviews and journey mapping to high-fidelity UI in Figma and usability testing, and has owned a shared design system used by four product squads. Comfortable working remotely across European time zones. Native Portuguese, fluent English (C1). Portuguese citizen (EU).",
+  "skills": [
+    "Figma",
+    "FigJam",
+    "Prototyping",
+    "Wireframing",
+    "Interaction design",
+    "Responsive web design",
+    "Mobile UI (iOS and Android)",
+    "Visual design",
+    "Information architecture",
+    "Design systems",
+    "Design tokens",
+    "Accessibility (WCAG 2.1 AA)",
+    "User interviews",
+    "Usability testing",
+    "Surveys",
+    "Card sorting",
+    "Journey mapping",
+    "A/B test design",
+    "Storybook handoff",
+    "Basic HTML and CSS",
+    "Maze",
+    "Hotjar",
+    "Google Analytics",
+    "Jira",
+    "Notion",
+    "Portuguese (native)",
+    "English (C1)",
+    "Spanish (basic)"
+  ],
+  "experience": [
+    {
+      "role": "UX/UI Designer",
+      "company": "Pagaleve Digital",
+      "period": "Mar 2024 - Present",
+      "description": "Lead designer for onboarding and card management flows of a consumer payments app (~300,000 MAU). Built and maintains the Figma design system (120+ components, design tokens) used by 4 squads. Ran 30+ moderated usability sessions and 6 discovery interview rounds. Redesigned KYC onboarding, cutting drop-off from 38% to 24%. Brought core flows to WCAG 2.1 AA. Works with front-end engineers on handoff and Storybook parity."
+    },
+    {
+      "role": "Product Designer",
+      "company": "Estúdio Maré",
+      "period": "Sep 2022 - Feb 2024",
+      "description": "Designed web and mobile products for 8 agency clients in retail, travel and education, from discovery workshops to launch. Wireframes, prototypes and final UI for an e-commerce checkout that lifted conversion 11%. Facilitated design sprints and workshops in English with UK, Dutch and Brazilian clients. Set up a reusable starter UI kit."
+    },
+    {
+      "role": "Junior UI Designer",
+      "company": "Fórmula Criativa",
+      "period": "Oct 2021 - Aug 2022",
+      "description": "Designed screens and marketing landing pages for SaaS clients, supported senior designers with icons, illustrations and responsive layouts, and prepared developer specifications."
+    }
+  ],
+  "education": [
+    {
+      "degree": "MSc Human-Computer Interaction",
+      "institution": "Universidade de Lisboa",
+      "year": "2021"
+    },
+    {
+      "degree": "BA Communication Design",
+      "institution": "Universidade do Porto",
+      "year": "2019"
+    }
+  ]
+}

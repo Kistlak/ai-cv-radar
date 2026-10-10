@@ -1,0 +1,229 @@
+{
+  "nurse-gb-01": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A pharmacist post that requires an MPharm and GPhC registration, which a nurse does not have."
+  },
+  "nurse-gb-02": {
+    "label": "good",
+    "why": "Band 6 adult critical care nursing post in Salford that matches her registration, ICU experience and post-registration qualification."
+  },
+  "nurse-gb-03": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote tele-ICU nursing role open only to US residents with a US RN licence, so a UK-based nurse cannot take it."
+  },
+  "nurse-gb-04": {
+    "label": "ok",
+    "why": "Band 6 coronary care post is an adjacent acute specialism: her ICU skills transfer but cardiology experience is not part of her background."
+  },
+  "nurse-gb-05": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A veterinary nursing role that needs RCVS registration as a veterinary nurse, so it is a different profession despite the ICU title."
+  },
+  "nurse-gb-06": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Band 8a matron post leading several units needs established Band 7 management experience, two levels above a Band 6 nurse."
+  },
+  "nurse-gb-07": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Band 6 general ICU nursing post in Bolton matching her registration and experience, though the requirements only appear after a long trust introduction."
+  },
+  "nurse-gb-08": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Band 6 adult ICU senior staff nurse role in Manchester that would fit her well, but it was posted almost two months ago."
+  },
+  "nurse-gb-09": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Paediatric ICU post that requires registration in the children's nursing field, which an adult-field nurse does not hold."
+  },
+  "nurse-gb-10": {
+    "label": "ok",
+    "why": "Post-anaesthetic recovery nursing is an adjacent acute speciality where her airway and ICU skills transfer, but it is not a critical care post."
+  },
+  "nurse-gb-11": {
+    "label": "ok",
+    "trap": "relocation",
+    "why": "Matching ICU staff nurse role on-site in Dublin: a British citizen can work in Ireland under the Common Travel Area (NMBI registration needed), so it is a relocation rather than an eligibility barrier. Owner decision 2026-10-09."
+  },
+  "nurse-gb-12": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Junior Sister is the trust's Band 6 title for an adult ICU registered nurse, so it matches her even though the title shares no query words."
+  },
+  "nurse-gb-13": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A sales-driven recruitment consultant job that places ICU nurses rather than a nursing role."
+  },
+  "nurse-gb-14": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A physiotherapy post needing HCPC registration as a physiotherapist, which is a different profession from nursing."
+  },
+  "nurse-gb-15": {
+    "label": "ok",
+    "why": "Band 6 emergency resus nursing is an adjacent acute area; her critical care skills transfer but she lacks emergency department experience."
+  },
+  "nurse-gb-16": {
+    "label": "good",
+    "why": "Band 6 senior staff nurse post on an adult critical care unit within commuting distance, matching her experience and qualifications."
+  },
+  "nurse-gb-17": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "A mental health PICU post that requires RMN registration, which an adult-field nurse does not hold."
+  },
+  "nurse-gb-18": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Adjacent remote clinical advisor role, but it requires existing right to work in an EU member state and offers no sponsorship, which a UK citizen does not have."
+  },
+  "nurse-gb-19": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Band 6 critical care senior staff nurse post in Trafford that would fit her, but it was posted over two months ago."
+  },
+  "nurse-gb-20": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A Band 4 nursing associate post, two bands below her Band 6 registered nurse level."
+  },
+  "nurse-gb-21": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Band 6 adult ICU post at a Salford major trauma centre that matches her, with the requirements buried below a long introduction."
+  },
+  "nurse-gb-22": {
+    "label": "ok",
+    "why": "UK remote telephone triage role open to registered nurses: eligible and plausible, but a different type of nursing from her ICU work."
+  },
+  "nurse-gb-23": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A Band 3 healthcare support worker post with an apprenticeship route, far below a registered Band 6 nurse despite the ICU staff nurse wording."
+  },
+  "nurse-gb-24": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A matching adult ICU nursing role, but it is on-site in Riyadh, far from the Manchester area she is searching."
+  },
+  "nurse-gb-25": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "An administrative secretary post supporting consultants, not a nursing role."
+  },
+  "nurse-gb-26": {
+    "label": "good",
+    "why": "Band 6 adult ICU nursing post in Wigan within commuting distance that matches her registration and experience."
+  },
+  "nurse-gb-27": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "An obstetric HDU post that requires NMC midwifery registration, which she does not hold."
+  },
+  "nurse-gb-28": {
+    "label": "ok",
+    "why": "Research nursing in critical care trials uses her ICU knowledge but is a different role type from bedside critical care nursing."
+  },
+  "nurse-gb-29": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Band 6 critical care staff nurse post in Bolton matching her profile, but posted almost three months ago."
+  },
+  "nurse-gb-30": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A Band 8c divisional head of nursing role, several levels above a Band 6 staff nurse."
+  },
+  "nurse-gb-31": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A registered nurse post on a private hospital adult ITU at Band 6-equivalent level, which fits her even though the title uses none of the query words."
+  },
+  "nurse-gb-32": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote triage nursing role, but limited to residents of Australia with AHPRA registration."
+  },
+  "nurse-gb-33": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A laboratory biomedical scientist post requiring HCPC registration, a different profession from nursing."
+  },
+  "nurse-gb-34": {
+    "label": "ok",
+    "why": "Band 7 sister post in her own specialism: one band above her current level, a small step that her coordination experience makes plausible."
+  },
+  "nurse-gb-35": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A dental nursing role requiring GDC registration, a different profession despite the senior staff nurse wording."
+  },
+  "nurse-gb-36": {
+    "label": "good",
+    "why": "Band 6 critical care outreach post that recruits experienced ICU nurses and fits her qualifications and experience."
+  },
+  "nurse-gb-37": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Adult ICU nursing role that would fit, but it is on-site in Auckland, New Zealand."
+  },
+  "nurse-gb-38": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "The post requires a V300 independent prescribing qualification recorded with the NMC, which she does not have."
+  },
+  "nurse-gb-39": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A Band 8b consultant nurse role requiring a doctorate-level or advanced practice profile, well above a Band 6 nurse."
+  },
+  "nurse-gb-40": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Band 6-equivalent ICU senior staff nurse post in Manchester that fits her, but the requirements come after a long company introduction."
+  },
+  "nurse-gb-41": {
+    "label": "ok",
+    "why": "An education role within critical care at her band; plausible given her assessor experience, but mainly teaching rather than clinical nursing."
+  },
+  "nurse-gb-42": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Band 6 adult ICU staff nurse post near Manchester that matches her, but it was posted seven weeks ago."
+  },
+  "nurse-gb-43": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Although listed as worldwide, the role requires US work authorisation without sponsorship, which she does not have."
+  },
+  "nurse-gb-44": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A clinical coding administrative role, which is a different field from nursing."
+  },
+  "nurse-gb-45": {
+    "label": "good",
+    "why": "Band 6 adult ICU/HDU staff nurse post in Manchester that matches her registration, specialism and level."
+  },
+  "nurse-gb-46": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Neonatal ICU post requiring children's nursing or midwifery registration plus a neonatal QIS qualification, neither of which she holds."
+  },
+  "nurse-gb-47": {
+    "label": "ok",
+    "why": "Right specialism and location, but a Band 5 post is one step below her current Band 6 level."
+  },
+  "nurse-gb-48": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote advisory role suited to ICU nurses, but restricted to people resident in the Republic of Ireland."
+  }
+}

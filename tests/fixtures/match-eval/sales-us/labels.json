@@ -1,0 +1,229 @@
+{
+  "sales-us-01": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A junior public-relations agency client-service role with media pitching, a different field that only shares the Account Executive title."
+  },
+  "sales-us-02": {
+    "label": "ok",
+    "why": "Adjacent role: partner and channel management with a sourced-revenue target, using his SaaS sales skills but not direct closing."
+  },
+  "sales-us-03": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A good SaaS AE role, but remote only for residents of Australia, New Zealand or Singapore."
+  },
+  "sales-us-04": {
+    "label": "good",
+    "why": "Chicago on-site mid-market new-business AE role in HR tech SaaS, his current domain, asking for 3+ years of AE experience and Salesforce."
+  },
+  "sales-us-05": {
+    "label": "good",
+    "why": "Chicago hybrid mid-market AE role selling SaaS to 200-1,500 employee companies, requiring 3+ years of AE experience and Salesforce."
+  },
+  "sales-us-06": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good mid-market SaaS AE role, but on-site in London, UK."
+  },
+  "sales-us-07": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "US-remote mid-market AE role with full-cycle new business, 3-6 years of SaaS AE experience and Salesforce, matching his profile."
+  },
+  "sales-us-08": {
+    "label": "ok",
+    "why": "Same sales motion and mid-market buyers in Chicago, but selling freight brokerage services rather than SaaS, a different specialism."
+  },
+  "sales-us-09": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires an active TS/SCI security clearance, which he does not hold."
+  },
+  "sales-us-10": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Otherwise a good Chicago hybrid mid-market SaaS AE match, but posted 52 days ago."
+  },
+  "sales-us-11": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A good mid-market SaaS AE role, but remote only for candidates resident in Europe, and he lives in Chicago."
+  },
+  "sales-us-12": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires fluent (C1+) German for selling to DACH customers, and he speaks only English."
+  },
+  "sales-us-13": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A VP of Sales role leading 60+ sellers and requiring 15+ years with 7 in leadership, far above an individual-contributor AE."
+  },
+  "sales-us-14": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A data engineering role requiring Python, SQL and Spark, unrelated to sales."
+  },
+  "sales-us-15": {
+    "label": "ok",
+    "why": "Adjacent role: mid-market account management focused on renewals and expansion rather than new-logo closing, which he could do but is not his core."
+  },
+  "sales-us-16": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "A good SaaS AE role, but based in Ireland and requiring existing EU/EEA work authorisation with no sponsorship."
+  },
+  "sales-us-17": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Chicago-based SaaS AE role selling to mid-sized companies, requiring 4+ years of quota-carrying SaaS closing and Salesforce."
+  },
+  "sales-us-18": {
+    "label": "good",
+    "why": "US-remote senior mid-market AE role asking for 4-6 years of SaaS closing, which fits his 5 years and quota record."
+  },
+  "sales-us-19": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good mid-market SaaS AE role, but hybrid in Amsterdam, Netherlands, with EU work authorisation required."
+  },
+  "sales-us-20": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the title, this is a US-remote quota-carrying new-logo SaaS sales role for 200-1,500 employee companies requiring 4+ years of closing and Salesforce."
+  },
+  "sales-us-21": {
+    "label": "good",
+    "why": "US-remote mid-market SaaS AE role needing 3-5 years of closing, MEDDICC familiarity and Salesforce, all of which he has."
+  },
+  "sales-us-22": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Otherwise a good US-remote mid-market SaaS AE match, but posted 61 days ago."
+  },
+  "sales-us-23": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "An administrative executive assistant role supporting a sales leader, not a sales role despite the keywords."
+  },
+  "sales-us-24": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A front-end software development role requiring React and TypeScript, a different field."
+  },
+  "sales-us-25": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good SaaS AE role, but hybrid in Toronto, Canada, with Canadian work entitlement required."
+  },
+  "sales-us-26": {
+    "label": "good",
+    "why": "Chicago hybrid B2B SaaS AE role for mid-sized companies requiring 3+ years of closing and Salesforce, matching his background."
+  },
+  "sales-us-27": {
+    "label": "ok",
+    "why": "Same field but a high-velocity SMB role for 1-2 years of experience, a small step down from his mid-market level."
+  },
+  "sales-us-28": {
+    "label": "ok",
+    "why": "Same field and level, US-remote, but strongly prefers healthcare-provider selling experience he does not have, a soft gap."
+  },
+  "sales-us-29": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A mechanical engineering role requiring a mechanical engineering degree and CAD skills, a different field."
+  },
+  "sales-us-30": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Otherwise a good US-remote mid-market SaaS AE match, but posted 88 days ago."
+  },
+  "sales-us-31": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires active FINRA Series 7 and 66 registrations, which he does not hold."
+  },
+  "sales-us-32": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Chicago hybrid mid-market new-business AE role asking for 3+ years of SaaS closing and Salesforce, which he exceeds."
+  },
+  "sales-us-33": {
+    "label": "ok",
+    "why": "Same field and level, but the founding-AE remit wants prior early-stage startup experience he lacks, a soft gap."
+  },
+  "sales-us-34": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A legal paralegal role requiring a paralegal certificate and contract-administration experience, a different field."
+  },
+  "sales-us-35": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A freelance marketing copywriting role about sales topics, a different field despite the keywords."
+  },
+  "sales-us-36": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A good mid-market SaaS AE role, but remote only for people living in Canada."
+  },
+  "sales-us-37": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Otherwise a good Chicago SaaS AE match selling to mid-sized companies, but posted 74 days ago."
+  },
+  "sales-us-38": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A part-time summer internship for current students, far below an experienced AE."
+  },
+  "sales-us-39": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A payroll processing role requiring payroll certification and accounting experience, a different field."
+  },
+  "sales-us-40": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the title, this is a Chicago hybrid full-cycle new-logo SaaS closing role for 200-2,000 employee companies, a direct match."
+  },
+  "sales-us-41": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A Chief Revenue Officer executive role requiring 15+ years and executive leadership, several levels above his experience."
+  },
+  "sales-us-42": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires an active Illinois Property & Casualty producer licence at hire, which he does not hold."
+  },
+  "sales-us-43": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A regional sales director role managing six frontline managers and requiring 12+ years including 5 in leadership, two levels above him."
+  },
+  "sales-us-44": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "A good mid-market SaaS AE role, but remote within the UK and requiring existing UK right to work with no sponsorship."
+  },
+  "sales-us-45": {
+    "label": "ok",
+    "why": "Same field but enterprise segment requiring 8+ years and Fortune 1000 deals, a step above his 5 years of mid-market."
+  },
+  "sales-us-46": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "An in-house recruiting role that hires account executives rather than selling, a different field despite the keywords."
+  },
+  "sales-us-47": {
+    "label": "ok",
+    "why": "Adjacent role: customer success with a renewal target rather than new-business sales, at a Chicago-eligible US-remote SaaS company."
+  },
+  "sales-us-48": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "An entry-level BDR role for 0-1 years of experience, two levels below a mid-market AE with five years of closing."
+  }
+}

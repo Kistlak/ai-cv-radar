@@ -1,0 +1,229 @@
+{
+  "logistics-ca-01": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Matching shift supervisor role in Buffalo, NY, but it requires US work authorisation without sponsorship, which he lacks."
+  },
+  "logistics-ca-02": {
+    "label": "ok",
+    "why": "Operations manager over two supervisors and ~60 staff is a one-step seniority stretch from his supervisor role, so possible but not ideal."
+  },
+  "logistics-ca-03": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Dental office reception is a healthcare front-desk job unrelated to his field."
+  },
+  "logistics-ca-04": {
+    "label": "ok",
+    "why": "Health and safety coordinator for a distribution network is adjacent to his JHSC work but is a specialist role rather than supervision."
+  },
+  "logistics-ca-05": {
+    "label": "good",
+    "why": "Inbound receiving supervisor in Markham leading a team of 16 with forklift, WHMIS and WMS - same field and level."
+  },
+  "logistics-ca-06": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Remote payroll administration is a payroll and HR job, not warehousing."
+  },
+  "logistics-ca-07": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title matches the queries, but it is a summer co-op for enrolled students paying entry-level wages, far below his level."
+  },
+  "logistics-ca-08": {
+    "label": "ok",
+    "why": "Inventory control analyst in Brampton is adjacent to his cycle-count and WMS work but is an analyst role without people leadership."
+  },
+  "logistics-ca-09": {
+    "label": "ok",
+    "why": "Vaughan warehouse supervisor role he fits, but it leans heavily on SAP EWM, which he has not used (a soft gap)."
+  },
+  "logistics-ca-10": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Shift supervisor job in a matching warehouse, but on-site in Rotterdam, Netherlands."
+  },
+  "logistics-ca-11": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Accounts payable clerk is an accounting job, unrelated to warehouse supervision."
+  },
+  "logistics-ca-12": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A team-lead title with no query words, but the job is supervising 20-25 associates on nights in a Mississauga warehouse with forklift and WHMIS."
+  },
+  "logistics-ca-13": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A \"Shift Supervisor\" title, but at a coffee bar, which is a different field from warehousing."
+  },
+  "logistics-ca-14": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Vaughan afternoon warehouse supervisor role matching his experience, posted 48 days ago."
+  },
+  "logistics-ca-15": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Transport supervisor role requires a valid AZ licence to cover driving shifts, which he does not hold (G licence only)."
+  },
+  "logistics-ca-16": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Senior director over a national multi-site fulfilment network with 15+ years and P&L ownership is several levels above a shift supervisor."
+  },
+  "logistics-ca-17": {
+    "label": "ok",
+    "why": "Remote logistics coordinator open to Canada is an adjacent office role rather than floor supervision, so plausible but not ideal."
+  },
+  "logistics-ca-18": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Line cook is a kitchen job, a different field from warehouse supervision."
+  },
+  "logistics-ca-19": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Adjacent remote coordinator job, but limited to US residents and he lives in Canada."
+  },
+  "logistics-ca-20": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Day-shift distribution supervisor in North York leading 15-20 with forklift, WHMIS and WMS; requirements sit below a 600+ character intro."
+  },
+  "logistics-ca-21": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Part-time order picker on weekends is an entry-level associate job, well below his supervisory level."
+  },
+  "logistics-ca-22": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Adjacent warehouse operations analyst role, but restricted to UK residents with UK right to work."
+  },
+  "logistics-ca-23": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Matching Mississauga warehouse supervisor job, but posted 52 days ago."
+  },
+  "logistics-ca-24": {
+    "label": "good",
+    "why": "Same role and level in Mississauga: supervising ~20 on nights with forklift, WHMIS and Manhattan WMS, all of which he has."
+  },
+  "logistics-ca-25": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching warehouse supervisor job, but on-site in Manchester, UK, with no relocation, and he is in Toronto."
+  },
+  "logistics-ca-26": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Customs compliance supervisor requires the CCS designation, which he does not have."
+  },
+  "logistics-ca-27": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Brampton DC shift supervisor role that fits him, but it was posted 67 days ago."
+  },
+  "logistics-ca-28": {
+    "label": "ok",
+    "why": "Dispatcher is an adjacent transportation role in Mississauga that uses his shipping and carrier experience but is not warehouse supervision."
+  },
+  "logistics-ca-29": {
+    "label": "good",
+    "why": "Distribution centre supervisor in Brampton running a rotating shift team of ~22 on Manhattan WMS, a direct match."
+  },
+  "logistics-ca-30": {
+    "label": "good",
+    "why": "E-commerce warehouse supervisor in Etobicoke on Manhattan, team of ~20, forklift and WHMIS - matches his current job."
+  },
+  "logistics-ca-31": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Fluent written and spoken French is mandatory for this role, and he speaks only English and Polish."
+  },
+  "logistics-ca-32": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "The title repeats \"Warehouse Supervisor\", but the job is commission-based recruiting sales at a staffing agency."
+  },
+  "logistics-ca-33": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Distribution centre supervisor role he would fit, but it is on-site in Auckland, New Zealand."
+  },
+  "logistics-ca-34": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "A Scarborough warehouse supervisor role leading 20 with forklift and WHMIS, but the requirements only appear after a long co-op intro."
+  },
+  "logistics-ca-35": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Downsview warehouse supervisor role he would fit, but the contract requires Canadian citizenship and he is a permanent resident."
+  },
+  "logistics-ca-36": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Fleet maintenance supervisor requires a 310T truck and coach technician certificate, which he does not hold."
+  },
+  "logistics-ca-37": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Pharmaceutical distribution supervisor must hold a university science degree as the site's qualified person, which his college diploma does not meet."
+  },
+  "logistics-ca-38": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Adjacent inventory planning role, but remote is restricted to EU residents."
+  },
+  "logistics-ca-39": {
+    "label": "good",
+    "why": "Afternoon-shift warehouse supervisor in Concord (Vaughan) leading 18 with forklift and WHMIS required, which fits his profile."
+  },
+  "logistics-ca-40": {
+    "label": "ok",
+    "why": "Production supervisor at a Brampton food plant is a related but different specialism (manufacturing and HACCP rather than distribution)."
+  },
+  "logistics-ca-41": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the \"Floor Lead\" title, this Vaughan 3PL job is a warehouse supervisor role over 20 staff on Manhattan WMS, which matches him."
+  },
+  "logistics-ca-42": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Vice president of supply chain is an executive role far above his supervisory level."
+  },
+  "logistics-ca-43": {
+    "label": "ok",
+    "why": "Lead hand in shipping and receiving in Toronto is a small step down from supervisor, plausible but below his level."
+  },
+  "logistics-ca-44": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "The title contains \"Warehouse\", but this is a Java software development job building WMS software."
+  },
+  "logistics-ca-45": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Entry-level general labourer role is two or more levels below a supervisor with 7 years of leadership."
+  },
+  "logistics-ca-46": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Etobicoke warehouse supervisor role that would suit him, but posted 81 days ago."
+  },
+  "logistics-ca-47": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Commercial leasing associate is a real estate sales and leasing job, a different field."
+  },
+  "logistics-ca-48": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Brampton fulfilment shift supervisor (nights, team of ~20, forklift, WHMIS, Manhattan) whose requirements are buried after a long company pitch."
+  }
+}

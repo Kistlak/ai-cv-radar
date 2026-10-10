@@ -1,0 +1,229 @@
+{
+  "designer-pt-01": {
+    "label": "ok",
+    "why": "Strong skill and seniority fit, but hybrid three days a week in Lisbon while the candidate is searching for remote roles only."
+  },
+  "designer-pt-02": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Physical interior design with AutoCAD and site visits is a different profession from digital UX/UI design."
+  },
+  "designer-pt-03": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Good role and level, but remote is restricted to US residents and the candidate lives in Portugal."
+  },
+  "designer-pt-04": {
+    "label": "good",
+    "why": "Remote in Europe, mid-level product design with design systems, Figma and accessibility, all core strengths of the candidate."
+  },
+  "designer-pt-05": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Executive role requiring 12+ years and managing managers; the candidate is a mid-level individual contributor with 4 years."
+  },
+  "designer-pt-06": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Remote in Europe and a close UX/UI fit, but posted 58 days ago."
+  },
+  "designer-pt-07": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title matches the query but it is an unpaid student internship, far below a designer with 4 years of experience."
+  },
+  "designer-pt-08": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires native/C2 German for research and copy, and the candidate speaks Portuguese, English and basic Spanish."
+  },
+  "designer-pt-09": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Remote Europe fintech onboarding product design at mid level, matching the candidate's KYC redesign work; requirements appear only after a long intro."
+  },
+  "designer-pt-10": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Fitting UX/UI role, but fully on-site in Berlin while the candidate is looking for remote work from Lisbon."
+  },
+  "designer-pt-11": {
+    "label": "ok",
+    "why": "Right field and remote in Europe, but asks for 6+ years and mentoring, one step above the candidate's 4 years."
+  },
+  "designer-pt-12": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Backend software engineering role, unrelated to UX/UI design."
+  },
+  "designer-pt-13": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A UX/UI design role in all but name: research, Figma, design tokens and accessibility, remote within Portugal at the right level."
+  },
+  "designer-pt-14": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title is full of designer keywords, but it is a recruitment sales role, not a design job."
+  },
+  "designer-pt-15": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Fitting UX role, but requires existing UK right to work and UK residence without sponsorship, which an EU citizen in Portugal does not have."
+  },
+  "designer-pt-16": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Executive VP role needing 15+ years and leadership of 40 designers, far beyond a 4-year mid-level designer."
+  },
+  "designer-pt-17": {
+    "label": "good",
+    "why": "Remote within Portugal, mid-level UX/UI design with research and Figma, plus Portuguese, matching the candidate closely."
+  },
+  "designer-pt-18": {
+    "label": "ok",
+    "why": "Adjacent role: research is a strength of the candidate, but this is a dedicated researcher position with no UI design."
+  },
+  "designer-pt-19": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Expert 3D modelling, motion design and real-time 3D are core requirements, and the candidate has none of them."
+  },
+  "designer-pt-20": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Remote worldwide mid-level product design that fits well, but posted 73 days ago."
+  },
+  "designer-pt-21": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Knitwear fashion design is a different field from digital product design, and on-site in Guimarães."
+  },
+  "designer-pt-22": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Strong fit on skills and Portuguese, but remote is limited to residents of the Americas."
+  },
+  "designer-pt-23": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Remote worldwide UX/UI role at mid level emphasising research, design systems and accessibility; requirements only appear after a long company intro."
+  },
+  "designer-pt-24": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title matches \"Product Designer\" but it is physical industrial furniture design with CAD, a different field."
+  },
+  "designer-pt-25": {
+    "label": "ok",
+    "why": "Adjacent: visual web design for marketing sites rather than product UX, though the candidate has landing-page experience and Figma."
+  },
+  "designer-pt-26": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Mandatory C1 French for all research and communication, which the candidate does not speak."
+  },
+  "designer-pt-27": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching product design role, but requires three office days a week in Amsterdam and the candidate wants remote work from Lisbon."
+  },
+  "designer-pt-28": {
+    "label": "good",
+    "why": "Remote worldwide mid-level product design across web and mobile with research, matching the candidate."
+  },
+  "designer-pt-29": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Principal level requiring 10+ years and mentoring senior designers, two or more levels above the candidate."
+  },
+  "designer-pt-30": {
+    "label": "ok",
+    "why": "Strong role fit in the candidate's city, but fully on-site while the search is for remote roles only."
+  },
+  "designer-pt-31": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Mechanical engineering with CATIA, a different field from digital UX/UI design."
+  },
+  "designer-pt-32": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the unusual title this is a mid-level UX/UI design role with research, Figma and design systems, remote in Europe."
+  },
+  "designer-pt-33": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Fitting UX role, but requires US citizenship or permanent residence, which the candidate does not have."
+  },
+  "designer-pt-34": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Production React/TypeScript coding is the core requirement and the candidate only has basic HTML and CSS."
+  },
+  "designer-pt-35": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Remote within Portugal UX role that fits well, but posted 47 days ago."
+  },
+  "designer-pt-36": {
+    "label": "ok",
+    "why": "Adjacent discipline: research and journey mapping overlap, but the role is service design with little interface work."
+  },
+  "designer-pt-37": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Title includes \"UX/UI Designer\" but it is a sales role enrolling bootcamp students, not design work."
+  },
+  "designer-pt-38": {
+    "label": "good",
+    "why": "Remote within the EU mid-level UX design role; the EU work authorisation requirement is met because the candidate is a Portuguese citizen."
+  },
+  "designer-pt-39": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Fitting role, but remote is restricted to residents of Canada."
+  },
+  "designer-pt-40": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Director role managing 25 people and requiring 12+ years, far above the candidate's level."
+  },
+  "designer-pt-41": {
+    "label": "ok",
+    "why": "Right level and remote in Europe, but focused entirely on native mobile, where the candidate's experience is mostly web with some mobile."
+  },
+  "designer-pt-42": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Remote EMEA mid-level UX role with research, Figma and design systems; requirements come after a long intro about mission and benefits."
+  },
+  "designer-pt-43": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Outbound sales role, unrelated to UX/UI design."
+  },
+  "designer-pt-44": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Fitting UX/UI role, but fully on-site in Madrid with no remote option."
+  },
+  "designer-pt-45": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires fluent Dutch for research and documentation, which the candidate does not speak."
+  },
+  "designer-pt-46": {
+    "label": "good",
+    "why": "Remote in Europe mid-level growth product design for e-commerce checkout, matching the candidate's checkout and A/B test experience."
+  },
+  "designer-pt-47": {
+    "label": "ok",
+    "why": "Adjacent: visual and brand-heavy game UI with little UX or research, a different specialism within the candidate's field."
+  },
+  "designer-pt-48": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Remote Europe mid-level product design that fits well, but posted 86 days ago."
+  }
+}

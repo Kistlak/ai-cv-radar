@@ -1,0 +1,56 @@
+{
+  "name": "Chloe Bannister",
+  "email": "chloe.bannister@example.com",
+  "location": "Melbourne, Australia",
+  "summary": "Primary school teacher with three years of classroom experience across Foundation to Year 3 in Victorian Catholic and government schools. Strong focus on early literacy: explicit, systematic synthetic phonics, decodable texts, small-group reading intervention and data-informed planning. Fully registered with the Victorian Institute of Teaching (Proficient Teacher), holds a Working with Children Check, Australian citizen, looking for an ongoing primary classroom role in Melbourne.",
+  "skills": [
+    "VIT full registration (Proficient Teacher)",
+    "Working with Children Check",
+    "Systematic synthetic phonics",
+    "Early literacy instruction",
+    "Small-group reading intervention",
+    "Decodable readers",
+    "PAT Reading and running records",
+    "Differentiated instruction",
+    "Classroom management",
+    "Victorian Curriculum 2.0",
+    "Individual Education Plans",
+    "Parent communication and reporting",
+    "Level 2 First Aid and anaphylaxis management",
+    "Google Workspace for Education",
+    "Seesaw",
+    "Compass"
+  ],
+  "experience": [
+    {
+      "role": "Classroom Teacher, Year 3",
+      "company": "Wattle Grove Primary School",
+      "period": "January 2025 - Present",
+      "description": "Teaches a Year 3 class of 24 across the Victorian Curriculum 2.0. Runs a small-group phonics and fluency intervention for Year 3/4 students below benchmark (14 of 18 reached the expected level). Moved the Year 3 team to decodable texts and a shared phonics scope and sequence; leads literacy moderation. Uses PAT Reading, phonics checks and running records to plan differentiation and IEPs. Mentors pre-service teachers."
+    },
+    {
+      "role": "Graduate Teacher, Foundation and Year 1",
+      "company": "St Brigid's Catholic Primary School",
+      "period": "February 2023 - December 2024",
+      "description": "Taught Foundation and Year 1 classes. Delivered daily explicit phonemic awareness and phonics lessons, introduced a whole-class handwriting routine, completed VIT provisional-to-full registration with a mentor, ran parent information sessions on home reading. Gained Accreditation to Teach in a Catholic School."
+    },
+    {
+      "role": "Pre-service Teacher (placements)",
+      "company": "Government and independent primary schools, Melbourne",
+      "period": "2020 - 2022",
+      "description": "Four placements in Years F-6, including an 80-day final placement in Year 2."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Education (Primary), specialisation in English and literacy education",
+      "institution": "Yarra Valley University",
+      "year": "2022"
+    },
+    {
+      "degree": "Victorian Certificate of Education (VCE)",
+      "institution": "Secondary school, Melbourne",
+      "year": "2018"
+    }
+  ]
+}
