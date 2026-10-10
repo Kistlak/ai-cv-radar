@@ -181,6 +181,10 @@ describe.skipIf(!!combineLabel || !apiKey)('match quality', () => {
         queries: c.search.queries,
         cvText: c.cvText,
         cvProfile: c.profile,
+        candidate: {
+          location: c.search.location || c.profile.location || null,
+          remoteOnly: c.search.remoteOnly,
+        },
         ai,
         maxResults: c.search.maxResults,
         onPool: (_fetched, size) => {

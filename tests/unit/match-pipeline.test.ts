@@ -119,4 +119,18 @@ describe('rankJobs', () => {
     })
     expect(withCv.scored.map((j) => j.title)).toContain('Figma 99')
   })
+
+  it('passes the candidate location to scoring', async () => {
+    const ai = fakeAi()
+    await rankJobs([job(1)], {
+      queries: ['x'],
+      cvText: 'cv',
+      ai,
+      maxResults: 10,
+      candidate: { location: 'Lisbon, Portugal', remoteOnly: true },
+    })
+    const prompt = ai.complete.mock.calls[0][0].prompt as string
+    expect(prompt).toContain('searching): Lisbon, Portugal')
+    expect(prompt).toContain('REMOTE ONLY: yes')
+  })
 })

@@ -50,7 +50,19 @@ export function parseScores(text: string): ScoreResult[] {
   return results
 }
 
-export function buildPrompt(cvText: string, query: string, jobs: RawJob[]): string {
+// Where the candidate lives or wants to work, and whether they want remote
+// only. Used for the location-eligibility cap in the prompt.
+export interface CandidateContext {
+  location: string | null
+  remoteOnly: boolean
+}
+
+export function buildPrompt(
+  cvText: string,
+  query: string,
+  jobs: RawJob[],
+  candidate?: CandidateContext
+): string {
   const jobList = jobs
     .map((job, i) => {
       const desc = job.description
@@ -60,30 +72,42 @@ export function buildPrompt(cvText: string, query: string, jobs: RawJob[]): stri
     })
     .join('\n\n')
 
-  return `You are a STRICT job matching expert. You must reject jobs that don't truly fit the candidate.
+  return `You are a STRICT job matching expert for candidates in any profession. You must reject jobs that don't truly fit the candidate.
 
 CANDIDATE CV:
 ${cvText.slice(0, 3500)}
 
 CANDIDATE IS LOOKING FOR: ${query}
+CANDIDATE LOCATION (where they live or are searching): ${candidate?.location?.trim().slice(0, 100) || 'unknown'}
+REMOTE ONLY: ${candidate?.remoteOnly ? 'yes' : 'no'}
+
+Judge each job on:
+- Core skills and duties: does the CV show the work this job actually involves?
+- Hard requirements: licences, registrations, certifications, degrees, years of experience and languages that the posting states as required.
+- Field or industry, and role type.
+- Seniority.
+- Location eligibility.
 
 SCORING SCALE (be strict — most jobs from generic job-board searches are NOT good fits):
-- 90–100: Perfect match. Required stack, seniority, and role type all align with candidate's CV and target role.
-- 70–89: Strong match. Core tech stack matches; minor gaps are acceptable.
-- 50–69: Decent match. Same domain/role type, but meaningful skill gaps exist.
-- 20–49: Weak match. Related area but core tech stack differs.
-- 0–19: Poor match. Fundamentally different tech stack, seniority mismatch, or unrelated role.
+- 90–100: Same field and role type; meets every hard requirement; seniority fits; eligible by location.
+- 70–89: Strong fit with minor gaps.
+- 50–69: Same field, but real gaps in skills or experience.
+- 20–49: Related field, or one major gap.
+- 0–19: Different field, or a fundamentally different role from "${query}".
 
-CRITICAL RULES:
-1. If the job's PRIMARY required language/framework is NOT in the candidate's CV, score must be 0–19. Example: CV shows PHP/Laravel, job requires Python → score 5–15.
-2. If the job title is unrelated to "${query}" (e.g., looking for "Laravel Developer" but job is "Data Scientist"), score must be 0–19.
-3. Do NOT reward mere topical relevance (e.g., "both are backend roles"). Stack alignment is what matters.
-4. Be especially harsh on seniority mismatches: a senior candidate applying to a junior role (or vice versa) should score below 40.
-5. The reason field must explicitly mention the matching (or mismatching) tech/skills — be concrete, not generic.
-6. ${UNTRUSTED_JOB_RULE}
+CAPS (apply the lowest one that fits):
+1. A hard requirement the CV does not show caps the score at 30. Only count requirements the posting states as required, not "nice to have" items.
+2. If the candidate is not eligible by location, the score is at most 20: on-site or hybrid outside the CANDIDATE LOCATION area, or remote limited to countries or regions that exclude it. If the CANDIDATE LOCATION is unknown, do not apply this cap. If REMOTE ONLY is yes, an on-site or hybrid job inside the area is a major gap, not ineligible.
+3. Seniority two or more levels away from the candidate's (e.g. a mid-level candidate and an executive role, or a senior candidate and an entry-level role) caps the score at 40.
 
-Return ONLY a JSON array, no prose before or after:
-[{"index": 0, "score": 85, "reason": "Requires Laravel + Vue, both strong on CV. Senior level matches 5+ years experience."}, ...]
+RULES:
+1. Judge only what the posting and the CV actually say; do not assume skills or requirements that aren't there.
+2. Do NOT reward keyword overlap or topical similarity alone (e.g. "both roles are in healthcare"). The candidate must be able to do this job and meet its requirements.
+3. The reason must name the specific matching or missing requirement (a skill, licence, years, language or location) — be concrete, not generic.
+4. ${UNTRUSTED_JOB_RULE}
+
+Return ONLY a JSON array, no prose before or after. Format example (from other candidates):
+[{"index": 0, "score": 30, "reason": "ICU nursing experience fits, but the job requires NMC registration, which the CV does not show."}, {"index": 1, "score": 88, "reason": "IFRS reporting and month-end close match 6 years in audit and financial control; ACCA held as required."}, {"index": 2, "score": 15, "reason": "React and TypeScript match, but the role is on-site in Berlin and the candidate lives in Colombo."}, ...]
 
 JOBS TO SCORE:
 ${jobList}`
@@ -94,13 +118,14 @@ async function scoreBatch(
   cvText: string,
   query: string,
   batch: RawJob[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  candidate?: CandidateContext
 ): Promise<ScoreResult[]> {
   try {
     const text = await ai.complete({
       tier: 'fast',
       maxTokens: 1500,
-      prompt: buildPrompt(cvText, query, batch),
+      prompt: buildPrompt(cvText, query, batch, candidate),
       timeoutMs: BATCH_TIMEOUT_MS,
       signal,
     })
@@ -122,13 +147,15 @@ function unavailable(batch: RawJob[]): ScoreResult[] {
 // `deadline` (epoch ms): batches not started by then get the fallback score
 // instead of a model call, so the caller still has time to save results.
 // `signal`: once aborted (search cancelled), no more model calls are made.
+// `candidate`: location and remote-only, for the location-eligibility cap.
 export async function scoreJobs(
   jobs: RawJob[],
   cvText: string,
   query: string,
   ai: AiClient,
   deadline?: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  candidate?: CandidateContext
 ): Promise<ScoredJob[]> {
   if (jobs.length === 0) return []
 
@@ -146,7 +173,7 @@ export async function scoreJobs(
       batchResults[b] =
         signal?.aborted || (deadline !== undefined && Date.now() >= deadline)
           ? unavailable(batches[b])
-          : await scoreBatch(ai, cvText, query, batches[b], signal)
+          : await scoreBatch(ai, cvText, query, batches[b], signal, candidate)
     }
   }
   await Promise.all(
