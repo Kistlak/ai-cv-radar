@@ -290,9 +290,9 @@ No other schema changes. `match_score` is already nullable. Applied to the hoste
 |---|---|---|---|---|---|---|
 | 1 | Eval harness: fixtures format, `rankJobs` extraction (`lib/match-pipeline.ts`), `eval:matching` script, baseline report | `feature/match-quality` | M–L | – | `2026-10-09-match-quality-t1-eval-harness.md` | Completed (code); baseline pending |
 | 2 | Feedback: migration, PATCH endpoint, thumbs + reason UI, analysis SQL | `feature/match-quality` | M | – | `2026-10-10-match-quality-t2-feedback.md` | Completed (migration applied 2026-10-10) |
-| 3 | Neutral prompts: scoring rubric, derive-query, agentic wording | `feature/match-quality` | M | 1 | – | Not Started |
+| 3 | Neutral prompts: scoring rubric, derive-query, agentic wording | `feature/match-quality-t3-neutral-prompts` | M | 1 | `2026-10-10-match-quality-t3-neutral-prompts.md` | Completed (code), 2026-10-10; AI eval pending. Includes Task 5's prompt lines (location, remote-only) |
 | 4 | Requirements text + CV profile: `relevantJobText`, `cvProfileText`, batch size | `feature/match-quality` | M | 1 | – | Not Started |
-| 5 | Location: every-country matching, CV location prefill, eligibility in scoring | `feature/match-quality` | M | 3 | – | Not Started |
+| 5 | Location: every-country matching, CV location prefill, eligibility in scoring | `feature/match-quality` | M | 3 | – | Not Started (the scoring prompt lines for location and remote-only were done in Task 3) |
 | 6 | Freshness: source date params, `isFresh` filter, "posted N days ago" | `feature/match-quality` | S–M | 1 | – | Not Started |
 | 7 | Unscored jobs: null scores, `selectTop`, UI and ordering | `feature/match-quality` | S–M | 1 | – | Not Started |
 | 8 | Pre-rank: CV terms + boundary fix (completes `2026-10-09-scoring-pool-cap`) | `feature/match-quality-t8-prerank` | S | 1 | `2026-10-09-scoring-pool-cap.md` (base), `2026-10-10-match-quality-t8-prerank-cv-terms.md` | Completed (code), 2026-10-10; AI eval pending |
