@@ -28,6 +28,7 @@ import { POST as coverLetter } from '@/app/api/jobs/[id]/cover-letter/route'
 import { POST as tailoredCv } from '@/app/api/jobs/[id]/tailored-cv/route'
 import { GET as tailoredCvDownload } from '@/app/api/jobs/[id]/tailored-cv/download/route'
 import { DELETE as deleteCvRoute } from '@/app/api/cv/[id]/route'
+import { PATCH as setFeedback } from '@/app/api/jobs/[id]/feedback/route'
 
 const userA = crypto.randomUUID()
 const userB = crypto.randomUUID()
@@ -37,6 +38,19 @@ let jobA = ''
 
 const req = (url: string, method = 'GET') => new NextRequest(`http://localhost${url}`, { method })
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
+const feedbackReq = (id: string, body: unknown) =>
+  new NextRequest(`http://localhost/api/jobs/${id}/feedback`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+  })
+const readFeedback = async (id: string) => {
+  const [row] = await db
+    .select({ feedback: jobResults.feedback, reason: jobResults.feedbackReason, at: jobResults.feedbackAt })
+    .from(jobResults)
+    .where(inArray(jobResults.id, [id]))
+  return row
+}
 
 beforeAll(async () => {
   await db.insert(profiles).values([
@@ -79,6 +93,37 @@ describe('owner (positive control)', () => {
     const res = await getSearch(req(`/api/search?id=${searchA}`))
     expect(res.status).toBe(200)
   })
+
+  it('user A can set, change and clear feedback on their own job', async () => {
+    auth.userId = userA
+    let res = await setFeedback(feedbackReq(jobA, { feedback: -1, reason: 'wrong_level' }), params(jobA))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ feedback: -1, reason: 'wrong_level' })
+    let row = await readFeedback(jobA)
+    expect(row.feedback).toBe(-1)
+    expect(row.reason).toBe('wrong_level')
+    expect(row.at).not.toBeNull()
+
+    // A thumbs up drops the reason, even if one is sent.
+    res = await setFeedback(feedbackReq(jobA, { feedback: 1, reason: 'expired' }), params(jobA))
+    expect(res.status).toBe(200)
+    row = await readFeedback(jobA)
+    expect(row.feedback).toBe(1)
+    expect(row.reason).toBeNull()
+
+    res = await setFeedback(feedbackReq(jobA, { feedback: null }), params(jobA))
+    expect(res.status).toBe(200)
+    row = await readFeedback(jobA)
+    expect(row).toEqual({ feedback: null, reason: null, at: null })
+
+    // Leave a vote for the cross-user check below.
+    await setFeedback(feedbackReq(jobA, { feedback: 1 }), params(jobA))
+  })
+
+  it('invalid feedback → 400', async () => {
+    auth.userId = userA
+    expect((await setFeedback(feedbackReq(jobA, { feedback: 5 }), params(jobA))).status).toBe(400)
+  })
 })
 
 describe("user B cannot reach user A's data", () => {
@@ -120,11 +165,23 @@ describe("user B cannot reach user A's data", () => {
     auth.userId = userB
     expect((await tailoredCvDownload(req(`/api/jobs/${jobA}/tailored-cv/download`), params(jobA))).status).toBe(404)
   })
+
+  it('feedback → 404 (and the vote is untouched)', async () => {
+    const before = await readFeedback(jobA)
+    auth.userId = userB
+    expect((await setFeedback(feedbackReq(jobA, { feedback: -1, reason: 'other' }), params(jobA))).status).toBe(404)
+    expect(await readFeedback(jobA)).toEqual(before)
+  })
 })
 
 describe('signed out', () => {
   it('search GET → 401', async () => {
     auth.userId = null
     expect((await getSearch(req(`/api/search?id=${searchA}`))).status).toBe(401)
+  })
+
+  it('feedback → 401', async () => {
+    auth.userId = null
+    expect((await setFeedback(feedbackReq(jobA, { feedback: 1 }), params(jobA))).status).toBe(401)
   })
 })
