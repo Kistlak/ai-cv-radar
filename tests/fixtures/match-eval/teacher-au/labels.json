@@ -1,0 +1,229 @@
+{
+  "teacher-au-01": {
+    "label": "ok",
+    "why": "Casual relief primary teaching in Melbourne uses her registration and skills, but it is day-to-day relief work rather than an ongoing classroom role."
+  },
+  "teacher-au-02": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Paediatric registered nursing needs AHPRA nursing registration and clinical training, a completely different profession."
+  },
+  "teacher-au-03": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A Year 1 classroom role at a Melbourne government school under a different title; she has taught Year 1 and meets every requirement."
+  },
+  "teacher-au-04": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Principal requires substantial school leadership experience; a three-year classroom teacher is several levels below this."
+  },
+  "teacher-au-05": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching Year 3 role, but it is on-site in Singapore and she is searching for work in Melbourne."
+  },
+  "teacher-au-06": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Teaching VCE Physics needs a senior physics teaching method; she is primary trained with no science method."
+  },
+  "teacher-au-07": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Despite the title this is a sales and recruitment consultant job at an agency, a different field from teaching."
+  },
+  "teacher-au-08": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good Year 2 primary role in Melbourne, but it was posted 52 days ago."
+  },
+  "teacher-au-09": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Payroll officer is a finance and administration role; working in an education organisation does not make it a teaching job."
+  },
+  "teacher-au-10": {
+    "label": "ok",
+    "why": "Literacy Learning Specialist is one small step above her classroom role and fits her literacy focus, though it asks for five years of experience and she has three."
+  },
+  "teacher-au-11": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Ongoing Year 2 classroom role at a Melbourne government primary school that asks only for VIT registration, primary training and a literacy focus, all of which she has."
+  },
+  "teacher-au-12": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote literacy tutoring fits her skills, but it is limited to US residents and she lives in Australia."
+  },
+  "teacher-au-13": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Assistant principal is a senior leadership role requiring years of leadership experience she does not have."
+  },
+  "teacher-au-14": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "This specialist school role requires a special education qualification, which she does not have."
+  },
+  "teacher-au-15": {
+    "label": "good",
+    "why": "Fixed-term primary classroom role in Years 3-6 at a Melbourne government school; fixed-term is still a direct match on role, registration and level."
+  },
+  "teacher-au-16": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Junior software developer is a software engineering role needing programming skills she does not have."
+  },
+  "teacher-au-17": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "An education support (teacher aide) role is a lower-level, non-teaching classification, far below a registered teacher."
+  },
+  "teacher-au-18": {
+    "label": "ok",
+    "why": "Year 5/6 primary classroom role in Melbourne that she is qualified for, but it is a STEM-focused upper-primary position where her literacy specialism is less relevant and robotics experience is desirable."
+  },
+  "teacher-au-19": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Same role type, but it is in London and needs UK right to work with no visa sponsorship, which she does not have as an Australian citizen."
+  },
+  "teacher-au-20": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good primary teaching role with a literacy focus in Melbourne, but it was posted 67 days ago."
+  },
+  "teacher-au-21": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Year 4 classroom teacher at a Catholic primary school in Melbourne; she has VIT registration and already holds Accreditation to Teach in a Catholic School."
+  },
+  "teacher-au-22": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "The bilingual program requires native-level Mandarin, and she speaks only English."
+  },
+  "teacher-au-23": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Deputy principal of a junior school needs extensive leadership experience, well above a three-year classroom teacher."
+  },
+  "teacher-au-24": {
+    "label": "ok",
+    "why": "Part-time literacy tutoring and learning support at a tutoring centre is adjacent to classroom teaching and uses her literacy strength, but it is not a school classroom role."
+  },
+  "teacher-au-25": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Retail store manager is a retail management job unrelated to teaching."
+  },
+  "teacher-au-26": {
+    "label": "good",
+    "why": "Tier 2 literacy intervention teacher role for Years 1-2 in Melbourne, matching her phonics intervention experience and VIT registration."
+  },
+  "teacher-au-27": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote elementary teaching that matches her profile, but restricted to residents of Ontario, Canada."
+  },
+  "teacher-au-28": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "This paid internship is for final-year pre-service students, a student-level position well below a fully registered teacher."
+  },
+  "teacher-au-29": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A Years 3-4 homeroom class role at an independent Melbourne school, the same role type and year level she teaches now."
+  },
+  "teacher-au-30": {
+    "label": "ok",
+    "why": "Primary classroom role in Albury, NSW: the ad states VIT-registered teachers can get NESA accreditation through mutual recognition before starting, so that is a paperwork step and not a missing hard requirement, but it means relocating outside Melbourne."
+  },
+  "teacher-au-31": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Primary music specialist requires a tertiary music qualification and instrumental skill, which she lacks."
+  },
+  "teacher-au-32": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good Year 4 classroom role at a Catholic school in Melbourne, but it was posted 81 days ago."
+  },
+  "teacher-au-33": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching primary role, but it is on-site in Dubai and she is looking in Melbourne."
+  },
+  "teacher-au-34": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Customer success at an edtech software company is a SaaS account management role, not teaching, and asks for SaaS customer success experience."
+  },
+  "teacher-au-35": {
+    "label": "good",
+    "why": "Foundation classroom teacher at a Catholic primary school in Melbourne; she has taught Foundation and holds VIT registration and Catholic accreditation."
+  },
+  "teacher-au-36": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Head of junior school is an executive leadership post requiring a decade of experience and senior leadership history."
+  },
+  "teacher-au-37": {
+    "label": "ok",
+    "why": "Primary classroom role in Melbourne at a Montessori school; the Montessori diploma is preferred but training is provided, a single soft gap."
+  },
+  "teacher-au-38": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Remote primary-level English teaching, but restricted to EU residents and she lives in Australia."
+  },
+  "teacher-au-39": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Despite the title this is a content writing job producing teaching resources, not a teaching role."
+  },
+  "teacher-au-40": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Year 3 classroom teacher in an independent school junior school in Melbourne, matching her current year level, registration and literacy focus."
+  },
+  "teacher-au-41": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Teacher of the Deaf requires Auslan fluency and a deaf education qualification, neither of which she has."
+  },
+  "teacher-au-42": {
+    "label": "ok",
+    "why": "Primary EAL teacher in Melbourne is an adjacent specialism; she is a registered primary teacher with a literacy focus, but EAL experience and qualification are desirable and she has neither."
+  },
+  "teacher-au-43": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good primary classroom role in Melbourne, but it was posted 46 days ago."
+  },
+  "teacher-au-44": {
+    "label": "good",
+    "why": "Ongoing primary school teacher role in Melbourne asking for VIT registration and early literacy strength, which she has."
+  },
+  "teacher-au-45": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Matching elementary classroom role in Toronto, but it needs Canadian work authorisation with no sponsorship."
+  },
+  "teacher-au-46": {
+    "label": "ok",
+    "why": "Remote online tutoring for Australian primary students is adjacent work that uses her literacy skills and is open to Australian residents, but it is not classroom teaching."
+  },
+  "teacher-au-47": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "Matching Year 2 role, but it is on-site in Hong Kong and she is looking in Melbourne."
+  },
+  "teacher-au-48": {
+    "label": "good",
+    "why": "Fixed-term Year 2 primary classroom role in Melbourne for parental leave cover, matching her role type, level and registration."
+  }
+}

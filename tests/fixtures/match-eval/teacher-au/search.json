@@ -1,0 +1,6 @@
+{
+  "queries": ["Primary School Teacher", "Primary Classroom Teacher", "Literacy Intervention Teacher"],
+  "location": "Melbourne, Australia",
+  "remoteOnly": false,
+  "maxResults": 10
+}

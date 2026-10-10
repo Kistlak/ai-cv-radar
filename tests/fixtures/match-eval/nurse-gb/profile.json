@@ -1,0 +1,49 @@
+{
+  "name": "Hannah Okafor",
+  "email": "hannah.okafor@example.com",
+  "location": "Manchester, United Kingdom",
+  "summary": "Registered adult nurse (NMC PIN 20A0000E) with six years' experience in adult intensive care, including three and a half years as a Band 6 Senior Staff Nurse on a 24-bed mixed ICU/HDU. Cares for level 2 and 3 patients (ventilated, proned and haemofiltered) and regularly coordinates the unit. Holds the post-registration Critical Care Nursing qualification and ALS, and is an NMC practice assessor. British citizen with full right to work in the UK, looking for a Band 6 critical care role in Greater Manchester.",
+  "skills": [
+    "NMC registered nurse (Adult)",
+    "Intensive care nursing (level 2 and 3)",
+    "Invasive and non-invasive ventilation",
+    "Tracheostomy care",
+    "CRRT / haemofiltration",
+    "Arterial and central line management",
+    "Vasoactive and inotropic infusions",
+    "Sepsis and NEWS2",
+    "Shift coordination",
+    "Patient transfers",
+    "Advanced Life Support (ALS)",
+    "IV therapy, venepuncture and cannulation",
+    "Practice assessor / practice supervisor",
+    "Audit and quality improvement",
+    "Electronic patient records"
+  ],
+  "experience": [
+    {
+      "role": "Senior Staff Nurse (Band 6), Adult Critical Care Unit",
+      "company": "Irwell Valley Hospitals NHS Foundation Trust",
+      "period": "March 2023 - Present",
+      "description": "Shift coordinator on a 24-bed mixed ICU/HDU; care of level 3 patients (ventilation, tracheostomy weaning, lines, vasoactive infusions); CRRT link nurse; transfers of ventilated patients; practice assessor for students and Band 5 preceptees; led a pressure ulcer prevention audit."
+    },
+    {
+      "role": "Staff Nurse (Band 5), General Intensive Care Unit",
+      "company": "Northern Moors NHS Foundation Trust",
+      "period": "September 2020 - February 2023",
+      "description": "Critical care preceptorship and competency framework steps 1-2; level 2 and 3 care through the COVID-19 surges including proning, high-flow and NIV/CPAP; IV medicines, blood products and TPN; NEWS2 and sepsis escalation; infection prevention group member."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Post-registration Critical Care Nursing (Level 6, 40 credits)",
+      "institution": "University of Mid-Pennine",
+      "year": "2022"
+    },
+    {
+      "degree": "BSc (Hons) Adult Nursing, 2:1",
+      "institution": "University of Mid-Pennine",
+      "year": "2020"
+    }
+  ]
+}

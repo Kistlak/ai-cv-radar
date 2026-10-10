@@ -1,0 +1,64 @@
+{
+  "name": "Meera Krishnan",
+  "email": "meera.krishnan@example.com",
+  "location": "Dubai, United Arab Emirates",
+  "summary": "ACCA-qualified accountant with 8 years of experience: 4 years in external audit with a mid-tier firm in Dubai, followed by 4 years in group financial reporting for a diversified holding company. Prepares IFRS consolidated financial statements for 14 entities, leads the month-end and year-end close, and manages the statutory audit. Fluent English; basic Arabic.",
+  "skills": [
+    "IFRS reporting",
+    "Consolidation",
+    "Intercompany eliminations",
+    "IFRS 15",
+    "IFRS 16",
+    "IFRS 9",
+    "Month-end and year-end close",
+    "External audit liaison",
+    "UAE VAT",
+    "UAE Corporate Tax",
+    "Oracle Fusion",
+    "SAP",
+    "CaseWare",
+    "Advanced Excel",
+    "Power BI",
+    "Team leadership",
+    "English (fluent)",
+    "Arabic (basic)"
+  ],
+  "experience": [
+    {
+      "role": "Financial Reporting Manager",
+      "company": "Sandcrest Group Holdings LLC",
+      "period": "Jan 2025 - Present",
+      "description": "Owns the quarterly and annual IFRS consolidated financial statements for 14 subsidiaries across retail, logistics and real estate. Leads a team of 2 accountants, manages the external audit, prepared the group's UAE Corporate Tax impact assessment and builds Power BI board packs."
+    },
+    {
+      "role": "Senior Accountant - Financial Reporting",
+      "company": "Sandcrest Group Holdings LLC",
+      "period": "Jul 2022 - Dec 2024",
+      "description": "Prepared monthly management accounts and IFRS statutory accounts for 9 subsidiaries including two DMCC free zone entities. Implemented IFRS 16 for 120+ retail leases, shortened the close from 12 to 7 days in Oracle Fusion and prepared quarterly UAE VAT returns."
+    },
+    {
+      "role": "Audit Senior",
+      "company": "Hallam Rowe Chartered Accountants",
+      "period": "Jul 2020 - Jun 2022",
+      "description": "Led audit fieldwork for 12-15 clients a year in trading, manufacturing, real estate and free zone companies; reviewed IFRS financial statements and coached associates in CaseWare."
+    },
+    {
+      "role": "Audit Associate",
+      "company": "Hallam Rowe Chartered Accountants",
+      "period": "Jul 2018 - Jun 2020",
+      "description": "Substantive testing on revenue, inventory, payables and fixed assets; stock counts; draft financial statements for small and medium clients."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Commerce (Accounting and Finance)",
+      "institution": "Westbridge College of Commerce, Kochi, India",
+      "year": "2017"
+    },
+    {
+      "degree": "ACCA",
+      "institution": "Association of Chartered Certified Accountants",
+      "year": "2021"
+    }
+  ]
+}

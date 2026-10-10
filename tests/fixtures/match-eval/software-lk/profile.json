@@ -1,0 +1,60 @@
+{
+  "name": "Kasun Wickramaratne",
+  "email": "kasun.wickramaratne@example.com",
+  "location": "Colombo, Sri Lanka",
+  "summary": "Backend developer with 4 years of professional experience building web applications and REST APIs in PHP and Laravel. Owns features end to end: MySQL database design, Laravel services and queues, API contracts for web and mobile clients, automated tests and deployment to AWS. Working knowledge of Vue.js. Looking for a mid-level backend role in Colombo (on-site or hybrid) or a remote role open to candidates in Sri Lanka.",
+  "skills": [
+    "PHP 8",
+    "Laravel",
+    "Eloquent ORM",
+    "Laravel Sanctum",
+    "Laravel Horizon",
+    "Blade",
+    "MySQL",
+    "Redis",
+    "REST APIs",
+    "OpenAPI/Swagger",
+    "Webhooks",
+    "Payment gateway integration",
+    "PHPUnit",
+    "Pest",
+    "Postman",
+    "Vue.js (basic)",
+    "JavaScript (basic)",
+    "jQuery",
+    "AWS (EC2, S3, RDS, SES) basics",
+    "Nginx",
+    "Linux",
+    "Docker",
+    "Git",
+    "Bitbucket Pipelines",
+    "Agile/Scrum"
+  ],
+  "experience": [
+    {
+      "role": "Software Engineer",
+      "company": "Kelani Bay Technologies (Pvt) Ltd",
+      "period": "Mar 2024 - Present",
+      "description": "Builds and maintains Laravel 10/11 REST APIs for a property-management SaaS used by about 300 apartment complexes, consumed by a Vue.js web app and Flutter mobile apps. Redesigned invoicing tables and indexes (billing run from 40 to under 6 minutes), moved slow work to Redis queues with Horizon (about 35% lower p95), wrote Pest feature tests (billing coverage 20% to 70%), supports AWS releases (EC2, Nginx, RDS, S3) and mentors two interns."
+    },
+    {
+      "role": "Associate Software Engineer",
+      "company": "Pinnacle Web Solutions",
+      "period": "Oct 2022 - Feb 2024",
+      "description": "Developed Laravel and plain-PHP applications for 8+ client projects including an online store and a student-management portal. Integrated local payment and SMS gateways via REST APIs and webhooks, built Blade/jQuery/Vue admin dashboards, and wrote MySQL reports and migrations."
+    },
+    {
+      "role": "Intern Software Engineer",
+      "company": "Pinnacle Web Solutions",
+      "period": "Mar 2022 - Sep 2022",
+      "description": "Fixed bugs and added small features in PHP/Laravel projects; wrote API documentation in Postman."
+    }
+  ],
+  "education": [
+    {
+      "degree": "BSc (Hons) in Computing (Software Engineering)",
+      "institution": "Colombo School of Computing",
+      "year": "2022"
+    }
+  ]
+}
