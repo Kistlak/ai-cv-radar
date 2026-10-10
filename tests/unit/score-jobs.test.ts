@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AiClient } from '@/lib/ai/types'
 import type { RawJob } from '@/lib/job-sources/types'
-import { parseScores, scoreJobs } from '@/lib/score-jobs'
+import { buildPrompt, parseScores, scoreJobs } from '@/lib/score-jobs'
 
 function job(i: number): RawJob {
   return {
@@ -178,5 +178,52 @@ describe('scoreJobs', () => {
 
     await scoreJobs(jobs, 'cv', 'query', ai)
     expect(peak).toBe(3)
+  })
+})
+
+describe('buildPrompt', () => {
+  const prompt = buildPrompt('Registered nurse, 6 years in ICU', 'ICU Nurse', [job(0)])
+
+  it('has no software-specific rules or examples', () => {
+    expect(prompt).not.toMatch(/\bstack\b|framework|laravel|\bphp\b|\btech\b/i)
+  })
+
+  it('states the hard-requirement, location and seniority caps', () => {
+    expect(prompt).toMatch(/hard requirement the CV does not show caps the score at 30/i)
+    expect(prompt).toMatch(/not eligible by location, the score is at most 20/i)
+    expect(prompt).toMatch(/LOCATION is unknown, do not apply this cap/)
+    expect(prompt).toMatch(/seniority two or more levels .* caps the score at 40/i)
+  })
+
+  it('keeps the query line and the job format', () => {
+    expect(prompt).toContain('CANDIDATE IS LOOKING FOR: ICU Nurse')
+    expect(prompt).toMatch(/^\[0\] Title: Job 0/m)
+  })
+
+  it('tells the model where the candidate is and whether they want remote only', () => {
+    const withCandidate = buildPrompt('cv', 'ICU Nurse', [job(0)], {
+      location: ' Dubai, UAE ',
+      remoteOnly: true,
+    })
+    expect(withCandidate).toContain('CANDIDATE LOCATION (where they live or are searching): Dubai, UAE')
+    expect(withCandidate).toContain('REMOTE ONLY: yes')
+  })
+
+  it('says the location is unknown when none is given', () => {
+    expect(prompt).toContain('CANDIDATE LOCATION (where they live or are searching): unknown')
+    expect(prompt).toContain('REMOTE ONLY: no')
+    expect(buildPrompt('cv', 'q', [job(0)], { location: '  ', remoteOnly: false })).toContain(
+      'searching): unknown'
+    )
+  })
+
+  it('passes the candidate through scoreJobs to the prompt', async () => {
+    let prompt = ''
+    const ai = fakeAi(async (opts) => {
+      prompt = opts.prompt
+      return '[]'
+    })
+    await scoreJobs([job(0)], 'cv', 'q', ai, undefined, undefined, { location: 'Colombo', remoteOnly: false })
+    expect(prompt).toContain('searching): Colombo')
   })
 })

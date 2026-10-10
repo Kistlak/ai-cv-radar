@@ -63,6 +63,9 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       .where(and(eq(cvs.id, search.cvId), eq(cvs.userId, userId)))
       .limit(1)
     if (!cv) throw new Error('No CV found for user')
+    // An older or malformed profile is ignored: no fallback role, and a
+    // query-only pre-rank.
+    const cvProfile = CvStructuredSchema.safeParse(cv.structured).data ?? null
 
     const keys = await getDecryptedKeys(userId)
     const resolved = resolveProvider(keys.preferredAiProvider, keys)
@@ -79,7 +82,13 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     } else {
       await setProgress({ stage: 'deriving-queries' })
       const tDerive = Date.now()
-      queries = await deriveQueriesFromCv(cv.rawText, ai, 3, cancel.signal)
+      queries = await deriveQueriesFromCv(
+        cv.rawText,
+        ai,
+        3,
+        cancel.signal,
+        cvProfile?.experience[0]?.role
+      )
       logger.info({
         event: 'run_search.queries_derived',
         searchId,
@@ -239,8 +248,12 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     const { scored: allScored, top: scoredJobs } = await rankJobs(rawJobs, {
       queries,
       cvText: cv.rawText,
-      // An older or malformed profile falls back to a query-only pre-rank.
-      cvProfile: CvStructuredSchema.safeParse(cv.structured).data ?? null,
+      cvProfile,
+      // The search location wins; the CV's location covers a blank one.
+      candidate: {
+        location: search.location || cvProfile?.location || null,
+        remoteOnly: search.remoteOnly,
+      },
       ai,
       maxResults: search.maxResults,
       deadline: t0 + SCORING_START_DEADLINE_MS,

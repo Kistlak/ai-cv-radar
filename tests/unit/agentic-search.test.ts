@@ -45,6 +45,14 @@ function fakeClient(responses: ReturnType<typeof response>[]) {
 }
 
 describe('runAgenticSearch', () => {
+  it('judges results by field and requirements, not by tech stack', async () => {
+    const { client, create } = fakeClient([response('tool_use', [mcpUse('a'), mcpResult('a'), finalize])])
+    await runAgenticSearch(input, client)
+    const { system } = create.mock.calls[0][0] as unknown as { system: string }
+    expect(system).toContain('wrong field, missing core requirements')
+    expect(system).not.toMatch(/wrong stack/)
+  })
+
   it('returns jobs when the first request finalizes', async () => {
     const { client, create } = fakeClient([response('tool_use', [mcpUse('a'), mcpResult('a'), finalize])])
     const jobs = await runAgenticSearch(input, client)
