@@ -34,6 +34,7 @@ example by checking `pg_constraint` or `pg_indexes`, or with `\d <table>` in psq
 | `20261009_add_user_created_indexes.sql` | 2026-10-08 |
 | `20261010_job_results_source_job_id_not_null.sql` | 2026-10-08 |
 | `20261010_searches_status_check.sql` | 2026-10-08 |
+| `20261012_job_results_feedback.sql` | 2026-10-10 |
 
 The base tables (`profiles`, `user_api_keys`, `cvs`, `searches`, `job_results`)
 predate this folder. RLS policies are in `supabase/policies.sql`.
