@@ -1,5 +1,6 @@
 import type { AiClient } from './ai/provider'
 import type { CvStructured } from './ai/schemas'
+import { cvProfileText } from './cv-profile'
 import type { RawJob } from './job-sources/types'
 import { scoreJobs, type CandidateContext, type ScoredJob } from './score-jobs'
 import { preRankJobs, scoringPoolSize } from './score-pool'
@@ -47,7 +48,7 @@ export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankRe
 
   const scored = await scoreJobs(
     toScore,
-    ctx.cvText,
+    cvProfileText(ctx.cvProfile ?? null, ctx.cvText),
     ctx.queries[0],
     ctx.ai,
     ctx.deadline,

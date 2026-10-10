@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { AiClient } from '@/lib/ai/provider'
 import type { RawJob } from './job-sources/types'
+import { relevantJobText } from './job-text'
 import { logger } from './logger'
 import { UNTRUSTED_JOB_RULE, untrusted } from './untrusted'
 
@@ -20,6 +21,10 @@ const BATCH_SIZE = 10
 const SCORING_CONCURRENCY = 3
 // Per-batch cap, so one hung provider call can't hold the search.
 const BATCH_TIMEOUT_MS = 45_000
+// Prompt budgets: job text per posting, and the CV (profile + raw text, built
+// by cvProfileText in the pipeline).
+const DESCRIPTION_CHARS = 1500
+const CV_CHARS = 6000
 
 // The model's output is untrusted: "85", 85.5 or 150 must not reach the integer
 // match_score column, or the insert throws and the whole search fails.
@@ -65,9 +70,9 @@ export function buildPrompt(
 ): string {
   const jobList = jobs
     .map((job, i) => {
-      const desc = job.description
-        ? job.description.replace(/<[^>]+>/g, '').slice(0, 500)
-        : 'No description provided.'
+      // Requirement sections first, then the rest (see lib/job-text.ts).
+      const desc =
+        untrusted(relevantJobText(job.description, DESCRIPTION_CHARS)) || 'No description provided.'
       return `<job_posting index="${i}">\n[${i}] Title: ${untrusted(job.title)} | Company: ${untrusted(job.company)} | Location: ${untrusted(job.location ?? 'Unknown')} | Remote: ${job.remote}\nDescription: ${desc}\n</job_posting>`
     })
     .join('\n\n')
@@ -75,7 +80,7 @@ export function buildPrompt(
   return `You are a STRICT job matching expert for candidates in any profession. You must reject jobs that don't truly fit the candidate.
 
 CANDIDATE CV:
-${cvText.slice(0, 3500)}
+${cvText.slice(0, CV_CHARS)}
 
 CANDIDATE IS LOOKING FOR: ${query}
 CANDIDATE LOCATION (where they live or are searching): ${candidate?.location?.trim().slice(0, 100) || 'unknown'}
