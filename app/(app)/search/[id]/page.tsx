@@ -13,6 +13,7 @@ import { failStaleSearches } from '@/lib/stale-searches'
 import { toHttpUrl } from '@/lib/safe-url'
 import SearchPoller from '@/components/search-poller'
 import { JobActions } from '@/components/job-actions'
+import { JobFeedback } from '@/components/job-feedback'
 
 export default async function SearchResultsPage({
   params,
@@ -226,13 +227,20 @@ function JobCard({ job }: { job: Job }) {
             applyUrl={applyUrl ?? undefined}
           />
 
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">{job.source}</span>
-            {job.postedAt && (
-              <span className="text-[10px] text-muted-foreground/60">
-                {new Date(job.postedAt).toLocaleDateString()}
-              </span>
-            )}
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 pt-1">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">{job.source}</span>
+              {job.postedAt && (
+                <span className="text-[10px] text-muted-foreground/60">
+                  {new Date(job.postedAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            <JobFeedback
+              jobId={job.id}
+              initialFeedback={job.feedback}
+              initialReason={job.feedbackReason}
+            />
           </div>
         </div>
       </div>
