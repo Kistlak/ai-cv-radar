@@ -11,6 +11,7 @@ import {
   date,
   primaryKey,
   check,
+  smallint,
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
@@ -107,6 +108,10 @@ export const jobResults = pgTable(
     deepDive: jsonb('deep_dive'),
     coverLetter: text('cover_letter'),
     tailoredCv: jsonb('tailored_cv'),
+    // User's thumbs up (1) / down (-1) and optional down reason; see lib/job-feedback.ts.
+    feedback: smallint('feedback'),
+    feedbackReason: text('feedback_reason'),
+    feedbackAt: timestamp('feedback_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
@@ -115,6 +120,13 @@ export const jobResults = pgTable(
       table.searchId,
       table.source,
       table.sourceJobId
+    ),
+    // Added by 20261012_job_results_feedback.sql; declared here so drizzle-kit
+    // doesn't see them as drift.
+    check('job_results_feedback_check', sql`${table.feedback} IN (-1, 1)`),
+    check(
+      'job_results_feedback_reason_check',
+      sql`${table.feedbackReason} IS NULL OR (${table.feedback} = -1 AND ${table.feedbackReason} IN ('wrong_field', 'wrong_level', 'wrong_location', 'missing_requirement', 'expired', 'other'))`
     ),
   ]
 )
