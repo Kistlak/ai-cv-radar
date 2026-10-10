@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { describe, it } from 'vitest'
+import { describe, it, vi } from 'vitest'
 import { createAiClient, type AiProvider } from '@/lib/ai/provider'
+import { logger } from '@/lib/logger'
 import { rankJobs } from '@/lib/match-pipeline'
 import { labelOf, listCaseNames, loadCase } from './load-cases'
 import {
@@ -28,8 +29,8 @@ import {
 //   EVAL_LABEL          tag for the results file, e.g. "baseline"
 //   EVAL_COMBINE        no AI calls: merge every results file tagged with this
 //                       label (latest result per case) into one combined report
-//   EVAL_CASE_DELAY_MS  pause between cases (default 20000 on Gemini, for the
-//                       free tier's per-minute limit; 0 on Anthropic)
+//   EVAL_CASE_DELAY_MS  pause between cases (default 65000 on Gemini, so each case's
+//                       requests start in a fresh minute of the free tier's per-minute limit; 0 on Anthropic)
 // Model overrides (GEMINI_FAST_MODEL etc.) apply as in the app.
 // Results: eval-results/<timestamp>-<label>.json and .txt (git-ignored).
 
@@ -44,7 +45,7 @@ const model =
     ? process.env.ANTHROPIC_FAST_MODEL || 'claude-haiku-4-5-20251001 (default)'
     : process.env.GEMINI_FAST_MODEL || 'gemini-3.8-flash (default)'
 const caseDelayMs = Number(
-  process.env.EVAL_CASE_DELAY_MS ?? (provider === 'gemini' ? 20_000 : 0)
+  process.env.EVAL_CASE_DELAY_MS ?? (provider === 'gemini' ? 65_000 : 0)
 )
 const runLabel = (process.env.EVAL_LABEL || 'run').replace(/[^\w.-]+/g, '-')
 const combineLabel = process.env.EVAL_COMBINE?.replace(/[^\w.-]+/g, '-')
@@ -101,7 +102,7 @@ function summarize(reports: CaseReport[]) {
 // test console output).
 function writeResults(
   label: string,
-  meta: { provider: string; model: string },
+  meta: { provider: string; model: string; batchFailures?: Array<{ case: string; error: string }> },
   reports: CaseReport[],
   details: unknown[]
 ): string {
@@ -132,6 +133,7 @@ function writeResults(
     ),
     `average: ${JSON.stringify(summary)}`,
   ]
+  for (const f of meta.batchFailures ?? []) lines.push(`batch failed (${f.case}): ${f.error}`)
   if (summary.invalidCases.length > 0) {
     lines.push(
       `WARNING: ${summary.invalidCases.length} case(s) had more than ${MAX_UNSCORED_SHARE * 100}% unscored jobs; their numbers measure scoring failures, not ranking.`
@@ -151,6 +153,20 @@ if (!combineLabel && !apiKey) {
 
 describe.skipIf(!!combineLabel || !apiKey)('match quality', () => {
   it('ranks the synthetic cases', { timeout: 30 * 60 * 1000 }, async () => {
+    // The app logs failed scoring batches (score_jobs.batch_failed); keep them
+    // in the results so a failed case shows why (test console output is hidden).
+    const batchFailures: Array<{ case: string; error: string }> = []
+    let currentCase = ''
+    const warn = vi.spyOn(logger, 'warn').mockImplementation((entry) => {
+      if (entry.event === 'score_jobs.batch_failed') {
+        const err = (entry as { err?: unknown }).err
+        const message = String(err instanceof Error ? err.message : err)
+        // Keep the part that says which limit was hit (per minute or per day).
+        const quota = message.match(/quotaId"?:\s*"?([\w-]+)/)?.[1]
+        batchFailures.push({ case: currentCase, error: quota ? `quota: ${quota}` : message.slice(0, 300) })
+      }
+    })
+
     const ai = createAiClient(provider, apiKey!)
     const names = selectedCases()
     const reports: CaseReport[] = []
@@ -158,6 +174,7 @@ describe.skipIf(!!combineLabel || !apiKey)('match quality', () => {
 
     for (const [i, name] of names.entries()) {
       if (i > 0 && caseDelayMs > 0) await sleep(caseDelayMs)
+      currentCase = name
       const c = loadCase(name)
       let pool = 0
       const { scored, top } = await rankJobs(c.jobs, {
@@ -207,7 +224,8 @@ describe.skipIf(!!combineLabel || !apiKey)('match quality', () => {
       console.log(`[eval] ${name}: done (${i + 1}/${names.length})`)
     }
 
-    writeResults(runLabel, { provider, model }, reports, details)
+    warn.mockRestore()
+    writeResults(runLabel, { provider, model, batchFailures }, reports, details)
   })
 })
 
