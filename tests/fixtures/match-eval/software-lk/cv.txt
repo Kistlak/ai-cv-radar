@@ -1,0 +1,79 @@
+KASUN WICKRAMARATNE
+Software Engineer (PHP / Laravel)
+Colombo, Sri Lanka | kasun.wickramaratne@example.com | +00 000 000 000
+github: kasun-dev (personal projects available on request)
+
+PROFILE
+Backend developer with 4 years of professional experience building web
+applications and REST APIs in PHP and Laravel. Comfortable owning a feature
+end to end: database design in MySQL, Laravel services and queues, API
+contracts for web and mobile clients, automated tests and deployment to AWS.
+Working knowledge of Vue.js for small front-end changes. Looking for a
+mid-level backend role in Colombo (on-site or hybrid) or a remote role open to
+candidates based in Sri Lanka.
+
+TECHNICAL SKILLS
+Languages: PHP 8.x, SQL, JavaScript (basic), Bash (basic)
+Frameworks: Laravel 9/10/11, Eloquent ORM, Laravel Sanctum, Laravel Horizon,
+Blade, Vue.js 3 (basic), jQuery
+Databases: MySQL 8 (schema design, indexing, query tuning), Redis
+APIs: RESTful API design, JSON:API conventions, OpenAPI/Swagger docs,
+webhooks, third-party payment and SMS gateway integrations
+Testing: PHPUnit, Pest, Postman collections
+Cloud / DevOps: AWS basics (EC2, S3, RDS, SES), Nginx, Linux (Ubuntu),
+Docker for local development, Git, Bitbucket Pipelines
+Practices: Agile/Scrum, code review, writing technical documentation
+
+PROFESSIONAL EXPERIENCE
+
+Software Engineer
+Kelani Bay Technologies (Pvt) Ltd, Colombo 03 | Mar 2024 - Present
+Property-management SaaS used by around 300 apartment complexes.
+- Build and maintain Laravel 10/11 REST APIs consumed by a Vue.js web app and
+  Flutter mobile apps (owned the billing, maintenance-request and visitor
+  modules).
+- Redesigned the invoicing tables and added composite indexes, cutting the
+  monthly billing run from 40 minutes to under 6.
+- Moved slow tasks (PDF invoices, SMS and email notifications) to Redis
+  queues managed by Horizon; reduced API p95 response time by about 35%.
+- Wrote Pest feature tests for every new endpoint; raised coverage of the
+  billing module from 20% to 70%.
+- Support releases on AWS (EC2 behind Nginx, RDS MySQL, S3 for uploads) with
+  the team lead; handle log checks and small configuration changes.
+- Review pull requests and mentor two interns on Laravel conventions.
+
+Associate Software Engineer
+Pinnacle Web Solutions, Colombo 05 | Oct 2022 - Feb 2024
+Agency building web systems for local retail and education clients.
+- Developed Laravel and plain-PHP applications for 8+ client projects,
+  including an online store and a student-management portal.
+- Integrated local payment gateways and an SMS gateway through REST APIs and
+  webhooks, with retry handling and audit logging.
+- Built admin dashboards with Blade, jQuery and some Vue.js components.
+- Wrote MySQL reports and migrations; fixed N+1 query issues with eager
+  loading.
+
+Intern Software Engineer
+Pinnacle Web Solutions, Colombo 05 | Mar 2022 - Sep 2022
+- Fixed bugs and added small features in PHP/Laravel projects; wrote API
+  documentation in Postman.
+
+EDUCATION
+BSc (Hons) in Computing (Software Engineering)
+Colombo School of Computing | 2022 | Second Class Upper
+
+G.C.E. Advanced Level (Physical Science stream) | 2017
+
+CERTIFICATIONS & COURSES
+- Laravel Advanced Topics (online course), 2023
+- AWS Cloud Practitioner Essentials (online training, no exam), 2024
+
+PROJECTS
+- Clinic appointment API (personal): Laravel 11, Sanctum token auth, MySQL,
+  queued SMS reminders, Pest tests, deployed on a small EC2 instance.
+
+LANGUAGES
+Sinhala (native), English (professional working proficiency)
+
+REFERENCES
+Available on request.

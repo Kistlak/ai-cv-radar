@@ -1,0 +1,59 @@
+{
+  "name": "Andre Kowalczyk",
+  "email": "andre.kowalczyk@example.com",
+  "location": "Toronto, Canada",
+  "summary": "Warehouse supervisor with 7 years of people leadership in high-volume GTA distribution centres and 10 years in warehousing overall. Supervises a team of 20 on rotating day/night shifts, daily Manhattan WMS user, forklift certified, WHMIS 2015 trained and JHSC Certified Member. Canadian permanent resident with an Ontario G licence; English fluent, Polish conversational.",
+  "skills": [
+    "Team supervision (20 direct reports)",
+    "Scheduling and labour planning",
+    "Manhattan WMS (WMOS)",
+    "RF scanning",
+    "Cycle counting and inventory accuracy",
+    "Shipping and receiving",
+    "Cross-docking",
+    "Forklift certified (counterbalance, reach truck, order picker)",
+    "WHMIS 2015",
+    "JHSC Certified Member Part 1",
+    "Standard First Aid / CPR-C",
+    "KPI tracking",
+    "Lean / 5S",
+    "Lean Six Sigma Yellow Belt",
+    "Microsoft Excel",
+    "Shift work (nights, rotating)",
+    "English",
+    "Polish (conversational)"
+  ],
+  "experience": [
+    {
+      "role": "Warehouse Supervisor",
+      "company": "Northbridge Retail Distribution",
+      "period": "Mar 2022 - Present",
+      "description": "Supervise 20 associates and 2 lead hands on a rotating 4-on/4-off day/night shift in a 300,000 sq ft retail DC in Mississauga shipping 45,000 units per day. Labour planning in Manhattan WMS, raised pick accuracy from 99.1% to 99.7%, cut dock-to-stock from 36 to 22 hours, 26 months without a lost-time injury on shift, coaching, discipline and performance reviews."
+    },
+    {
+      "role": "Shift Supervisor, Warehouse",
+      "company": "Maplecrest Fulfilment Services (3PL)",
+      "period": "Jun 2019 - Feb 2022",
+      "description": "Supervised 12-16 associates on nights in Brampton for three e-commerce clients. Peak season staffing with temp agencies, zone cycle count program above 99.5% accuracy, Manhattan WMS go-live super-user who trained 40+ staff."
+    },
+    {
+      "role": "Lead Hand, Shipping and Receiving",
+      "company": "Harbourline Logistics",
+      "period": "Apr 2017 - May 2019",
+      "description": "Led a crew of 6 on inbound receiving and outbound LTL/FTL loading in Etobicoke; carrier paperwork, OS&D resolution, trained new forklift operators."
+    },
+    {
+      "role": "Warehouse Associate / Forklift Operator",
+      "company": "Harbourline Logistics",
+      "period": "Aug 2015 - Mar 2017",
+      "description": "Picking, packing, putaway and replenishment using counterbalance and reach trucks."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Diploma, Supply Chain and Operations Management",
+      "institution": "Lakeshore College of Applied Arts and Technology",
+      "year": "2015"
+    }
+  ]
+}

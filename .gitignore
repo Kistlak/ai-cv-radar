@@ -32,6 +32,9 @@ npm-debug.log*
 #.agent/
 .claude/
 
+# Match-quality eval output (npm run eval:matching)
+/eval-results/
+
 # Playwright
 /test-results/
 /playwright-report/

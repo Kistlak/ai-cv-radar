@@ -1,0 +1,229 @@
+{
+  "software-lk-01": {
+    "label": "ok",
+    "why": "Laravel backend fits well but the role splits time with React, which the candidate has not used (soft gap)."
+  },
+  "software-lk-02": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Manual QA testing is a different role type from backend development."
+  },
+  "software-lk-03": {
+    "label": "good",
+    "why": "Mid-level Laravel/MySQL/REST role in Colombo asking for 3-5 years, matching the candidate exactly."
+  },
+  "software-lk-04": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A good-fit mid-level Laravel role, but remote is limited to US residents, which excludes a candidate in Sri Lanka."
+  },
+  "software-lk-05": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Unpaid internship for students; far below a 4-year mid-level developer despite the Laravel title."
+  },
+  "software-lk-06": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Good-fit mid-level Laravel role in the Colombo area, but posted 67 days ago."
+  },
+  "software-lk-07": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Principal architect role needing 12+ years and enterprise architecture leadership, far above a mid-level developer."
+  },
+  "software-lk-08": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the title, this is a Laravel/MySQL API role for 3-5 years of experience in Colombo."
+  },
+  "software-lk-09": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires business-level Japanese (JLPT N2), a hard language requirement the candidate does not meet."
+  },
+  "software-lk-10": {
+    "label": "ok",
+    "why": "Same stack, but asks for 5+ years and team-lead duties, a small step above 4 years."
+  },
+  "software-lk-11": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Business data analysis and Power BI reporting is a different field from backend development."
+  },
+  "software-lk-12": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Mid-level PHP/Laravel backend role in Colombo; requirements (3-5 years Laravel, MySQL, APIs) appear only after a long intro."
+  },
+  "software-lk-13": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good-fit Laravel role, but it is on-site in Dubai, outside the candidate's country and search location."
+  },
+  "software-lk-14": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "A recruitment role hiring Laravel developers, not a development job."
+  },
+  "software-lk-15": {
+    "label": "ok",
+    "why": "Adjacent backend role on a different language (Node.js), with PHP backgrounds explicitly welcomed."
+  },
+  "software-lk-16": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires German at C1 level for client communication, a hard language requirement the candidate lacks."
+  },
+  "software-lk-17": {
+    "label": "good",
+    "why": "Mid-level PHP/Laravel software engineer role in Colombo whose requirements the candidate meets."
+  },
+  "software-lk-18": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Fresh-graduate trainee role, two or more levels below a developer with 4 years of experience."
+  },
+  "software-lk-19": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Good-fit Laravel role, but it requires existing right to work in the UK with no visa sponsorship."
+  },
+  "software-lk-20": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Native iOS development in Swift is a different specialism with skills the candidate does not have."
+  },
+  "software-lk-21": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Good-fit mid-level Laravel role in Colombo, but posted 52 days ago."
+  },
+  "software-lk-22": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Remote worldwide Laravel role for 3+ years of experience; requirements come after a long company intro."
+  },
+  "software-lk-23": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Academic teaching role that needs a postgraduate degree and lecturing, despite PHP and Laravel in the title."
+  },
+  "software-lk-24": {
+    "label": "ok",
+    "why": "Same language and backend role type, but on Symfony rather than Laravel (a slightly different specialism)."
+  },
+  "software-lk-25": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Embedded C/C++ firmware for microcontrollers is a different field from web backend development."
+  },
+  "software-lk-26": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Matching PHP/Laravel backend role, but remote is limited to EU/EEA residents, which excludes Sri Lanka."
+  },
+  "software-lk-27": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "Despite the generic title, this is a remote Laravel/MySQL API role open worldwide at mid level."
+  },
+  "software-lk-28": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Head of department role needing 10+ years and management of 30 engineers, far above mid level."
+  },
+  "software-lk-29": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires a Master's degree in Computer Science as a mandatory qualification, which the candidate does not hold."
+  },
+  "software-lk-30": {
+    "label": "ok",
+    "why": "Adjacent PHP role focused on WordPress plugins rather than Laravel applications."
+  },
+  "software-lk-31": {
+    "label": "good",
+    "why": "Mid-level PHP/Laravel API role in Colombo matching the candidate's experience and skills."
+  },
+  "software-lk-32": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good-fit Laravel role, but it is on-site in Bengaluru, India, not in the candidate's country."
+  },
+  "software-lk-33": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "An unpaid equity-only co-founder/CTO position, a different level and type of job despite the PHP backend title."
+  },
+  "software-lk-34": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Network administration is an IT infrastructure role, not software development."
+  },
+  "software-lk-35": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Good-fit remote Laravel role open worldwide, but posted 81 days ago."
+  },
+  "software-lk-36": {
+    "label": "ok",
+    "why": "PHP backend role at the right level, but on Magento 2, a different PHP specialism the candidate has not used."
+  },
+  "software-lk-37": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Mid-level Laravel/MySQL/API role in Colombo; the requirements only appear after a long culture and benefits intro."
+  },
+  "software-lk-38": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires an AWS Certified Solutions Architect - Professional certification as mandatory; the candidate only has basic AWS training."
+  },
+  "software-lk-39": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "Matching Laravel backend role, but remote hiring is restricted to residents of the Americas."
+  },
+  "software-lk-40": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "Director-level role responsible for all technology with 15+ years required, far above mid level."
+  },
+  "software-lk-41": {
+    "label": "good",
+    "why": "Remote worldwide mid-level Laravel role with requirements the candidate meets."
+  },
+  "software-lk-42": {
+    "label": "ok",
+    "why": "Good skill and level fit, but a fixed 6-month contract rather than a permanent role."
+  },
+  "software-lk-43": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Digital marketing is a different field from backend software development."
+  },
+  "software-lk-44": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A good-fit PHP/Laravel role, but it is on-site in Kuala Lumpur, Malaysia, outside the candidate's country."
+  },
+  "software-lk-45": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "Good-fit mid-level PHP/Laravel role in Colombo, but posted 48 days ago."
+  },
+  "software-lk-46": {
+    "label": "good",
+    "why": "Mid-level PHP/Laravel backend role in Colombo matching the candidate's skills and experience."
+  },
+  "software-lk-47": {
+    "label": "ok",
+    "why": "Laravel backend at the right level, but with a strong AWS/infrastructure focus where the candidate has only basics (soft gap)."
+  },
+  "software-lk-48": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "Good-fit Laravel role, but it requires existing Australian work rights and offers no visa sponsorship."
+  }
+}

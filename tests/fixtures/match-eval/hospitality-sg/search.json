@@ -1,0 +1,6 @@
+{
+  "queries": ["Front Office Manager", "Hotel Front Desk Manager", "Guest Services Manager"],
+  "location": "Singapore",
+  "remoteOnly": false,
+  "maxResults": 10
+}

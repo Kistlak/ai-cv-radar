@@ -1,0 +1,74 @@
+INÊS CARVALHO
+UX/UI Designer
+Lisbon, Portugal | ines.carvalho@example.com | +00 000 000 000
+Portfolio available on request | Portuguese citizen (EU)
+
+PROFILE
+UX/UI designer with 4 years of experience designing web and mobile products for
+fintech, e-commerce and agency clients. I work end to end: discovery interviews,
+journey mapping, wireframes, high-fidelity UI in Figma and usability testing.
+For the last two years I have owned a shared design system used by four product
+squads. Comfortable working remotely with distributed teams across European time
+zones. Native Portuguese, fluent English (C1).
+
+SKILLS
+Design: Figma (advanced, components, variants, auto layout, variables), FigJam,
+  prototyping, wireframing, interaction design, responsive web, mobile UI (iOS and
+  Android patterns), visual design, information architecture
+Design systems: component libraries, design tokens, documentation, Storybook
+  handoff, accessibility (WCAG 2.1 AA)
+Research: user interviews, usability testing (moderated and unmoderated),
+  surveys, card sorting, journey mapping, A/B test design with product analysts
+Collaboration: design critiques, workshops, Jira, Notion, working with product
+  managers and front-end engineers
+Technical: basic HTML and CSS, Maze, Hotjar, Google Analytics
+Languages: Portuguese (native), English (C1), Spanish (basic)
+
+EXPERIENCE
+
+UX/UI Designer
+Pagaleve Digital, Lisbon (fintech, payments app)  |  Mar 2024 - Present
+- Lead designer for the onboarding and card management flows of a consumer
+  payments app with around 300,000 monthly active users.
+- Built and maintain the company design system in Figma (120+ components,
+  design tokens for colour, spacing and typography), now used by 4 squads.
+- Ran 30+ moderated usability sessions and 6 discovery interview rounds;
+  synthesised findings into opportunity maps for product managers.
+- Redesigned KYC onboarding, cutting drop-off from 38% to 24% in three months.
+- Introduced accessibility reviews; brought core flows to WCAG 2.1 AA.
+- Work daily with front-end engineers on handoff, QA and component parity
+  in Storybook.
+
+Product Designer
+Estúdio Maré (digital product agency), Lisbon  |  Sep 2022 - Feb 2024
+- Designed web and mobile products for 8 clients in retail, travel and
+  education, from discovery workshops to launch.
+- Created wireframes, clickable prototypes and final UI for an e-commerce
+  checkout that increased conversion by 11%.
+- Facilitated design sprints and stakeholder workshops, often in English
+  with clients in the UK, Netherlands and Brazil.
+- Set up a starter UI kit the agency reused across projects.
+
+Junior UI Designer
+Fórmula Criativa, Porto  |  Oct 2021 - Aug 2022
+- Designed screens and marketing landing pages for SaaS clients.
+- Supported senior designers with icons, illustrations and responsive layouts.
+- Prepared assets and specifications for developers.
+
+EDUCATION
+MSc Human-Computer Interaction - Universidade de Lisboa, 2021
+BA Communication Design - Universidade do Porto, 2019
+
+CERTIFICATIONS AND COURSES
+Google UX Design Certificate, 2021
+Interaction Design Foundation - Accessibility: How to Design for All, 2023
+
+SELECTED PROJECTS
+- Payments app onboarding redesign: research-led redesign of identity
+  verification, tested with 18 users across 3 rounds.
+- Design system "Onda": tokens, components and usage guidelines in Figma and
+  Notion, adopted by product, marketing and engineering.
+
+WORK PREFERENCES
+Looking for remote product design roles (mid-level) with teams in or open to
+Europe. Based in Lisbon; EU citizen with the right to work anywhere in the EU.

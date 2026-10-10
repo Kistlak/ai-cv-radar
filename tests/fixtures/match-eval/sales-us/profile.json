@@ -1,0 +1,53 @@
+{
+  "name": "Marcus Delaney",
+  "email": "marcus.delaney@example.com",
+  "location": "Chicago, USA",
+  "summary": "B2B SaaS account executive with 5 years of closing experience (plus 1 year as an SDR), the last 3+ years selling to mid-market companies (200-2,000 employees). Consistently over quota (112%, 124% and 131% in the last three fiscal years). Runs full-cycle new-logo deals of $25k-$120k ACV with 60-120 day cycles; disciplined Salesforce user, accurate forecaster, MEDDICC qualification, multi-threading and procurement negotiation. US citizen.",
+  "skills": [
+    "Full-cycle B2B SaaS sales",
+    "New-logo acquisition",
+    "Mid-market territory planning",
+    "Discovery and product demos",
+    "Business cases and ROI models",
+    "MEDDICC",
+    "Multi-threading",
+    "Negotiation",
+    "Forecasting",
+    "Pipeline generation",
+    "Salesforce",
+    "Outreach",
+    "Gong",
+    "LinkedIn Sales Navigator",
+    "ZoomInfo",
+    "DocuSign CLM",
+    "HubSpot (basic)",
+    "English (native)"
+  ],
+  "experience": [
+    {
+      "role": "Mid-Market Account Executive",
+      "company": "Corvana",
+      "period": "Mar 2022 - Present",
+      "description": "HR and workforce management SaaS. Full-cycle new-logo sales in a Central-region mid-market territory of ~400 accounts. 131% of a $1.1M new-ARR quota in FY2025, 124% in FY2024, 112% in FY2023; President's Club 2024 and 2025. Grew average deal size from $38k to $61k ACV; closed a $148k ACV deal through security, legal and procurement. Forecast accuracy within +/-5% for six quarters; coaches two newer AEs with Gong."
+    },
+    {
+      "role": "Account Executive, SMB",
+      "company": "Brightwave Analytics",
+      "period": "Jan 2021 - Feb 2022",
+      "description": "Marketing analytics SaaS. Closed short-cycle SMB and agency deals ($8k-$25k ACV, 20-45 day cycles); 108% of annual quota; 6-8 demos per week and a 60+ opportunity pipeline in Salesforce."
+    },
+    {
+      "role": "Sales Development Representative",
+      "company": "Brightwave Analytics",
+      "period": "Jun 2019 - Dec 2020",
+      "description": "Outbound prospecting with Outreach and ZoomInfo; averaged 14 qualified meetings per month (118% of target). Promoted to Account Executive after 18 months."
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.A. Communication Studies",
+      "institution": "Lakeshore State University",
+      "year": "2019"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Joanne Lim Pei Shan",
+  "email": "joanne.lim@example.com",
+  "location": "Singapore, Singapore",
+  "summary": "Front Office Manager with 10 years in 4- and 5-star Singapore hotels, the last four leading a front office team of 15 at a 380-room luxury hotel. Opera PMS super-user (V5 and Opera Cloud), strong in VIP handling, guest recovery, training and upselling. Singapore Permanent Resident; English, Mandarin and conversational Malay.",
+  "skills": [
+    "Front office operations",
+    "Opera PMS (V5 and Opera Cloud)",
+    "Team leadership (team of 15)",
+    "Rostering and recruitment",
+    "Upselling and upgrade programmes",
+    "Guest recovery and complaint handling",
+    "VIP and group arrivals",
+    "Department budgeting",
+    "SOPs and brand standards",
+    "English",
+    "Mandarin",
+    "Malay (conversational)"
+  ],
+  "experience": [
+    {
+      "role": "Front Office Manager",
+      "company": "The Marlowe Orchard",
+      "period": "Mar 2022 - Present",
+      "description": "Lead a front office team of 15 at a 5-star, 380-room hotel. Led the Opera V5 to Opera Cloud migration and trained 42 users, lifted upgrade revenue by 18%, raised check-in satisfaction from 86 to 93, own the department budget and roster."
+    },
+    {
+      "role": "Assistant Front Office Manager",
+      "company": "Harbourline Hotel Singapore",
+      "period": "Jan 2019 - Feb 2022",
+      "description": "Ran shifts for a team of 20 at a 4-star, 520-room hotel; managed group and airline crew arrivals of up to 250 rooms a day; rebuilt front desk training; ran operations through the quarantine-hotel period."
+    },
+    {
+      "role": "Front Office Supervisor",
+      "company": "Harbourline Hotel Singapore",
+      "period": "Jun 2017 - Dec 2018",
+      "description": "Supervised shifts of 6-8 guest service agents, complaints, cash floats, shift reports and night audit checks."
+    },
+    {
+      "role": "Guest Service Agent",
+      "company": "Seabreeze Sentosa Resort",
+      "period": "Jan 2016 - May 2017",
+      "description": "Check-in, check-out, reservation amendments and concierge requests in Opera at a 5-star, 240-room resort."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Science in Hospitality Management",
+      "institution": "Northbridge University, Singapore campus",
+      "year": "2021"
+    },
+    {
+      "degree": "Diploma in Hotel and Hospitality Management",
+      "institution": "Kallang Institute of Hospitality",
+      "year": "2015"
+    }
+  ]
+}

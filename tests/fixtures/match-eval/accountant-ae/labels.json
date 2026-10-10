@@ -1,0 +1,229 @@
+{
+  "accountant-ae-01": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A civil engineering site role is a different profession from accounting."
+  },
+  "accountant-ae-02": {
+    "label": "ok",
+    "why": "Adjacent role: her 4 years of external audit and ACCA meet the bar, but internal audit is a step away from her current financial reporting path."
+  },
+  "accountant-ae-03": {
+    "label": "good",
+    "why": "Group IFRS reporting manager role in Dubai with retail IFRS 16 focus, matching her ACCA, audit background and current role closely."
+  },
+  "accountant-ae-04": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "The role fits her profile but is explicitly restricted to UAE nationals under Emiratisation, and she is an expatriate."
+  },
+  "accountant-ae-05": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A CFO role needing 20+ years and 8 years as CFO is several levels above an 8-year financial reporting manager."
+  },
+  "accountant-ae-06": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "Despite \"Senior Accountant\" in the title this is a sales-driven recruitment consultant job, not accounting."
+  },
+  "accountant-ae-07": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "IFRS consolidation and audit-lead role in Dubai matching her ACCA and 8 years, with the requirements buried after a long company intro."
+  },
+  "accountant-ae-08": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good IFRS senior accountant role in Jebel Ali matching her experience, but posted 58 days ago."
+  },
+  "accountant-ae-09": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Mandatory fluent written and spoken Arabic for regulatory filings, and she has only basic Arabic."
+  },
+  "accountant-ae-10": {
+    "label": "ok",
+    "why": "Adjacent specialism: she has hands-on VAT and some Corporate Tax work, but a dedicated tax role is a step sideways from financial reporting."
+  },
+  "accountant-ae-11": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A plausible reporting role, but the remote position is restricted to US residents and she lives in Dubai."
+  },
+  "accountant-ae-12": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Performance marketing is a different field from accounting and financial reporting."
+  },
+  "accountant-ae-13": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A group IFRS consolidation and audit-lead role in Dubai matching her current job, under a title that avoids the query words."
+  },
+  "accountant-ae-14": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "An entry-level AP clerk job paying AED 5,000 is far below an 8-year ACCA financial reporting manager."
+  },
+  "accountant-ae-15": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "The title mentions IFRS financial reporting, but the job is software sales, not accounting."
+  },
+  "accountant-ae-16": {
+    "label": "ok",
+    "why": "Adjacent role: she has the reporting and Power BI skills, but FP&A budgeting and forecasting is a different specialism from IFRS reporting."
+  },
+  "accountant-ae-17": {
+    "label": "good",
+    "why": "Senior IFRS reporting role at a DMCC free zone company, matching her ACCA, audit background, IFRS 9 knowledge and DMCC entity experience."
+  },
+  "accountant-ae-18": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires an active US CPA licence and US GAAP/SEC experience; she is ACCA with IFRS experience."
+  },
+  "accountant-ae-19": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "The role fits her profile but is on-site only in Doha, Qatar, outside her UAE search location."
+  },
+  "accountant-ae-20": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good IFRS financial reporting manager role in Dubai, but posted 71 days ago."
+  },
+  "accountant-ae-21": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "An ICU nursing role is a different profession that needs a nursing licence."
+  },
+  "accountant-ae-22": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "Senior group reporting role in Dubai with IFRS 16 lease focus that mirrors her experience, with requirements after a long company and benefits intro."
+  },
+  "accountant-ae-23": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A group finance director role needing 18+ years post-qualification is far above her 8 years."
+  },
+  "accountant-ae-24": {
+    "label": "ok",
+    "why": "Right level and IFRS reporting work, but it is a bank and she has no banking or Central Bank regulatory reporting experience."
+  },
+  "accountant-ae-25": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A matching IFRS consolidation role, but remote only for EU residents with EU work rights and she lives in Dubai."
+  },
+  "accountant-ae-26": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "The title mentions ACCA and accountant, but it is a graduate trainee bookkeeping job far below her level."
+  },
+  "accountant-ae-27": {
+    "label": "good",
+    "why": "An assistant financial controller role within commuting distance of Dubai, matching her close, IFRS consolidation and audit-lead experience."
+  },
+  "accountant-ae-28": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Requires ICAI Chartered Accountant membership to sign statutory certificates and she holds ACCA instead."
+  },
+  "accountant-ae-29": {
+    "label": "ok",
+    "why": "She meets the qualification and level, but treasury and cash management is a different specialism from her reporting experience."
+  },
+  "accountant-ae-30": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "Restaurant operations management is a different field from accounting."
+  },
+  "accountant-ae-31": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "A matching IFRS reporting role, but in London requiring existing UK right to work with no sponsorship, which she does not have."
+  },
+  "accountant-ae-32": {
+    "label": "good",
+    "trap": "synonym-title",
+    "why": "A Dubai statutory close, IFRS and audit-lead role matching her current job, with a title sharing no words with the queries."
+  },
+  "accountant-ae-33": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A part-time bookkeeping job paying AED 3,500 is several levels below a qualified financial reporting manager."
+  },
+  "accountant-ae-34": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good group IFRS reporting manager role in Dubai matching her background, but posted 49 days ago."
+  },
+  "accountant-ae-35": {
+    "label": "bad",
+    "trap": "different-field",
+    "why": "A backend software engineering role is a different field, even though it touches finance systems."
+  },
+  "accountant-ae-36": {
+    "label": "ok",
+    "why": "She has 4 years of mid-tier audit and CaseWare, but this asks for 7+ years of external audit including manager level, a small step up in an area she has moved away from."
+  },
+  "accountant-ae-37": {
+    "label": "bad",
+    "trap": "keyword-stuffed",
+    "why": "The title has ACCA and financial reporting, but it is a part-time teaching job rather than an accounting role."
+  },
+  "accountant-ae-38": {
+    "label": "ineligible",
+    "trap": "work-authorisation",
+    "why": "The work matches her profile, but the vacancy is open to UAE nationals only and she is an expatriate."
+  },
+  "accountant-ae-39": {
+    "label": "good",
+    "trap": "late-requirements",
+    "why": "A Dubai group reporting manager role matching her consolidation, audit and Power BI skills, with requirements after a long intro."
+  },
+  "accountant-ae-40": {
+    "label": "bad",
+    "trap": "missing-hard-requirement",
+    "why": "Essential fluent written and spoken Arabic for regulatory and donor reporting, and she only has basic Arabic."
+  },
+  "accountant-ae-41": {
+    "label": "ok",
+    "why": "Same field and she meets every requirement, but a general accountant role for 3-5 years is a step below her level."
+  },
+  "accountant-ae-42": {
+    "label": "ineligible",
+    "trap": "onsite-other-country",
+    "why": "A matching IFRS reporting role, but on-site only in Riyadh, Saudi Arabia, outside her UAE search location."
+  },
+  "accountant-ae-43": {
+    "label": "bad",
+    "trap": "seniority",
+    "why": "A head of group finance role needing 15+ years and 5 years leading a function is two or more levels above her."
+  },
+  "accountant-ae-44": {
+    "label": "good",
+    "why": "An IFRS reporting manager role in DIFC that matches her qualification, audit background and IFRS 9 knowledge, with funds experience only a plus."
+  },
+  "accountant-ae-45": {
+    "label": "ineligible",
+    "trap": "region-restricted-remote",
+    "why": "A matching consolidation role, but remote only for residents of the Americas and she lives in Dubai."
+  },
+  "accountant-ae-46": {
+    "label": "stale",
+    "trap": "stale",
+    "why": "A good IFRS consolidation senior accountant role in Dubai, but posted 83 days ago."
+  },
+  "accountant-ae-47": {
+    "label": "ok",
+    "why": "She has the qualification and level, but this is cost and management accounting in manufacturing rather than IFRS financial reporting."
+  },
+  "accountant-ae-48": {
+    "label": "good",
+    "why": "A senior group IFRS reporting role in Dubai matching her audit background, consolidation, IFRS 16 and Oracle Fusion experience."
+  }
+}
