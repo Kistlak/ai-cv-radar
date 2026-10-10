@@ -1,6 +1,6 @@
 # Code Review: Scoring pool cap (pre-rank before AI scoring)
 **Date**: 2026-10-09
-**Status**: Superseded: folded into PRD-match-quality Task 8 (the `.net` boundary fix and CV terms will be done there; not done yet)
+**Status**: Superseded: folded into PRD-match-quality Task 8. The `.net` boundary fix and CV terms were done there on 2026-10-10 (`2026-10-10-match-quality-t8-prerank-cv-terms.md`).
 **Plan**: `.agents/plans/2026-10-09-scoring-pool-cap.md`
 
 ## Summary

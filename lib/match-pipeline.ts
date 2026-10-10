@@ -1,4 +1,5 @@
 import type { AiClient } from './ai/provider'
+import type { CvStructured } from './ai/schemas'
 import type { RawJob } from './job-sources/types'
 import { scoreJobs, type ScoredJob } from './score-jobs'
 import { preRankJobs, scoringPoolSize } from './score-pool'
@@ -11,6 +12,9 @@ export interface RankContext {
   // Pre-rank terms; queries[0] is what the candidate is "looking for" in scoring.
   queries: string[]
   cvText: string
+  // The CV's structured profile; its skills and recent roles help the pre-rank.
+  // Null or absent: the pre-rank uses the queries only.
+  cvProfile?: CvStructured | null
   ai: AiClient
   // The user's result count; null means "All".
   maxResults: number | null
@@ -34,7 +38,7 @@ export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankRe
   const poolSize = scoringPoolSize(ctx.maxResults)
   const toScore =
     poolSize && jobs.length > poolSize
-      ? preRankJobs(jobs, ctx.queries).slice(0, poolSize)
+      ? preRankJobs(jobs, ctx.queries, ctx.cvProfile).slice(0, poolSize)
       : jobs
   await ctx.onPool?.(jobs.length, toScore.length)
 
