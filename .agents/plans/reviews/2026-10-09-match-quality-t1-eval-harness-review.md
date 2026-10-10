@@ -85,5 +85,53 @@ None found. This is subject to the checks above; typecheck is the most likely to
 
 **Product note:** a free-tier Gemini user gets 20 requests a day per model, across every feature. One search with "All" (about 25 scoring batches) can't finish, and a search with a count of 10 uses about 5. Free-tier keys will show many unscored jobs. Task 7 ("Not scored" display) and the Settings/help text should say this.
 
-## Baseline
-_Pending._ It needs a quota that allows about 32 requests per run (see the summary for the options). The results go here and into PRD §11.
+## Baseline (Gemini free tier, split over days; `EVAL_LABEL=baseline`)
+**Code:** `master` after PRs #14–#16, i.e. the pool cap plus `gemini-3.8-flash` with low thinking, before any Task 3–9 change.
+
+**Day 1 (run 2026-10-10 10:26 +04, Gemini quota day 2026-10-09 PT):**
+
+| Case | good | ok | bad | inelig | stale | nDCG | good in pool | unscored | mean good/bad |
+|---|---|---|---|---|---|---|---|---|---|
+| accountant-ae | 7 | 0 | 0 | 0 | 3 | 0.687 | 10/10 | 0/40 | 77/10 |
+| designer-pt | 5 | 1 | 0 | 0 | 4 | 0.596 | 8/10 | 0/40 | 91/7 |
+| hospitality-sg | 6 | 1 | 0 | 1 | 2 | 0.646 | 10/10 | **20/40 (invalid)** | 67/24 |
+| logistics-ca | 6 | 0 | 0 | 0 | 4 | 0.525 | 10/10 | 0/40 | 81/8 |
+
+- `hospitality-sg` had 2 of 4 batches fail, so it needs a re-run. The cause wasn't visible, because the eval hid the app logs. The runner now records `score_jobs.batch_failed` errors in the results (`batchFailures`, and in the `.txt`).
+- **Early signal from the 3 valid cases:**
+  - Stale postings are the biggest problem: 3–4 of the top 10 in every case, so Task 6 (freshness) matters most.
+  - No bad jobs and almost no ineligible ones in the top 10.
+  - Scores separate good from bad clearly.
+  - The pre-rank kept 28 of 30 good jobs (`designer-pt` lost 2, probably the synonym-title traps; Task 8).
+
+**Day 2 (run 2026-10-10 11:03 +04, just after the 07:00 UTC quota reset; quota day 2026-10-10 PT):**
+
+| Case | good | ok | bad | inelig | stale | nDCG | good in pool | unscored | mean good/bad |
+|---|---|---|---|---|---|---|---|---|---|
+| nurse-gb | 6 | 0 | 0 | 0 | 4 | 0.486 | 8/10 | 0/40 | 92/6 |
+| teacher-au | 6 | 0 | 0 | 0 | 4 | 0.662 | 10/10 | 0/40 | 91/9 |
+| sales-us | — | | | | | | | 10/40 (invalid) | |
+| software-lk | — | | | | | | | 40/40 (invalid) | |
+| hospitality-sg (re-run) | — | | | | | | | 10/40 (invalid) | |
+
+- **Cause of the failures: Gemini's free-tier per-minute limit, not the daily one.** All 6 failed batches were `429`, and a direct call straight after succeeded.
+  - Each case sends 4 batches, 3 of them at once (`SCORING_CONCURRENCY`).
+  - With 20 s between cases, the run went over the per-minute allowance.
+- **Runner changes:**
+  - The default Gemini pause between cases is now **65 s**.
+  - `batchFailures` now records the quota id (per-minute vs per-day) instead of the first 300 characters.
+- **Still needed (day 3):** re-run `sales-us, software-lk, hospitality-sg` (about 12 requests), then `EVAL_COMBINE=baseline`.
+
+**Day 3 (run 2026-10-10 16:50 +04, the same quota day as day 2; `master` with PR #17, the per-minute 429 retry):**
+
+| Case | good | ok | bad | inelig | stale | nDCG | good in pool | unscored | mean good/bad |
+|---|---|---|---|---|---|---|---|---|---|
+| sales-us | 6 | 0 | 0 | 0 | 4 | 0.644 | 8/10 | 0/40 | 93/5 |
+| software-lk | — | | | | | | | 20/40 (invalid) | |
+| hospitality-sg | — | | | | | | | 40/40 (invalid) | |
+
+- **All 6 failures were per-day quota** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`) after about 6 successful requests. There were no per-minute failures, which is consistent with the #17 retry working.
+- **The daily quota was used up by day 2.** Day 3 ran in the same Gemini quota day (it resets at midnight Pacific), so days 2 and 3 together hit the 20-request limit. Run the remaining cases after the next reset (07:00 UTC, 11:00 +04).
+- **Valid so far: 6 of 8 cases.** Still needed: `software-lk`, `hospitality-sg` (about 8 requests).
+
+**Product note (found by this run):** free-tier Gemini users hit the same per-minute limit inside a single search: 3 scoring batches at once, plus query derivation. Those batches fail and become fallback 30s. This is now fixed: PR #17 retries per-minute `429`s after the `retryDelay` Gemini returns, up to twice within the call's timeout.
