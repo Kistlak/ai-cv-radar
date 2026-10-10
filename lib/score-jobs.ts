@@ -4,7 +4,7 @@ import type { RawJob } from './job-sources/types'
 import { logger } from './logger'
 import { UNTRUSTED_JOB_RULE, untrusted } from './untrusted'
 
-interface ScoredJob extends RawJob {
+export interface ScoredJob extends RawJob {
   matchScore: number
   matchReason: string
 }
