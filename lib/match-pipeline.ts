@@ -1,7 +1,7 @@
 import type { AiClient } from './ai/provider'
 import type { CvStructured } from './ai/schemas'
 import type { RawJob } from './job-sources/types'
-import { scoreJobs, type ScoredJob } from './score-jobs'
+import { scoreJobs, type CandidateContext, type ScoredJob } from './score-jobs'
 import { preRankJobs, scoringPoolSize } from './score-pool'
 
 // The ranking half of a search: everything after the jobs are fetched, deduped
@@ -15,6 +15,9 @@ export interface RankContext {
   // The CV's structured profile; its skills and recent roles help the pre-rank.
   // Null or absent: the pre-rank uses the queries only.
   cvProfile?: CvStructured | null
+  // Where the candidate lives or is searching, and remote-only; the scoring
+  // prompt uses them for the location-eligibility cap.
+  candidate?: CandidateContext
   ai: AiClient
   // The user's result count; null means "All".
   maxResults: number | null
@@ -48,7 +51,8 @@ export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankRe
     ctx.queries[0],
     ctx.ai,
     ctx.deadline,
-    ctx.signal
+    ctx.signal,
+    ctx.candidate
   )
   // Respect the user's job-count preference by keeping the top-scoring N after scoring.
   const top = ctx.maxResults
