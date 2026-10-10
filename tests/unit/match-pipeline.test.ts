@@ -133,4 +133,18 @@ describe('rankJobs', () => {
     expect(prompt).toContain('searching): Lisbon, Portugal')
     expect(prompt).toContain('REMOTE ONLY: yes')
   })
+
+  it('sends the CV profile, then the raw text, to scoring', async () => {
+    const ai = fakeAi()
+    await rankJobs([job(1)], {
+      queries: ['x'],
+      cvText: 'RAW CV TEXT',
+      cvProfile: CvStructuredSchema.parse({ skills: ['Figma'], experience: [{ role: 'Designer', company: 'Acme' }] }),
+      ai,
+      maxResults: 10,
+    })
+    const prompt = ai.complete.mock.calls[0][0].prompt as string
+    expect(prompt).toContain('PROFILE\nSkills: Figma\nRecent roles:\n- Designer, Acme')
+    expect(prompt).toContain('FULL CV TEXT\nRAW CV TEXT')
+  })
 })
