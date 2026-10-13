@@ -56,9 +56,17 @@ export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankRe
     ctx.candidate
   )
   // Respect the user's job-count preference by keeping the top-scoring N after scoring.
-  const top = ctx.maxResults
-    ? [...scored].sort((a, b) => b.matchScore - a.matchScore).slice(0, ctx.maxResults)
-    : scored
+  const top = selectTop(scored, ctx.maxResults)
 
   return { scored, top }
+}
+
+// Scored jobs by score (highest first), then unscored ones, cut to maxResults
+// (null keeps all). Unscored jobs only fill slots no scored job can. The sort is
+// stable, so ties and unscored jobs keep their input (pre-rank) order.
+export function selectTop(jobs: ScoredJob[], maxResults: number | null): ScoredJob[] {
+  const scored = jobs.filter((j): j is ScoredJob & { matchScore: number } => j.matchScore !== null)
+  const unscored = jobs.filter((j) => j.matchScore === null)
+  const ordered = [...scored.sort((a, b) => b.matchScore - a.matchScore), ...unscored]
+  return maxResults ? ordered.slice(0, maxResults) : ordered
 }

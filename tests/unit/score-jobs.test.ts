@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AiClient } from '@/lib/ai/types'
 import type { RawJob } from '@/lib/job-sources/types'
-import { buildPrompt, parseScores, scoreJobs } from '@/lib/score-jobs'
+import { buildPrompt, NOT_SCORED, parseScores, scoreJobs } from '@/lib/score-jobs'
 
 function job(i: number): RawJob {
   return {
@@ -89,7 +89,7 @@ describe('scoreJobs', () => {
     expect(scored.map((j) => j.matchScore)).toEqual(jobs.map((_, i) => i))
   })
 
-  it('falls back to 30 / "Score unavailable" for a batch that fails', async () => {
+  it('leaves a failed batch unscored: null / "Not scored"', async () => {
     const jobs = Array.from({ length: 15 }, (_, i) => job(i))
     const ai = fakeAi(async ({ prompt }) => {
       if (prompt.includes('Title: Job 0 ')) throw new Error('provider down')
@@ -99,14 +99,20 @@ describe('scoreJobs', () => {
     })
 
     const scored = await scoreJobs(jobs, 'cv', 'query', ai)
-    expect(scored.slice(0, 10).every((j) => j.matchScore === 30 && j.matchReason === 'Score unavailable')).toBe(true)
+    expect(scored.slice(0, 10).every((j) => j.matchScore === null && j.matchReason === NOT_SCORED)).toBe(true)
     expect(scored.slice(10).every((j) => j.matchScore === 90)).toBe(true)
   })
 
-  it('gives 30 and an empty reason to a job missing from the output', async () => {
+  it('leaves a job missing from the output unscored', async () => {
     const ai = fakeAi(async () => '[{"index": 0, "score": 80, "reason": "ok"}]')
     const scored = await scoreJobs([job(0), job(1)], 'cv', 'query', ai)
-    expect(scored[1]).toMatchObject({ matchScore: 30, matchReason: '' })
+    expect(scored[1]).toMatchObject({ matchScore: null, matchReason: NOT_SCORED })
+  })
+
+  it('keeps a real score of 0, and an empty reason, as scored', async () => {
+    const ai = fakeAi(async () => '[{"index": 0, "score": 0}]')
+    const [scored] = await scoreJobs([job(0)], 'cv', 'query', ai)
+    expect(scored).toMatchObject({ matchScore: 0, matchReason: '' })
   })
 
   it('passes a per-batch timeout to the AI client', async () => {
@@ -135,7 +141,7 @@ describe('scoreJobs', () => {
     expect(calls).toBe(3)
     expect(scored).toHaveLength(50)
     expect(scored.slice(0, 30).every((j) => j.matchScore === 90)).toBe(true)
-    expect(scored.slice(30).every((j) => j.matchScore === 30 && j.matchReason === 'Score unavailable')).toBe(true)
+    expect(scored.slice(30).every((j) => j.matchScore === null && j.matchReason === NOT_SCORED)).toBe(true)
   })
 
   it('makes no model calls once the signal is aborted, but keeps every job', async () => {
@@ -152,6 +158,7 @@ describe('scoreJobs', () => {
     )
     expect(complete).not.toHaveBeenCalled()
     expect(scored).toHaveLength(25)
+    expect(scored.every((j) => j.matchScore === null && j.matchReason === NOT_SCORED)).toBe(true)
   })
 
   it('passes the signal to the AI client', async () => {

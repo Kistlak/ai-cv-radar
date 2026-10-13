@@ -46,10 +46,10 @@ describe('ndcgAt', () => {
 })
 
 describe('isUnscored', () => {
-  it('flags the fallback reasons only', () => {
-    expect(isUnscored({ matchReason: 'Score unavailable' })).toBe(true)
-    expect(isUnscored({ matchReason: '' })).toBe(true)
-    expect(isUnscored({ matchReason: 'Strong ICU experience' })).toBe(false)
+  it('flags null scores only', () => {
+    expect(isUnscored({ matchScore: null })).toBe(true)
+    expect(isUnscored({ matchScore: 0 })).toBe(false)
+    expect(isUnscored({ matchScore: 85 })).toBe(false)
   })
 })
 
@@ -62,5 +62,15 @@ describe('meanScoreByLabel', () => {
         { label: 'bad', matchScore: 10 },
       ])
     ).toEqual({ good: 86, bad: 10 })
+  })
+
+  it('leaves unscored jobs out of the means', () => {
+    expect(
+      meanScoreByLabel([
+        { label: 'good', matchScore: 90 },
+        { label: 'good', matchScore: null },
+        { label: 'bad', matchScore: null },
+      ])
+    ).toEqual({ good: 90 })
   })
 })

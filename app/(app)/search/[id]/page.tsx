@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { searches, jobResults } from '@/db/schema'
-import { and, eq, desc } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import {
   ArrowLeft, Clock, MapPin, ExternalLink, Wifi, Building2,
   Sparkles, AlertCircle, BadgeCheck, Ban,
@@ -40,7 +40,8 @@ export default async function SearchResultsPage({
           .select()
           .from(jobResults)
           .where(eq(jobResults.searchId, id))
-          .orderBy(desc(jobResults.matchScore))
+          // Postgres puts NULLs first in DESC; unscored jobs belong at the end.
+          .orderBy(sql`${jobResults.matchScore} desc nulls last`)
       : []
 
   return (
@@ -148,6 +149,8 @@ type Job = typeof jobResults.$inferSelect
 function JobCard({ job }: { job: Job }) {
   // Older rows were stored before ingest validation: never render a non-http(s) link.
   const applyUrl = toHttpUrl(job.applyUrl)
+  // A null score means the AI never scored the job: shown as "–", muted.
+  const unscored = job.matchScore === null
   const score = job.matchScore ?? 0
   const scoreColor =
     score >= 75 ? 'text-green-600 dark:text-green-400' :
@@ -161,8 +164,18 @@ function JobCard({ job }: { job: Job }) {
   return (
     <div className="glass rounded-2xl p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 group">
       <div className="flex items-start gap-4">
-        <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 font-bold text-sm', scoreBg, scoreColor)}>
-          {score}
+        <div
+          className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 font-bold text-sm', scoreBg, scoreColor)}
+          title={unscored ? 'Not scored' : undefined}
+        >
+          {unscored ? (
+            <>
+              <span aria-hidden="true">–</span>
+              <span className="sr-only">Not scored</span>
+            </>
+          ) : (
+            score
+          )}
         </div>
 
         <div className="min-w-0 flex-1">

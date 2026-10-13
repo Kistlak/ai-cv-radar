@@ -6,9 +6,14 @@ import { logger } from './logger'
 import { UNTRUSTED_JOB_RULE, untrusted } from './untrusted'
 
 export interface ScoredJob extends RawJob {
-  matchScore: number
+  // Null when the model never scored the job (see NOT_SCORED).
+  matchScore: number | null
   matchReason: string
 }
+
+// Reason stored with a null score: the batch failed, timed out or started after
+// the deadline, the search was cancelled, or the model skipped the job.
+export const NOT_SCORED = 'Not scored'
 
 interface ScoreResult {
   index: number
@@ -136,21 +141,22 @@ async function scoreBatch(
     })
     return parseScores(text)
   } catch (err) {
-    // A failure here only shows up as the fallback score, so log it: a broken
-    // model or key would otherwise look like 30 for every job.
+    // A failure here only shows up as "Not scored", so log it: a broken model
+    // or key would otherwise just look like a search full of unscored jobs.
     if (!signal?.aborted) {
       logger.warn({ event: 'score_jobs.batch_failed', provider: ai.provider, jobs: batch.length, err })
     }
-    return unavailable(batch)
+    return unavailable()
   }
 }
 
-function unavailable(batch: RawJob[]): ScoreResult[] {
-  return batch.map((_, i) => ({ index: i, score: 30, reason: 'Score unavailable' }))
+// No results: every job in the batch is stored as NOT_SCORED.
+function unavailable(): ScoreResult[] {
+  return []
 }
 
-// `deadline` (epoch ms): batches not started by then get the fallback score
-// instead of a model call, so the caller still has time to save results.
+// `deadline` (epoch ms): batches not started by then are left unscored instead
+// of making a model call, so the caller still has time to save results.
 // `signal`: once aborted (search cancelled), no more model calls are made.
 // `candidate`: location and remote-only, for the location-eligibility cap.
 export async function scoreJobs(
@@ -177,7 +183,7 @@ export async function scoreJobs(
       const b = next++
       batchResults[b] =
         signal?.aborted || (deadline !== undefined && Date.now() >= deadline)
-          ? unavailable(batches[b])
+          ? unavailable()
           : await scoreBatch(ai, cvText, query, batches[b], signal, candidate)
     }
   }
@@ -191,8 +197,8 @@ export async function scoreJobs(
       const result = batchResults[b].find((r) => r.index === j)
       scored.push({
         ...batch[j],
-        matchScore: result?.score ?? 30,
-        matchReason: result?.reason ?? '',
+        matchScore: result ? result.score : null,
+        matchReason: result ? result.reason : NOT_SCORED,
       })
     }
   })
