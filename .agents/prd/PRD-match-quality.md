@@ -294,7 +294,7 @@ No other schema changes. `match_score` is already nullable. Applied to the hoste
 | 4 | Requirements text + CV profile: `relevantJobText`, `cvProfileText`, batch size | `feature/match-quality-t4-job-text` | M | 1 | `2026-10-11-match-quality-t4-job-text-cv-profile.md` | Completed (code), 2026-10-11; batch size kept at 10; AI eval pending |
 | 5 | Location: every-country matching, CV location prefill, eligibility in scoring | `feature/match-quality` | M | 3 | – | Not Started (the scoring prompt lines for location and remote-only were done in Task 3) |
 | 6 | Freshness: source date params, `isFresh` filter, "posted N days ago" | `feature/match-quality` | S–M | 1 | – | Not Started |
-| 7 | Unscored jobs: null scores, `selectTop`, UI and ordering | `feature/match-quality` | S–M | 1 | – | Not Started |
+| 7 | Unscored jobs: null scores, `selectTop`, UI and ordering | `feature/match-quality-t7-unscored` | S–M | 1 | `2026-10-13-match-quality-t7-unscored-jobs.md` | Completed (code), 2026-10-13; old rows not backfilled; manual check pending |
 | 8 | Pre-rank: CV terms + boundary fix (completes `2026-10-09-scoring-pool-cap`) | `feature/match-quality-t8-prerank` | S | 1 | `2026-10-09-scoring-pool-cap.md` (base), `2026-10-10-match-quality-t8-prerank-cv-terms.md` | Completed (code), 2026-10-10; AI eval pending |
 | 9 | Rerank: `rerankTop`, time-budget rebalance, `RERANK_*` env, model comparison | `feature/match-quality` | M | 3, 4, 7 | – | Not Started |
 

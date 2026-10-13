@@ -27,18 +27,22 @@ export function ndcgAt(k: number, ranked: Label[], all: Label[]): number {
   return dcg(ranked.slice(0, k).map((l) => GAIN[l])) / ideal
 }
 
-// A job the model never scored gets scoreJobs' fallback: reason 'Score
-// unavailable' for a failed batch, or '' when the model skipped its index.
-export function isUnscored(job: { matchReason: string }): boolean {
-  return job.matchReason === 'Score unavailable' || job.matchReason === ''
+// A job the model never scored (failed or skipped batch, skipped index) has a
+// null score from scoreJobs.
+export function isUnscored(job: { matchScore: number | null }): boolean {
+  return job.matchScore === null
 }
 
+// Unscored jobs are left out of the means.
 export function meanScoreByLabel(
-  jobs: Array<{ label: Label; matchScore: number }>
+  jobs: Array<{ label: Label; matchScore: number | null }>
 ): Partial<Record<Label, number>> {
   const out: Partial<Record<Label, number>> = {}
   for (const label of LABELS) {
-    const scores = jobs.filter((j) => j.label === label).map((j) => j.matchScore)
+    const scores = jobs
+      .filter((j) => j.label === label)
+      .map((j) => j.matchScore)
+      .filter((s): s is number => s !== null)
     if (scores.length > 0) {
       out[label] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
     }

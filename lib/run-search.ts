@@ -268,6 +268,7 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       searchId,
       provider: ai.provider,
       scored: allScored.length,
+      unscored: allScored.filter((j) => j.matchScore === null).length,
       ms: Date.now() - tScore,
     })
 
