@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getActiveCv } from '@/lib/cv'
+import { CvStructuredSchema } from '@/lib/ai/schemas'
 
 export default async function SearchPage() {
   const supabase = await createClient()
@@ -11,6 +12,9 @@ export default async function SearchPage() {
   if (!user) return null
 
   const activeCv = await getActiveCv(user.id)
+  // Prefill Location from the CV; skipped past the search API's 100-character limit.
+  const cvLocation = CvStructuredSchema.safeParse(activeCv?.structured).data?.location?.trim()
+  const defaultLocation = cvLocation && cvLocation.length <= 100 ? cvLocation : undefined
 
   // Either AI provider is enough, and operator FALLBACK_* keys count too.
   const keys = await getKeyStatus(user.id)
@@ -68,6 +72,7 @@ export default async function SearchPage() {
           hasApify={Boolean(keys.apify)}
           hasAdzuna={Boolean(keys.adzuna)}
           hasJsearch={Boolean(keys.jsearch)}
+          defaultLocation={defaultLocation}
         />
       ) : (
         <div className="glass rounded-2xl p-8 opacity-50 pointer-events-none select-none">

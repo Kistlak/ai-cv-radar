@@ -75,6 +75,88 @@ describe('adzunaCountry', () => {
     expect(adzunaCountry('Dubai')).toBeNull()
     expect(adzunaCountry('Colombo')).toBeNull()
   })
+
+  it('skips newly recognised countries it does not cover instead of searching the UK', () => {
+    expect(adzunaCountry('Nairobi')).toBeNull()
+    expect(adzunaCountry('Lisbon')).toBeNull()
+  })
+})
+
+describe('matchCountry (every country)', () => {
+  it('recognises countries and cities beyond the original 21', () => {
+    expect(matchCountry('Nairobi, Kenya')).toBe('ke')
+    expect(matchCountry('Lagos')).toBe('ng')
+    expect(matchCountry('Lisbon, Portugal')).toBe('pt')
+    expect(matchCountry('Dublin')).toBe('ie')
+    expect(matchCountry('Tokyo')).toBe('jp')
+    expect(matchCountry('Karachi')).toBe('pk')
+    expect(matchCountry('Buenos Aires')).toBe('ar')
+    expect(matchCountry('Kenya')).toBe('ke')
+    expect(matchCountry('Remote - Vietnam')).toBe('vn')
+  })
+
+  it('matches name variants, aliases and accents', () => {
+    expect(matchCountry('Türkiye')).toBe('tr')
+    expect(matchCountry('Turkey')).toBe('tr')
+    expect(matchCountry('Czech Republic')).toBe('cz')
+    expect(matchCountry('Czechia')).toBe('cz')
+    expect(matchCountry("Côte d'Ivoire")).toBe('ci')
+    expect(matchCountry('Côte d’Ivoire')).toBe('ci')
+    expect(matchCountry('Ivory Coast')).toBe('ci')
+    expect(matchCountry('Bosnia and Herzegovina')).toBe('ba')
+    expect(matchCountry('Bosnia & Herzegovina')).toBe('ba')
+    expect(matchCountry('Hong Kong')).toBe('hk')
+    expect(matchCountry('Myanmar')).toBe('mm')
+    expect(matchCountry('Burma')).toBe('mm')
+    expect(matchCountry('Saint Lucia')).toBe('lc')
+    expect(matchCountry('St. Lucia')).toBe('lc')
+    expect(matchCountry('São Paulo')).toBe('br')
+    expect(matchCountry('Sao Paulo')).toBe('br')
+    expect(matchCountry('Zürich')).toBe('ch')
+  })
+
+  it('picks the right country when one name contains another', () => {
+    expect(matchCountry('Papua New Guinea')).toBe('pg')
+    expect(matchCountry('Guinea')).toBe('gn')
+    expect(matchCountry('South Sudan')).toBe('ss')
+    expect(matchCountry('Sudan')).toBe('sd')
+    expect(matchCountry('Nigeria')).toBe('ng')
+    expect(matchCountry('Niger')).toBe('ne')
+    expect(matchCountry('Dominican Republic')).toBe('do')
+    expect(matchCountry('South Korea')).toBe('kr')
+    expect(matchCountry('Korea')).toBe('kr')
+    expect(matchCountry('North Korea')).toBe('kp')
+    expect(matchCountry('DR Congo')).toBe('cd')
+    expect(matchCountry('Democratic Republic of the Congo')).toBe('cd')
+    expect(matchCountry('Congo')).toBe('cg')
+  })
+
+  it('keeps US places that contain another country name in the US', () => {
+    expect(matchCountry('New Jersey')).toBe('us')
+    expect(matchCountry('Jersey City')).toBe('us')
+    expect(matchCountry('Jersey')).toBe('je')
+    expect(matchCountry('New Mexico')).toBe('us')
+    expect(matchCountry('Mexico City')).toBe('mx')
+    expect(matchCountry('Atlanta, Georgia')).toBe('us')
+    expect(matchCountry('Georgia, USA')).toBe('us')
+    expect(matchCountry('Tbilisi, Georgia')).toBe('ge')
+    expect(matchCountry('Sydney, New South Wales')).toBe('au')
+  })
+
+  it('does not match a country inside another word or non-countries', () => {
+    expect(matchCountry('Indiana')).toBeNull()
+    expect(matchCountry('European Union')).toBeNull()
+    expect(matchCountry('Unknown Region')).toBeNull()
+  })
+})
+
+describe('guessCountry (every country)', () => {
+  it("uses the country when Indeed's actor lists it, otherwise 'us'", () => {
+    expect(guessCountry('Lisbon')).toBe('pt')
+    expect(guessCountry('Tokyo, Japan')).toBe('jp')
+    expect(guessCountry('Nairobi')).toBe('us')
+    expect(guessCountry('Colombo')).toBe('us')
+  })
 })
 
 describe('currencySymbol', () => {
