@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { failStaleSearches } from '@/lib/stale-searches'
+import { postedAgoLabel } from '@/lib/freshness'
 import { toHttpUrl } from '@/lib/safe-url'
 import SearchPoller from '@/components/search-poller'
 import { JobActions } from '@/components/job-actions'
@@ -244,8 +245,11 @@ function JobCard({ job }: { job: Job }) {
             <div className="flex items-center gap-3 pt-1">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">{job.source}</span>
               {job.postedAt && (
-                <span className="text-[10px] text-muted-foreground/60">
-                  {new Date(job.postedAt).toLocaleDateString()}
+                <span
+                  className="text-[10px] text-muted-foreground/60"
+                  title={new Date(job.postedAt).toLocaleDateString()}
+                >
+                  {postedAgoLabel(new Date(job.postedAt))}
                 </span>
               )}
             </div>

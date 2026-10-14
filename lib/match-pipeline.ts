@@ -1,6 +1,7 @@
 import type { AiClient } from './ai/provider'
 import type { CvStructured } from './ai/schemas'
 import { cvProfileText } from './cv-profile'
+import { isFresh, jobMaxAgeDays } from './freshness'
 import type { RawJob } from './job-sources/types'
 import { scoreJobs, type CandidateContext, type ScoredJob } from './score-jobs'
 import { preRankJobs, scoringPoolSize } from './score-pool'
@@ -25,8 +26,13 @@ export interface RankContext {
   // Epoch ms after which no new scoring batch starts (see scoreJobs).
   deadline?: number
   signal?: AbortSignal
-  // Called once the scoring pool is chosen, before any scoring call.
-  onPool?: (fetched: number, pool: number) => void | Promise<void>
+  // Freshness: jobs posted more than maxAgeDays before `now` are dropped
+  // before the pool. Defaults: Date.now() and JOB_MAX_AGE_DAYS (0 = off).
+  now?: number
+  maxAgeDays?: number
+  // Called once the scoring pool is chosen, before any scoring call. `fetched`
+  // counts every input job, including the `stale` ones that were dropped.
+  onPool?: (fetched: number, pool: number, stale: number) => void | Promise<void>
 }
 
 export interface RankResult {
@@ -37,14 +43,19 @@ export interface RankResult {
 }
 
 export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankResult> {
+  // Old postings are dropped first, so they never take a slot in the pool.
+  const now = ctx.now ?? Date.now()
+  const maxAgeDays = ctx.maxAgeDays ?? jobMaxAgeDays()
+  const fresh = jobs.filter((job) => isFresh(job, now, maxAgeDays))
+
   // With a result count set, only the best-looking jobs (by a cheap keyword
   // pre-rank) are sent to the AI; "All" scores everything.
   const poolSize = scoringPoolSize(ctx.maxResults)
   const toScore =
-    poolSize && jobs.length > poolSize
-      ? preRankJobs(jobs, ctx.queries, ctx.cvProfile).slice(0, poolSize)
-      : jobs
-  await ctx.onPool?.(jobs.length, toScore.length)
+    poolSize && fresh.length > poolSize
+      ? preRankJobs(fresh, ctx.queries, ctx.cvProfile).slice(0, poolSize)
+      : fresh
+  await ctx.onPool?.(jobs.length, toScore.length, jobs.length - fresh.length)
 
   const scored = await scoreJobs(
     toScore,

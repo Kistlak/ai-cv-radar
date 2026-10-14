@@ -258,8 +258,8 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       maxResults: search.maxResults,
       deadline: t0 + SCORING_START_DEADLINE_MS,
       signal: cancel.signal,
-      onPool: async (fetched, pool) => {
-        logger.info({ event: 'run_search.scoring_pool', searchId, fetched, pool })
+      onPool: async (fetched, pool, stale) => {
+        logger.info({ event: 'run_search.scoring_pool', searchId, fetched, stale, pool })
         await setProgress({ stage: 'scoring', totalJobs: pool })
       },
     })

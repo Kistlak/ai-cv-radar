@@ -1,3 +1,4 @@
+import { jobMaxAgeDays, jsearchDatePosted } from '@/lib/freshness'
 import { sourceSignal, type RawJob, type SearchParams } from './types'
 
 interface JSearchJob {
@@ -34,6 +35,8 @@ export async function fetchJSearch(
   url.searchParams.set('num_pages', '1')
   url.searchParams.set('page', '1')
   if (params.remoteOnly) url.searchParams.set('remote_jobs_only', 'true')
+  const datePosted = jsearchDatePosted(jobMaxAgeDays())
+  if (datePosted) url.searchParams.set('date_posted', datePosted)
 
   const res = await fetch(url.toString(), {
     headers: {

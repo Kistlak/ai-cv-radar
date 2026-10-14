@@ -42,9 +42,11 @@ interface SearchFormProps {
   hasApify: boolean
   hasAdzuna: boolean
   hasJsearch: boolean
+  // The active CV's location, prefilled and editable.
+  defaultLocation?: string
 }
 
-export default function SearchForm({ hasApify, hasAdzuna, hasJsearch }: SearchFormProps) {
+export default function SearchForm({ hasApify, hasAdzuna, hasJsearch, defaultLocation }: SearchFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -61,7 +63,7 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch }: SearchFo
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { query: '', location: '', remoteOnly: false, sources: defaultSources, maxResults: 10 },
+    defaultValues: { query: '', location: defaultLocation ?? '', remoteOnly: false, sources: defaultSources, maxResults: 10 },
   })
 
   const selectedSources = watch('sources')
@@ -74,7 +76,8 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch }: SearchFo
   const [locSuggestions, setLocSuggestions] = useState<LocSuggestion[]>([])
   const [locOpen, setLocOpen] = useState(false)
   const [locActive, setLocActive] = useState(-1)
-  const suppressFetchRef = useRef(false)
+  // A prefilled location isn't something the user typed: no suggestions call on load.
+  const suppressFetchRef = useRef(Boolean(defaultLocation))
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -243,6 +246,12 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch }: SearchFo
               </ul>
             )}
           </div>
+          {defaultLocation && location === defaultLocation && !remoteOnly && (
+            <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-300">
+              <Sparkles className="h-3 w-3" />
+              From your CV. Edit or clear it.
+            </p>
+          )}
         </div>
       </div>
 

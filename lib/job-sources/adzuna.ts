@@ -1,3 +1,4 @@
+import { jobMaxAgeDays } from '@/lib/freshness'
 import { logger } from '@/lib/logger'
 import { adzunaCountry, currencySymbol } from './country'
 import { sourceSignal, type RawJob, type SearchParams } from './types'
@@ -39,6 +40,8 @@ export async function fetchAdzuna(
   url.searchParams.set('results_per_page', '20')
   if (params.location) url.searchParams.set('where', params.location)
   if (params.remoteOnly) url.searchParams.set('what_and', 'remote')
+  const maxDays = jobMaxAgeDays()
+  if (maxDays > 0) url.searchParams.set('max_days_old', String(maxDays))
 
   const res = await fetch(url.toString(), { signal: sourceSignal(params) })
   if (!res.ok) throw new Error(`Adzuna error: ${res.status}`)

@@ -1,6 +1,7 @@
 import { ApifyClient, type ActorRun } from 'apify-client'
 import { guessCountry } from './country'
 import type { RawJob, SearchParams } from './types'
+import { glassdoorFromAge, jobMaxAgeDays } from '@/lib/freshness'
 import { logger } from '@/lib/logger'
 
 // Default actors - override via env vars if you want to swap any.
@@ -218,6 +219,8 @@ function buildGlassdoorSearchUrl(params: SearchParams): string {
   url.searchParams.set('typedKeyword', params.query)
   if (params.remoteOnly || !params.location) url.searchParams.set('locName', 'Remote')
   else url.searchParams.set('locName', params.location)
+  const fromAge = glassdoorFromAge(jobMaxAgeDays())
+  if (fromAge) url.searchParams.set('fromAge', String(fromAge))
   return url.toString()
 }
 
