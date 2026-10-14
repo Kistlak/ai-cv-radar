@@ -4,6 +4,7 @@ import { describe, it, vi } from 'vitest'
 import { createAiClient, type AiProvider } from '@/lib/ai/provider'
 import { logger } from '@/lib/logger'
 import { rankJobs } from '@/lib/match-pipeline'
+import { rerankConfig } from '@/lib/rerank'
 import { labelOf, listCaseNames, loadCase } from './load-cases'
 import {
   countLabels,
@@ -31,7 +32,8 @@ import {
 //                       label (latest result per case) into one combined report
 //   EVAL_CASE_DELAY_MS  pause between cases (default 65000 on Gemini, so each case's
 //                       requests start in a fresh minute of the free tier's per-minute limit; 0 on Anthropic)
-// Model overrides (GEMINI_FAST_MODEL etc.) apply as in the app.
+// Model overrides (GEMINI_FAST_MODEL etc.) apply as in the app, and so do
+// RERANK_ENABLED / RERANK_TOP_K (run once with each to compare).
 // Results: eval-results/<timestamp>-<label>.json and .txt (git-ignored).
 
 const TOP_K = 10
@@ -40,10 +42,17 @@ const RESULTS_DIR = path.resolve(import.meta.dirname, '../../eval-results')
 const provider: AiProvider = process.env.EVAL_AI_PROVIDER === 'anthropic' ? 'anthropic' : 'gemini'
 const apiKey =
   provider === 'anthropic' ? process.env.EVAL_ANTHROPIC_KEY : process.env.EVAL_GEMINI_KEY
-const model =
+const fastModel =
   provider === 'anthropic'
     ? process.env.ANTHROPIC_FAST_MODEL || 'claude-haiku-4-5-20251001 (default)'
     : process.env.GEMINI_FAST_MODEL || 'gemini-3.8-flash (default)'
+const smartModel =
+  provider === 'anthropic'
+    ? process.env.ANTHROPIC_SMART_MODEL || 'claude-sonnet-4-6 (default)'
+    : process.env.GEMINI_SMART_MODEL || 'gemini-3.8-flash (default)'
+// rankJobs reads RERANK_ENABLED itself; the label keeps rerank-on and -off runs
+// apart in reports and in EVAL_COMBINE.
+const model = rerankConfig().enabled ? `${fastModel} + rerank ${smartModel}` : `${fastModel}, no rerank`
 const caseDelayMs = Number(
   process.env.EVAL_CASE_DELAY_MS ?? (provider === 'gemini' ? 65_000 : 0)
 )

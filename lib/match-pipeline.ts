@@ -4,6 +4,7 @@ import { cvProfileText } from './cv-profile'
 import { isFresh, jobMaxAgeDays } from './freshness'
 import type { RawJob } from './job-sources/types'
 import { scoreJobs, type CandidateContext, type ScoredJob } from './score-jobs'
+import { rerankConfig, rerankTop, rerankTopK } from './rerank'
 import { preRankJobs, scoringPoolSize } from './score-pool'
 
 // The ranking half of a search: everything after the jobs are fetched, deduped
@@ -33,13 +34,32 @@ export interface RankContext {
   // Called once the scoring pool is chosen, before any scoring call. `fetched`
   // counts every input job, including the `stale` ones that were dropped.
   onPool?: (fetched: number, pool: number, stale: number) => void | Promise<void>
+  // Rerank the top candidates on the smart tier (lib/rerank.ts). Default:
+  // RERANK_ENABLED. rerankDeadline: epoch ms after which no rerank batch starts.
+  rerank?: boolean
+  rerankDeadline?: number
+}
+
+export type RerankSkipReason = 'disabled' | 'deadline' | 'cancelled' | 'no-jobs'
+
+export interface RerankSummary {
+  status: 'done' | 'skipped'
+  reason?: RerankSkipReason
+  // Jobs sent to the rerank, jobs that got a smart score, and jobs that kept
+  // their fast score.
+  candidates: number
+  reranked: number
+  failed: number
+  // Time spent in the rerank (0 when skipped).
+  ms: number
 }
 
 export interface RankResult {
-  // Every job that went through scoring.
+  // Every job that went through scoring, with smart scores for reranked jobs.
   scored: ScoredJob[]
   // What the user sees: the top N by score, or all of `scored` for "All".
   top: ScoredJob[]
+  rerank: RerankSummary
 }
 
 export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankResult> {
@@ -57,19 +77,60 @@ export async function rankJobs(jobs: RawJob[], ctx: RankContext): Promise<RankRe
       : fresh
   await ctx.onPool?.(jobs.length, toScore.length, jobs.length - fresh.length)
 
-  const scored = await scoreJobs(
+  const cvText = cvProfileText(ctx.cvProfile ?? null, ctx.cvText)
+  const fastScored = await scoreJobs(
     toScore,
-    cvProfileText(ctx.cvProfile ?? null, ctx.cvText),
+    cvText,
     ctx.queries[0],
     ctx.ai,
     ctx.deadline,
     ctx.signal,
     ctx.candidate
   )
+
+  const { scored, rerank } = await rerankStep(fastScored, cvText, ctx)
   // Respect the user's job-count preference by keeping the top-scoring N after scoring.
   const top = selectTop(scored, ctx.maxResults)
 
-  return { scored, top }
+  return { scored, top, rerank }
+}
+
+// The smart tier re-scores the fast pass's top K; their new scores replace the
+// fast ones in `scored`. Skipped (fast scores stand) when off, cancelled or late.
+async function rerankStep(
+  scored: ScoredJob[],
+  cvText: string,
+  ctx: RankContext
+): Promise<{ scored: ScoredJob[]; rerank: RerankSummary }> {
+  const skipped = (reason: RerankSkipReason) => ({
+    scored,
+    rerank: { status: 'skipped' as const, reason, candidates: 0, reranked: 0, failed: 0, ms: 0 },
+  })
+  const config = rerankConfig()
+  if (!(ctx.rerank ?? config.enabled)) return skipped('disabled')
+  if (scored.length === 0) return skipped('no-jobs')
+  if (ctx.signal?.aborted) return skipped('cancelled')
+  if (ctx.rerankDeadline !== undefined && Date.now() >= ctx.rerankDeadline) return skipped('deadline')
+
+  const t0 = Date.now()
+  const candidates = selectTop(scored, rerankTopK(ctx.maxResults, config.topK))
+  const outcome = await rerankTop(candidates, cvText, ctx.queries[0], ctx.ai, {
+    deadline: ctx.rerankDeadline,
+    signal: ctx.signal,
+    candidate: ctx.candidate,
+  })
+  const replaced = new Map(candidates.map((job, i) => [job, outcome.jobs[i]]))
+
+  return {
+    scored: scored.map((job) => replaced.get(job) ?? job),
+    rerank: {
+      status: 'done',
+      candidates: candidates.length,
+      reranked: outcome.reranked,
+      failed: outcome.failed,
+      ms: Date.now() - t0,
+    },
+  }
 }
 
 // Scored jobs by score (highest first), then unscored ones, cut to maxResults

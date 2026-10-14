@@ -224,6 +224,121 @@ describe('rankJobs', () => {
       expect(scored).toHaveLength(1)
     })
   })
+
+  describe('rerank', () => {
+    // Fast tier: the number in the title ("Job 7" → 7). Smart tier: 100 minus
+    // it, so the rerank reverses the order and its effect is easy to see.
+    function tieredAi(): AiClient & { tiers: string[]; smartJobs: string[] } {
+      const tiers: string[] = []
+      const smartJobs: string[] = []
+      return {
+        provider: 'gemini',
+        tiers,
+        smartJobs,
+        complete: async ({ prompt, tier }) => {
+          tiers.push(tier)
+          const lines = [...prompt.matchAll(/^\[(\d+)\] Title: \D*(\d+)/gm)]
+          if (tier === 'smart') smartJobs.push(...lines.map((m) => m[2]))
+          return JSON.stringify(
+            lines.map((m) => ({
+              index: Number(m[1]),
+              score: tier === 'smart' ? 100 - Number(m[2]) : Number(m[2]),
+              reason: tier,
+            }))
+          )
+        },
+      }
+    }
+
+    it('reranks only the top K and picks the final top N from the smart scores', async () => {
+      const ai = tieredAi()
+      // 15 jobs, N = 3 → K = 10: jobs 6–15 are reranked, 1–5 keep fast scores.
+      const jobs = Array.from({ length: 15 }, (_, i) => job(i + 1))
+      const { top, scored, rerank } = await rankJobs(jobs, {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 3,
+        rerank: true,
+      })
+      expect(ai.smartJobs.map(Number).sort((a, b) => a - b)).toEqual([6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+      expect(top.map((j) => j.sourceJobId)).toEqual(['6', '7', '8'])
+      expect(top.every((j) => j.matchReason === 'smart')).toBe(true)
+      expect(scored.find((j) => j.sourceJobId === '1')).toMatchObject({ matchScore: 1, matchReason: 'fast' })
+      expect(rerank).toMatchObject({ status: 'done', candidates: 10, reranked: 10, failed: 0 })
+    })
+
+    it('is skipped when off: no smart calls, fast scores stand', async () => {
+      const ai = tieredAi()
+      const { top, rerank } = await rankJobs([job(1), job(2)], {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 1,
+        rerank: false,
+      })
+      expect(ai.tiers).not.toContain('smart')
+      expect(top.map((j) => j.sourceJobId)).toEqual(['2'])
+      expect(rerank).toMatchObject({ status: 'skipped', reason: 'disabled' })
+    })
+
+    it('is off by default (RERANK_ENABLED unset)', async () => {
+      const ai = tieredAi()
+      const { rerank } = await rankJobs([job(1)], { queries: ['x'], cvText: 'cv', ai, maxResults: 1 })
+      expect(rerank.reason).toBe('disabled')
+      expect(ai.tiers).not.toContain('smart')
+    })
+
+    it('is skipped after its deadline', async () => {
+      const ai = tieredAi()
+      const { rerank } = await rankJobs([job(1)], {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 1,
+        rerank: true,
+        rerankDeadline: Date.now() - 1,
+      })
+      expect(rerank).toMatchObject({ status: 'skipped', reason: 'deadline' })
+      expect(ai.tiers).not.toContain('smart')
+    })
+
+    it('can score a job the fast pass left unscored', async () => {
+      // The fast pass skips index 0 (job 1). The rerank candidates are scored
+      // jobs first, so the smart prompt has job 2 at index 0 and job 1 at index 1.
+      const ai: AiClient = {
+        provider: 'gemini',
+        complete: async ({ tier }) =>
+          tier === 'smart'
+            ? '[{"index": 0, "score": 10, "reason": "smart"}, {"index": 1, "score": 80, "reason": "smart"}]'
+            : '[{"index": 1, "score": 50, "reason": "fast"}]',
+      }
+      const { top } = await rankJobs([job(1), job(2)], {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 2,
+        rerank: true,
+      })
+      expect(top.map((j) => [j.sourceJobId, j.matchScore])).toEqual([
+        ['1', 80],
+        ['2', 10],
+      ])
+    })
+
+    it('keeps the smart scores in `scored` for "All"', async () => {
+      const ai = tieredAi()
+      const { scored, top } = await rankJobs([job(1), job(2)], {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: null,
+        rerank: true,
+      })
+      expect(scored.map((j) => j.matchReason)).toEqual(['smart', 'smart'])
+      expect(top.map((j) => j.sourceJobId)).toEqual(['1', '2'])
+    })
+  })
 })
 
 describe('selectTop', () => {

@@ -67,17 +67,19 @@ export interface CandidateContext {
   remoteOnly: boolean
 }
 
+// `descriptionChars`: job text per posting; the rerank passes more (lib/rerank.ts).
 export function buildPrompt(
   cvText: string,
   query: string,
   jobs: RawJob[],
-  candidate?: CandidateContext
+  candidate?: CandidateContext,
+  descriptionChars = DESCRIPTION_CHARS
 ): string {
   const jobList = jobs
     .map((job, i) => {
       // Requirement sections first, then the rest (see lib/job-text.ts).
       const desc =
-        untrusted(relevantJobText(job.description, DESCRIPTION_CHARS)) || 'No description provided.'
+        untrusted(relevantJobText(job.description, descriptionChars)) || 'No description provided.'
       return `<job_posting index="${i}">\n[${i}] Title: ${untrusted(job.title)} | Company: ${untrusted(job.company)} | Location: ${untrusted(job.location ?? 'Unknown')} | Remote: ${job.remote}\nDescription: ${desc}\n</job_posting>`
     })
     .join('\n\n')
