@@ -1,6 +1,6 @@
 # Code Review: Match quality T9: rerank the top candidates with the smart model
 **Date**: 2026-10-15
-**Status**: Approved (2026-10-15), no changes requested. The `RERANK_TOP_K` cap (Important) is left open as a follow-up; the suggestions and notes are left as they are.
+**Status**: Approved with Changes (2026-10-15). The `RERANK_TOP_K` cap (Important) was fixed in a follow-up commit on the same branch: `rerankTopK` caps an override at 20, with a test and a note in `.env.local.example`. Lint, `tsc` and `npm test` (313/313) pass. The suggestions and notes are left as they are.
 **Plan**: `.agents/plans/2026-10-15-match-quality-t9-rerank.md`
 **Branch**: `feature/match-quality-t9-rerank`
 

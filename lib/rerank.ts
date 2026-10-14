@@ -29,9 +29,11 @@ export function rerankConfig(env: Record<string, string | undefined> = process.e
 }
 
 // How many of the fast pass's best jobs are reranked: twice the result count,
-// at least 10 and at most 20; 20 for "All" (maxResults null).
+// at least 10 and at most 20; 20 for "All" (maxResults null). An override is
+// capped at 20 too: every batch runs at once, so more would mean more parallel
+// smart-tier calls than the rate limits and the 30 s budget allow.
 export function rerankTopK(maxResults: number | null, override: number | null = null): number {
-  if (override !== null) return override
+  if (override !== null) return Math.min(override, MAX_TOP_K)
   if (maxResults === null) return MAX_TOP_K
   return Math.min(MAX_TOP_K, Math.max(2 * maxResults, 10))
 }

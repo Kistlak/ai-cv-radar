@@ -52,6 +52,12 @@ describe('rerankTopK', () => {
     expect(rerankTopK(null)).toBe(20)
     expect(rerankTopK(10, 5)).toBe(5)
   })
+
+  it('caps an override at 20', () => {
+    expect(rerankTopK(10, 20)).toBe(20)
+    expect(rerankTopK(10, 100)).toBe(20)
+    expect(rerankTopK(null, 50)).toBe(20)
+  })
 })
 
 describe('rerankConfig', () => {

@@ -1,6 +1,6 @@
 # Plan: Match quality T9: rerank the top candidates with the smart model
 
-**Status**: Completed (code), 2026-10-15. Decisions: rerank off by default (`RERANK_ENABLED`), the 200 s fast-pass deadline only when it is on. Review approved with no changes; the `RERANK_TOP_K` upper cap (review, Important) was not applied. Deviations: `RerankSummary.ms` for the log, no `rerank_skipped` log for `disabled`, the eval model label carries the rerank setting. Lint, `tsc`, `npm test` (312/312) and `next build` pass. Pending: the eval (rerank off vs on, then the smart-model comparison) before turning it on, and one manual search with it on.
+**Status**: Completed (code), 2026-10-15. Decisions: rerank off by default (`RERANK_ENABLED`), the 200 s fast-pass deadline only when it is on. Review approved; the `RERANK_TOP_K` cap at 20 (review, Important) was added afterwards in a follow-up commit (313/313 tests). Deviations: `RerankSummary.ms` for the log, no `rerank_skipped` log for `disabled`, the eval model label carries the rerank setting. Lint, `tsc`, `npm test` (312/312) and `next build` pass. Pending: the eval (rerank off vs on, then the smart-model comparison) before turning it on, and one manual search with it on.
 **Date**: 2026-10-15
 **Branch**: `feature/match-quality-t9-rerank` (new, from `origin/master` at `4ab2ca8`; T5 and T6 are merged)
 **PRD**: `.agents/prd/PRD-match-quality.md` (Task 9, requirement F9, goal G6, design §6.8 and §6.9)
