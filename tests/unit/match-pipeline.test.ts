@@ -79,7 +79,7 @@ describe('rankJobs', () => {
       maxResults: 10,
       onPool,
     })
-    expect(onPool).toHaveBeenCalledWith(45, 40)
+    expect(onPool).toHaveBeenCalledWith(45, 40, 0)
     expect(scored).toHaveLength(40)
     expect(scored.slice(0, 5).map((j) => j.title)).toEqual(
       Array.from({ length: 5 }, (_, i) => `Laravel ${100 + i}`)
@@ -92,7 +92,7 @@ describe('rankJobs', () => {
     const ai = fakeAi()
     const onPool = vi.fn()
     await rankJobs([job(1), job(2)], { queries: ['x'], cvText: 'cv', ai, maxResults: 10, onPool })
-    expect(onPool).toHaveBeenCalledWith(2, 2)
+    expect(onPool).toHaveBeenCalledWith(2, 2, 0)
   })
 
   it('passes the deadline and signal through to scoring', async () => {
@@ -161,6 +161,68 @@ describe('rankJobs', () => {
     const prompt = ai.complete.mock.calls[0][0].prompt as string
     expect(prompt).toContain('PROFILE\nSkills: Figma\nRecent roles:\n- Designer, Acme')
     expect(prompt).toContain('FULL CV TEXT\nRAW CV TEXT')
+  })
+
+  describe('freshness', () => {
+    const NOW = Date.UTC(2026, 9, 14)
+    const daysAgo = (n: number) => new Date(NOW - n * 86_400_000)
+
+    it('drops stale jobs before scoring and keeps undated ones', async () => {
+      const ai = fakeAi()
+      const onPool = vi.fn()
+      const jobs = [
+        { ...job(1), postedAt: daysAgo(3) },
+        { ...job(2), postedAt: daysAgo(45) },
+        job(3),
+      ]
+      const { scored } = await rankJobs(jobs, {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 10,
+        now: NOW,
+        maxAgeDays: 30,
+        onPool,
+      })
+      expect(scored.map((j) => j.sourceJobId)).toEqual(['1', '3'])
+      expect(onPool).toHaveBeenCalledWith(3, 2, 1)
+      const sent = ai.complete.mock.calls.reduce((n, [opts]) => n + jobsInPrompt(opts.prompt), 0)
+      expect(sent).toBe(2)
+    })
+
+    it('sizes the pool from the fresh jobs', async () => {
+      const ai = fakeAi()
+      const onPool = vi.fn()
+      // 35 fresh + 10 stale = 45, more than the pool of 30 for 5 results; only the 35 fresh compete.
+      const jobs = [
+        ...Array.from({ length: 35 }, (_, i) => ({ ...job(i + 1), postedAt: daysAgo(1) })),
+        ...Array.from({ length: 10 }, (_, i) => ({ ...job(100 + i), postedAt: daysAgo(60) })),
+      ]
+      const { scored } = await rankJobs(jobs, {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: 5,
+        now: NOW,
+        maxAgeDays: 30,
+        onPool,
+      })
+      expect(onPool).toHaveBeenCalledWith(45, 30, 10)
+      expect(scored.every((j) => Number(j.sourceJobId) < 100)).toBe(true)
+    })
+
+    it('keeps everything when the window is 0', async () => {
+      const ai = fakeAi()
+      const { scored } = await rankJobs([{ ...job(1), postedAt: daysAgo(400) }], {
+        queries: ['x'],
+        cvText: 'cv',
+        ai,
+        maxResults: null,
+        now: NOW,
+        maxAgeDays: 0,
+      })
+      expect(scored).toHaveLength(1)
+    })
   })
 })
 

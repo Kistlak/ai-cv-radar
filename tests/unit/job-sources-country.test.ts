@@ -12,12 +12,14 @@ import {
   matchCountry,
 } from '@/lib/job-sources/country'
 import { fetchAdzuna } from '@/lib/job-sources/adzuna'
+import { fetchJSearch } from '@/lib/job-sources/jsearch'
 import { fetchRemotive } from '@/lib/job-sources/remotive'
 import { runActor } from '@/lib/job-sources/apify'
 import { AI_TIMEOUT_MESSAGE, searchErrorMessage } from '@/lib/search-errors'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
 })
 
 describe('guessCountry (Indeed)', () => {
@@ -136,6 +138,39 @@ describe('fetchAdzuna', () => {
     vi.stubGlobal('fetch', adzunaResponse([{ ...adzunaJob, id: undefined }]))
     const [job] = await fetchAdzuna({ query: 'dev' }, 'id', 'key')
     expect(job.sourceJobId).toBe('https://adzuna.example/1')
+  })
+
+  it('asks for jobs within JOB_MAX_AGE_DAYS, and not when it is 0', async () => {
+    const fetchMock = adzunaResponse([])
+    vi.stubGlobal('fetch', fetchMock)
+    await fetchAdzuna({ query: 'dev' }, 'id', 'key')
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get('max_days_old')).toBe('30')
+
+    vi.stubEnv('JOB_MAX_AGE_DAYS', '0')
+    await fetchAdzuna({ query: 'dev' }, 'id', 'key')
+    expect(new URL(String(fetchMock.mock.calls[1][0])).searchParams.has('max_days_old')).toBe(false)
+  })
+})
+
+describe('fetchJSearch', () => {
+  it('asks for the smallest date_posted bucket covering JOB_MAX_AGE_DAYS', async () => {
+    const fetchMock = vi.fn<(url: string) => Promise<Response>>(
+      async () => new Response(JSON.stringify({ data: [] }))
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const datePosted = (call: number) =>
+      new URL(String(fetchMock.mock.calls[call][0])).searchParams.get('date_posted')
+
+    await fetchJSearch({ query: 'dev' }, 'key')
+    expect(datePosted(0)).toBe('month')
+
+    vi.stubEnv('JOB_MAX_AGE_DAYS', '7')
+    await fetchJSearch({ query: 'dev' }, 'key')
+    expect(datePosted(1)).toBe('week')
+
+    vi.stubEnv('JOB_MAX_AGE_DAYS', '0')
+    await fetchJSearch({ query: 'dev' }, 'key')
+    expect(datePosted(2)).toBeNull()
   })
 })
 
