@@ -224,6 +224,13 @@ describe('buildPrompt', () => {
     )
   })
 
+  it('uses 1,500 characters of job text by default and more when asked', () => {
+    const long = { ...job(0), description: `${'word '.repeat(400)}LATE_MARKER ${'word '.repeat(200)}` }
+    expect(buildPrompt('cv', 'q', [long])).not.toContain('LATE_MARKER')
+    expect(buildPrompt('cv', 'q', [long], undefined, 3000)).toContain('LATE_MARKER')
+    expect(buildPrompt('cv', 'q', [long], undefined)).toBe(buildPrompt('cv', 'q', [long]))
+  })
+
   it('passes the candidate through scoreJobs to the prompt', async () => {
     let prompt = ''
     const ai = fakeAi(async (opts) => {

@@ -12,6 +12,7 @@ import { logger } from './logger'
 import { toHttpUrl } from './safe-url'
 import { searchErrorMessage } from './search-errors'
 import { rankJobs } from './match-pipeline'
+import { rerankConfig } from './rerank'
 import { createProgressUpdater } from './search-progress'
 
 const AGENT_ENABLED = process.env.AGENT_ENABLED !== 'false'
@@ -24,6 +25,10 @@ const AGENTIC_TIMEOUT_MS = Number(process.env.AGENTIC_TIMEOUT_MS || 210_000)
 // No new scoring batch starts after this point (from run start). With the 45s
 // per-batch cap, scoring ends by ~275s, leaving time to persist before 300s.
 const SCORING_START_DEADLINE_MS = 230_000
+// With the rerank on, the fast pass starts by 200s (ends by ~245s) and no rerank
+// batch starts after 245s (30s cap each, so it ends by ~275s).
+const RERANK_SCORING_START_DEADLINE_MS = 200_000
+const RERANK_START_DEADLINE_MS = 245_000
 // How often a running search checks whether the user cancelled it. On cancel,
 // the run-wide signal aborts in-flight AI, source and Apify calls.
 const CANCEL_POLL_MS = 3_000
@@ -245,7 +250,8 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     }
 
     const tScore = Date.now()
-    const { scored: allScored, top: scoredJobs } = await rankJobs(rawJobs, {
+    const rerank = rerankConfig().enabled
+    const { scored: allScored, top: scoredJobs, rerank: rerankSummary } = await rankJobs(rawJobs, {
       queries,
       cvText: cv.rawText,
       cvProfile,
@@ -256,7 +262,9 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       },
       ai,
       maxResults: search.maxResults,
-      deadline: t0 + SCORING_START_DEADLINE_MS,
+      deadline: t0 + (rerank ? RERANK_SCORING_START_DEADLINE_MS : SCORING_START_DEADLINE_MS),
+      rerank,
+      rerankDeadline: t0 + RERANK_START_DEADLINE_MS,
       signal: cancel.signal,
       onPool: async (fetched, pool, stale) => {
         logger.info({ event: 'run_search.scoring_pool', searchId, fetched, stale, pool })
@@ -271,6 +279,12 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
       unscored: allScored.filter((j) => j.matchScore === null).length,
       ms: Date.now() - tScore,
     })
+    if (rerankSummary.status === 'done') {
+      const { candidates, reranked, failed, ms } = rerankSummary
+      logger.info({ event: 'run_search.rerank_completed', searchId, candidates, reranked, failed, ms })
+    } else if (rerankSummary.reason !== 'disabled') {
+      logger.info({ event: 'run_search.rerank_skipped', searchId, reason: rerankSummary.reason })
+    }
 
     if (cancel.signal.aborted || (await isCancelled(searchId))) {
       logger.warn({ event: 'run_search.cancelled', searchId, phase: 'after-scoring' })
