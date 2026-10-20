@@ -136,6 +136,7 @@ interface MisceresIndeedJob {
   salary?: string
   jobType?: string[]
   postedAt?: string
+  postingDateParsed?: string
   description?: string
   descriptionHTML?: string
   url?: string
@@ -185,7 +186,7 @@ export async function fetchApifyIndeed(
       location: item.location ?? null,
       remote: /remote/i.test(item.location ?? ''),
       salary: item.salary ?? null,
-      postedAt: parseDate(item.postedAt),
+      postedAt: parseDate(item.postingDateParsed) ?? parseDate(item.postedAt),
       description: item.description ?? item.descriptionHTML ?? null,
       applyUrl,
     })
