@@ -61,10 +61,15 @@ interface BebityLinkedInJob {
   location?: string
   workType?: string
   salaryInfo?: string[] | string
+  salary?: string
   postedAt?: string
+  // The actor's current output: `publishedAt` is the date ("2026-08-29"),
+  // `postedTime` only the displayed age ("3 days ago").
+  publishedAt?: string
   description?: string
   descriptionHtml?: string
   link?: string
+  jobUrl?: string
   applyUrl?: string
 }
 
@@ -86,9 +91,9 @@ export async function fetchApifyLinkedIn(
   logger.info({ event: 'job_source.apify_start', source: 'linkedin', actor: LINKEDIN_ACTOR, url: searchUrl })
 
   const run = await runActor(client, LINKEDIN_ACTOR, {
-    urls: [searchUrl],
-    count: 25,
-    scrapeCompany: false,
+    startUrls: [{ url: searchUrl }],
+    maxRowsPerUrl: 25,
+    companyProfile: false,
   }, params.signal)
   logger.info({ event: 'job_source.apify_run', source: 'linkedin', runId: run.id, status: run.status })
   if (run.status !== 'SUCCEEDED') return []
@@ -99,13 +104,14 @@ export async function fetchApifyLinkedIn(
   const jobs: RawJob[] = []
   for (const raw of items) {
     const item = raw as BebityLinkedInJob
-    const applyUrl = item.link ?? item.applyUrl
+    const applyUrl = item.link ?? item.applyUrl ?? item.jobUrl
     if (!applyUrl || !item.title || !item.companyName) continue
 
     let salary: string | null = null
     if (Array.isArray(item.salaryInfo) && item.salaryInfo.length > 0)
       salary = item.salaryInfo.filter(Boolean).join(' · ')
     else if (typeof item.salaryInfo === 'string' && item.salaryInfo) salary = item.salaryInfo
+    else if (item.salary) salary = item.salary
 
     jobs.push({
       source: 'linkedin',
@@ -115,7 +121,7 @@ export async function fetchApifyLinkedIn(
       location: item.location ?? null,
       remote: /remote/i.test(item.workType ?? '') || /remote/i.test(item.location ?? ''),
       salary,
-      postedAt: parseDate(item.postedAt),
+      postedAt: parseDate(item.publishedAt) ?? parseDate(item.postedAt),
       description: item.description ?? item.descriptionHtml ?? null,
       applyUrl,
     })
@@ -212,6 +218,49 @@ interface BebityGlassdoorJob {
   jobDescription?: string
   jobLink?: string
   url?: string
+  // The actor's current output is flat snake_case rows.
+  job_id?: string | number
+  job_title?: string
+  company_name?: string
+  job_url?: string
+  job_apply_url?: string
+  job_posted_date?: string
+  job_expired?: boolean
+  job_remote?: boolean
+  job_description?: string
+  job_location?: { unknown?: string }
+  job_salary?: GlassdoorSalary
+}
+
+interface GlassdoorSalary {
+  min?: number
+  max?: number
+  currency?: string
+  currency_symbol?: string
+  pay_period?: string
+  estimated?: boolean
+}
+
+const GLASSDOOR_PAY_PERIODS: Record<string, string> = {
+  hourly: 'per hour',
+  daily: 'per day',
+  weekly: 'per week',
+  monthly: 'per month',
+  annual: 'per year',
+}
+
+// "$70k–$90k per year", "$73 per hour (estimate)".
+function formatGlassdoorSalary(s: GlassdoorSalary | undefined): string | null {
+  if (!s || (!s.min && !s.max)) return null
+  const symbol = s.currency_symbol ?? (s.currency ? `${s.currency} ` : '')
+  const amount = (n: number) => (n >= 1000 ? `${symbol}${Math.round(n / 1000)}k` : `${symbol}${n}`)
+  let text: string
+  if (s.min && s.max && s.min !== s.max) text = `${amount(s.min)}–${amount(s.max)}`
+  else text = amount((s.min || s.max)!)
+  const period = GLASSDOOR_PAY_PERIODS[s.pay_period?.toLowerCase() ?? '']
+  if (period) text += ` ${period}`
+  if (s.estimated) text += ' (estimate)'
+  return text
 }
 
 function buildGlassdoorSearchUrl(params: SearchParams): string {
@@ -235,7 +284,7 @@ export async function fetchApifyGlassdoor(
 
   const run = await runActor(client, GLASSDOOR_ACTOR, {
     searchUrls: [searchUrl],
-    maxResults: 25,
+    maxItems: 25,
   }, params.signal)
   logger.info({ event: 'job_source.apify_run', source: 'glassdoor', runId: run.id, status: run.status })
   if (run.status !== 'SUCCEEDED') return []
@@ -246,21 +295,23 @@ export async function fetchApifyGlassdoor(
   const jobs: RawJob[] = []
   for (const raw of items) {
     const item = raw as BebityGlassdoorJob
-    const applyUrl = item.jobLink ?? item.url
-    const title = item.jobTitle ?? item.title
-    const company = item.companyName ?? item.employer
+    if (item.job_expired) continue
+    const applyUrl = item.job_apply_url ?? item.job_url ?? item.jobLink ?? item.url
+    const title = item.job_title ?? item.jobTitle ?? item.title
+    const company = item.company_name ?? item.companyName ?? item.employer
     if (!applyUrl || !title || !company) continue
+    const location = item.job_location?.unknown ?? item.location ?? null
 
     jobs.push({
       source: 'glassdoor',
-      sourceJobId: String(item.id ?? applyUrl),
+      sourceJobId: String(item.job_id ?? item.id ?? applyUrl),
       title,
       company,
-      location: item.location ?? null,
-      remote: /remote/i.test(item.location ?? ''),
-      salary: item.salary ?? item.salaryEstimate ?? null,
-      postedAt: parseDate(item.postedAt),
-      description: item.description ?? item.jobDescription ?? null,
+      location,
+      remote: item.job_remote === true || /remote/i.test(location ?? ''),
+      salary: formatGlassdoorSalary(item.job_salary) ?? item.salary ?? item.salaryEstimate ?? null,
+      postedAt: parseDate(item.job_posted_date) ?? parseDate(item.postedAt),
+      description: item.job_description ?? item.description ?? item.jobDescription ?? null,
       applyUrl,
     })
   }
