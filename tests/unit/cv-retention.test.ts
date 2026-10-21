@@ -27,7 +27,7 @@ vi.mock('@/db', () => {
 })
 vi.mock('@/lib/logger', () => ({ logger: { info: () => {}, warn: () => {}, error: () => {} } }))
 
-import { deleteCv, pruneUnusedCvs } from '@/lib/cv-retention'
+import { deleteCv, getCvFile, pruneUnusedCvs } from '@/lib/cv-retention'
 
 function fakeStorage(failFor: string[] = []) {
   const removed: string[] = []
@@ -105,5 +105,47 @@ describe('pruneUnusedCvs', () => {
     const { supabase } = fakeStorage()
     expect(await pruneUnusedCvs('u1', supabase)).toBe(0)
     expect(state.deletes).toBe(0)
+  })
+})
+
+// A storage fake whose download returns the PDF bytes, or an error.
+function fakeDownload(result: { bytes?: number[]; error?: string }) {
+  const downloaded: string[] = []
+  const supabase = {
+    storage: {
+      from: (bucket: string) => ({
+        download: async (path: string) => {
+          downloaded.push(`${bucket}/${path}`)
+          if (result.error) return { data: null, error: { message: result.error } }
+          return { data: new Blob([new Uint8Array(result.bytes ?? [])]), error: null }
+        },
+      }),
+    },
+  }
+  return { supabase: supabase as never, downloaded }
+}
+
+describe('getCvFile', () => {
+  const createdAt = new Date('2026-10-21T08:00:00Z')
+
+  it("returns the owner's PDF bytes from the cvs bucket", async () => {
+    state.results = [[{ id: 'cv-1', filePath: 'u1/1.pdf', createdAt }]]
+    const { supabase, downloaded } = fakeDownload({ bytes: [0x25, 0x50, 0x44, 0x46] }) // %PDF
+    const result = await getCvFile('u1', 'cv-1', supabase)
+    expect(result).toEqual({ ok: true, bytes: new Uint8Array([0x25, 0x50, 0x44, 0x46]), createdAt })
+    expect(downloaded).toEqual(['cvs/u1/1.pdf'])
+  })
+
+  it("returns not_found for a CV that isn't the user's, without touching storage", async () => {
+    state.results = [[]]
+    const { supabase, downloaded } = fakeDownload({ bytes: [1] })
+    expect(await getCvFile('u2', 'cv-1', supabase)).toEqual({ ok: false, reason: 'not_found' })
+    expect(downloaded).toEqual([])
+  })
+
+  it('returns storage_failed when the file cannot be downloaded', async () => {
+    state.results = [[{ id: 'cv-1', filePath: 'u1/1.pdf', createdAt }]]
+    const { supabase } = fakeDownload({ error: 'Object not found' })
+    expect(await getCvFile('u1', 'cv-1', supabase)).toEqual({ ok: false, reason: 'storage_failed' })
   })
 })

@@ -1,7 +1,8 @@
 import { CvPolishActions } from '@/components/cv-polish-actions'
 import CvUploadForm from '@/components/cv-upload-form'
 import { createClient } from '@/lib/supabase/server'
-import { CheckCircle2, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
+import { CheckCircle2, ExternalLink, FileText, Mail, MapPin, Sparkles, User } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
 import { getActiveCv } from '@/lib/cv'
 import { listCvs } from '@/lib/cv-retention'
 import { PreviousCvs } from '@/components/previous-cvs'
@@ -36,10 +37,21 @@ export default async function CVPage() {
           </p>
         </div>
         {activeCv && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 ring-1 ring-green-500/20 px-3 py-1 text-xs font-medium">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Parsed {new Date(activeCv.createdAt).toLocaleDateString()}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 ring-1 ring-green-500/20 px-3 py-1 text-xs font-medium">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Parsed {new Date(activeCv.createdAt).toLocaleDateString()}
+            </span>
+            <a
+              href={`/api/cv/${activeCv.id}/file`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View PDF
+            </a>
+          </div>
         )}
       </div>
 

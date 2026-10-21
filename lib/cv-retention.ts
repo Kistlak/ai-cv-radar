@@ -69,6 +69,33 @@ export async function deleteCv(
   return { ok: true, deletedSearches: n }
 }
 
+export type CvFileResult =
+  | { ok: true; bytes: Uint8Array<ArrayBuffer>; createdAt: Date }
+  | { ok: false; reason: 'not_found' | 'storage_failed' }
+
+// The PDF the user uploaded for one of their CVs. The row is looked up by user
+// (RLS doesn't apply to our db connection), and the file is read with the
+// user's own Supabase client, so the storage policy (own folder only) applies too.
+export async function getCvFile(
+  userId: string,
+  cvId: string,
+  supabase: SupabaseClient
+): Promise<CvFileResult> {
+  const [cv] = await db
+    .select({ id: cvs.id, filePath: cvs.filePath, createdAt: cvs.createdAt })
+    .from(cvs)
+    .where(and(eq(cvs.id, cvId), eq(cvs.userId, userId)))
+    .limit(1)
+  if (!cv) return { ok: false, reason: 'not_found' }
+
+  const { data, error } = await supabase.storage.from(BUCKET).download(cv.filePath)
+  if (error || !data) {
+    logger.warn({ event: 'cv_file.download_failed', userId, cvId, err: asError(error ?? { message: 'No data' }) })
+    return { ok: false, reason: 'storage_failed' }
+  }
+  return { ok: true, bytes: new Uint8Array(await data.arrayBuffer()), createdAt: cv.createdAt }
+}
+
 // After an upload: removes the user's inactive CVs that no search uses (they
 // can't be seen or used anywhere). Best-effort: a failure is logged and that
 // CV skipped; it never fails the upload. Returns how many were removed.

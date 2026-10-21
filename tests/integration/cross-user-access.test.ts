@@ -28,6 +28,7 @@ import { POST as coverLetter } from '@/app/api/jobs/[id]/cover-letter/route'
 import { POST as tailoredCv } from '@/app/api/jobs/[id]/tailored-cv/route'
 import { GET as tailoredCvDownload } from '@/app/api/jobs/[id]/tailored-cv/download/route'
 import { DELETE as deleteCvRoute } from '@/app/api/cv/[id]/route'
+import { GET as cvFileRoute } from '@/app/api/cv/[id]/file/route'
 import { PATCH as setFeedback } from '@/app/api/jobs/[id]/feedback/route'
 
 const userA = crypto.randomUUID()
@@ -159,6 +160,11 @@ describe("user B cannot reach user A's data", () => {
     expect((await deleteCvRoute(req(`/api/cv/${cvA}`, 'DELETE'), params(cvA))).status).toBe(404)
     const [row] = await db.select({ id: cvs.id }).from(cvs).where(inArray(cvs.id, [cvA]))
     expect(row?.id).toBe(cvA)
+  })
+
+  it('CV file → 404', async () => {
+    auth.userId = userB
+    expect((await cvFileRoute(req(`/api/cv/${cvA}/file`), params(cvA))).status).toBe(404)
   })
 
   it('tailored CV download → 404', async () => {

@@ -1,4 +1,4 @@
-import { FileWarning, Puzzle, ShieldCheck, Wrench } from 'lucide-react'
+import { FileText, FileWarning, Puzzle, ShieldCheck, Wrench } from 'lucide-react'
 
 export default function HelpPage() {
   return (
@@ -9,9 +9,42 @@ export default function HelpPage() {
           Getting <span className="text-gradient">started</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Guides for installing the browser extension and using Auto Apply.
+          Guides for your CV, installing the browser extension and using Auto Apply.
         </p>
       </div>
+
+      <section id="cv" className="scroll-mt-24 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/20 via-fuchsia-500/20 to-pink-500/20 text-violet-600 dark:text-violet-300 ring-1 ring-violet-500/20">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Your CV</h2>
+            <p className="text-xs text-muted-foreground">Upload, check and open the CV your searches use.</p>
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl p-5">
+          <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+            <li>
+              <strong className="text-foreground">Upload:</strong> on the CV page, choose a PDF under 4 MB. We
+              read it into a profile (name, skills, experience), and every new search uses it.
+            </li>
+            <li>
+              <strong className="text-foreground">See what you uploaded:</strong> click{' '}
+              <strong className="text-foreground">View PDF</strong> next to the &ldquo;Parsed&rdquo; badge to open
+              the original file in a new tab. Older uploads are under{' '}
+              <strong className="text-foreground">Previous CVs</strong>, each with a{' '}
+              <strong className="text-foreground">View</strong> button.
+            </li>
+            <li>
+              <strong className="text-foreground">Delete an old CV:</strong> use{' '}
+              <strong className="text-foreground">Delete</strong> under Previous CVs. It also removes the searches
+              that used it. Your current CV can&apos;t be deleted until you upload a new one.
+            </li>
+          </ul>
+        </div>
+      </section>
 
       <section id="extension" className="scroll-mt-24 space-y-6">
         <div className="flex items-center gap-3">
