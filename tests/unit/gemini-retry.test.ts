@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@google/genai'
-import { parseRateLimit } from '@/lib/ai/gemini-retry'
+import { isOverloaded, parseRateLimit } from '@/lib/ai/gemini-retry'
 
 const body = (quotaId: string, extra: Record<string, unknown> = {}, text = '') =>
   JSON.stringify({
@@ -50,5 +50,22 @@ describe('parseRateLimit', () => {
     expect(parseRateLimit(new ApiError({ status: 400, message: 'bad' }))).toBeNull()
     expect(parseRateLimit(new Error('network'))).toBeNull()
     expect(parseRateLimit('x')).toBeNull()
+  })
+})
+
+describe('isOverloaded', () => {
+  const body503 = '{"error":{"code":503,"message":"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.","status":"UNAVAILABLE"}}'
+
+  it('spots a 503 UNAVAILABLE', () => {
+    expect(isOverloaded(new ApiError({ status: 503, message: body503 }))).toBe(true)
+    expect(isOverloaded(new Error(body503))).toBe(true) // status missing, body still says UNAVAILABLE
+  })
+
+  it('ignores other errors', () => {
+    expect(isOverloaded(err429(body('PerMinute', { retryDelay: '37s' })))).toBe(false)
+    expect(isOverloaded(new ApiError({ status: 400, message: 'bad' }))).toBe(false)
+    expect(isOverloaded(new ApiError({ status: 500, message: 'internal' }))).toBe(false)
+    expect(isOverloaded(new Error('network'))).toBe(false)
+    expect(isOverloaded('x')).toBe(false)
   })
 })

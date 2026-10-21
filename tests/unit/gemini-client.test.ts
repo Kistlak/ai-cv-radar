@@ -147,3 +147,100 @@ describe('createGeminiClient rate limits', () => {
     expect(generateContent).toHaveBeenCalledTimes(1)
   })
 })
+
+// A 503 as the SDK throws it, with the body from a failed search (2026-10-21).
+function overloaded() {
+  return new ApiError({
+    status: 503,
+    message: JSON.stringify({
+      error: {
+        code: 503,
+        message: 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.',
+        status: 'UNAVAILABLE',
+      },
+    }),
+  })
+}
+
+// When the model is overloaded Gemini answers 503 with no retry delay; the call
+// should back off (2 s, then 4 s) and retry, within the same 2-retry cap.
+describe('createGeminiClient overload (503)', () => {
+  beforeEach(() => {
+    generateContent.mockReset()
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0) // no jitter
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  const complete = (opts: { timeoutMs?: number; signal?: AbortSignal } = {}) =>
+    createGeminiClient('key').complete({ prompt: 'p', maxTokens: 100, tier: 'fast', ...opts })
+
+  it('backs off 2 s after a 503 and retries', async () => {
+    generateContent.mockRejectedValueOnce(overloaded()).mockResolvedValueOnce({ text: '[1]' })
+    const result = complete()
+    await vi.advanceTimersByTimeAsync(1999)
+    expect(generateContent).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    await expect(result).resolves.toBe('[1]')
+    expect(generateContent).toHaveBeenCalledTimes(2)
+  })
+
+  it('backs off 4 s before the second retry, and stops after it', async () => {
+    generateContent
+      .mockRejectedValueOnce(overloaded())
+      .mockRejectedValueOnce(overloaded())
+      .mockResolvedValueOnce({ text: '[2]' })
+    const ok = complete()
+    await vi.advanceTimersByTimeAsync(2_000 + 3_999)
+    expect(generateContent).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(1)
+    await expect(ok).resolves.toBe('[2]')
+    expect(generateContent).toHaveBeenCalledTimes(3)
+
+    generateContent.mockReset()
+    generateContent.mockRejectedValue(overloaded())
+    const failed = complete()
+    const assertion = expect(failed).rejects.toMatchObject({ status: 503 })
+    await vi.advanceTimersByTimeAsync(10_000)
+    await assertion
+    expect(generateContent).toHaveBeenCalledTimes(3)
+  })
+
+  it('shares the retry cap with rate limits', async () => {
+    generateContent
+      .mockRejectedValueOnce(rateLimited(PER_MINUTE, '2s'))
+      .mockRejectedValueOnce(overloaded())
+      .mockRejectedValueOnce(overloaded())
+    const failed = complete()
+    const assertion = expect(failed).rejects.toMatchObject({ status: 503 })
+    await vi.advanceTimersByTimeAsync(10_000)
+    await assertion
+    expect(generateContent).toHaveBeenCalledTimes(3)
+  })
+
+  it("fails at once when the back-off wouldn't fit in the call's timeout", async () => {
+    generateContent.mockRejectedValueOnce(overloaded())
+    await expect(complete({ timeoutMs: 1_000 })).rejects.toMatchObject({ status: 503 })
+    expect(generateContent).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops waiting when the call is cancelled', async () => {
+    generateContent.mockRejectedValueOnce(overloaded())
+    const controller = new AbortController()
+    const result = complete({ signal: controller.signal })
+    const assertion = expect(result).rejects.toThrow()
+    await vi.advanceTimersByTimeAsync(500)
+    controller.abort()
+    await assertion
+    expect(generateContent).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not retry a 500', async () => {
+    generateContent.mockRejectedValueOnce(new ApiError({ status: 500, message: 'internal' }))
+    await expect(complete()).rejects.toMatchObject({ status: 500 })
+    expect(generateContent).toHaveBeenCalledTimes(1)
+  })
+})
