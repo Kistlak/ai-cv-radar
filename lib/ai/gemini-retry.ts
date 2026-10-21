@@ -32,6 +32,14 @@ export function parseRateLimit(err: unknown): RateLimit | null {
   return { perDay, retryAfterMs: Math.min(MAX_RETRY_MS, Math.max(MIN_RETRY_MS, ms)) }
 }
 
+// The model is overloaded (HTTP 503 UNAVAILABLE, "experiencing high demand").
+// Gemini gives no retry delay for these; see lib/ai/gemini.ts for the back-off.
+export function isOverloaded(err: unknown): boolean {
+  if (!(err instanceof Error)) return false
+  const status = (err as { status?: unknown }).status
+  return status === 503 || err.message.includes('"UNAVAILABLE"')
+}
+
 // Resolves after `ms`, or rejects with the signal's reason once it aborts.
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {

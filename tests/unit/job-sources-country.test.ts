@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { APIConnectionTimeoutError, APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIConnectionTimeoutError, APIError, APIUserAbortError } from '@anthropic-ai/sdk'
+import { ApiError as GeminiApiError } from '@google/genai'
 
 vi.mock('@/lib/logger', () => ({
   logger: { info: () => {}, warn: () => {}, error: () => {} },
@@ -15,7 +16,7 @@ import { fetchAdzuna } from '@/lib/job-sources/adzuna'
 import { fetchJSearch } from '@/lib/job-sources/jsearch'
 import { fetchRemotive } from '@/lib/job-sources/remotive'
 import { runActor } from '@/lib/job-sources/apify'
-import { AI_TIMEOUT_MESSAGE, searchErrorMessage } from '@/lib/search-errors'
+import { AI_BUSY_MESSAGE, AI_TIMEOUT_MESSAGE, searchErrorMessage } from '@/lib/search-errors'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -284,6 +285,23 @@ describe('searchErrorMessage', () => {
     expect(searchErrorMessage(new APIConnectionTimeoutError())).toBe(AI_TIMEOUT_MESSAGE)
     expect(searchErrorMessage(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))).toBe(AI_TIMEOUT_MESSAGE)
     expect(searchErrorMessage(new DOMException('aborted', 'AbortError'))).toBe(AI_TIMEOUT_MESSAGE)
+  })
+
+  it('turns an overloaded AI provider into a busy message', () => {
+    const gemini503 = new GeminiApiError({
+      status: 503,
+      message: '{"error":{"code":503,"message":"This model is currently experiencing high demand.","status":"UNAVAILABLE"}}',
+    })
+    expect(searchErrorMessage(gemini503)).toBe(AI_BUSY_MESSAGE)
+    const anthropic529 = APIError.generate(
+      529, { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }, undefined, new Headers()
+    )
+    expect(searchErrorMessage(anthropic529)).toBe(AI_BUSY_MESSAGE)
+  })
+
+  it('only treats the AI SDKs\' errors as busy', () => {
+    const other = new Error('{"status":"UNAVAILABLE"}')
+    expect(searchErrorMessage(other)).toBe('{"status":"UNAVAILABLE"}')
   })
 
   it('keeps other messages', () => {
