@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { History } from 'lucide-react'
+import { ExternalLink, History } from 'lucide-react'
 import { ConfirmButton } from '@/components/confirm-button'
+import { buttonVariants } from '@/components/ui/button'
 
 export interface PreviousCv {
   id: string
@@ -48,17 +49,28 @@ export function PreviousCvs({ cvs }: { cvs: PreviousCv[] }) {
                 {cv.searchCount === 1 ? '1 search' : `${cv.searchCount} searches`} used this CV
               </p>
             </div>
-            <ConfirmButton
-              label="Delete"
-              title="Delete this CV?"
-              description={
-                cv.searchCount > 0
-                  ? `This also deletes ${cv.searchCount === 1 ? '1 search' : `${cv.searchCount} searches`} and their results. This can't be undone.`
-                  : "The file is removed for good. This can't be undone."
-              }
-              confirmLabel="Delete CV"
-              onConfirm={() => remove(cv)}
-            />
+            <div className="flex shrink-0 items-center gap-2">
+              <a
+                href={`/api/cv/${cv.id}/file`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                View
+              </a>
+              <ConfirmButton
+                label="Delete"
+                title="Delete this CV?"
+                description={
+                  cv.searchCount > 0
+                    ? `This also deletes ${cv.searchCount === 1 ? '1 search' : `${cv.searchCount} searches`} and their results. This can't be undone.`
+                    : "The file is removed for good. This can't be undone."
+                }
+                confirmLabel="Delete CV"
+                onConfirm={() => remove(cv)}
+              />
+            </div>
           </li>
         ))}
       </ul>
