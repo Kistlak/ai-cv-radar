@@ -1,6 +1,9 @@
-import { APIConnectionTimeoutError, APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIConnectionTimeoutError, APIError, APIUserAbortError } from '@anthropic-ai/sdk'
+import { ApiError as GeminiApiError } from '@google/genai'
+import { isOverloaded } from '@/lib/ai/gemini-retry'
 
 export const AI_TIMEOUT_MESSAGE = 'The AI provider took too long to respond. Please try again.'
+export const AI_BUSY_MESSAGE = 'The AI provider is busy right now. Please try again in a few minutes.'
 
 // The message saved on a failed search and shown to the user. Our AI calls are
 // aborted by a timeout signal, which surfaces as raw SDK text ("Request was
@@ -16,6 +19,15 @@ export function searchErrorMessage(err: unknown): string {
     err.name === 'AbortError'
   ) {
     return AI_TIMEOUT_MESSAGE
+  }
+  // Overloaded after the retries: Gemini 503, Anthropic 529. Their raw text is a
+  // JSON error body. Only the SDKs' own errors are checked, so another error that
+  // happens to mention "UNAVAILABLE" keeps its message.
+  if (
+    (err instanceof GeminiApiError && isOverloaded(err)) ||
+    (err instanceof APIError && err.status === 529)
+  ) {
+    return AI_BUSY_MESSAGE
   }
   return err.message
 }
