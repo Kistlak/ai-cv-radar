@@ -2,17 +2,14 @@
 
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Briefcase, ListOrdered, Loader2, MapPin, Search, Sparkles, Wifi } from 'lucide-react'
+import { ArrowRight, Briefcase, ListOrdered, Loader2, Search, Sparkles, Wifi } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
-
-interface LocSuggestion {
-  label: string
-  type: string
-}
+import { LocationPicker } from '@/components/location-picker'
+import { fromLocation, toLocation } from '@/lib/locations'
 
 const schema = z.object({
   query: z.string(),
@@ -61,9 +58,16 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch, defaultLoc
 
   const defaultSources = sources.filter((s) => s.available).map((s) => s.id)
 
+  // The CV location as the picker shows it ("London, UK" → "London, United Kingdom");
+  // empty when no country is recognised in it.
+  const initialLocation = useMemo(() => {
+    const { countryCode, city } = fromLocation(defaultLocation)
+    return toLocation(countryCode, city)
+  }, [defaultLocation])
+
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { query: '', location: defaultLocation ?? '', remoteOnly: false, sources: defaultSources, maxResults: 10 },
+    defaultValues: { query: '', location: initialLocation, remoteOnly: false, sources: defaultSources, maxResults: 10 },
   })
 
   const selectedSources = watch('sources')
@@ -72,67 +76,6 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch, defaultLoc
   const location = watch('location') ?? ''
   const maxResults = watch('maxResults')
   const autoMatch = !query.trim()
-
-  const [locSuggestions, setLocSuggestions] = useState<LocSuggestion[]>([])
-  const [locOpen, setLocOpen] = useState(false)
-  const [locActive, setLocActive] = useState(-1)
-  // A prefilled location isn't something the user typed: no suggestions call on load.
-  const suppressFetchRef = useRef(Boolean(defaultLocation))
-  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    if (suppressFetchRef.current) {
-      suppressFetchRef.current = false
-      return
-    }
-    if (remoteOnly || location.trim().length < 2) {
-      setLocSuggestions([])
-      return
-    }
-    const ctrl = new AbortController()
-    const t = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/location-suggest?q=${encodeURIComponent(location.trim())}`,
-          { signal: ctrl.signal }
-        )
-        if (!res.ok) return
-        const data = (await res.json()) as { suggestions?: LocSuggestion[] }
-        setLocSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
-        setLocActive(-1)
-      } catch {
-        /* aborted or network error - ignore */
-      }
-    }, 200)
-    return () => {
-      ctrl.abort()
-      clearTimeout(t)
-    }
-  }, [location, remoteOnly])
-
-  function pickSuggestion(s: LocSuggestion) {
-    suppressFetchRef.current = true
-    setValue('location', s.label, { shouldValidate: true })
-    setLocOpen(false)
-    setLocSuggestions([])
-    setLocActive(-1)
-  }
-
-  function onLocationKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (!locOpen || locSuggestions.length === 0) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setLocActive((i) => (i + 1) % locSuggestions.length)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setLocActive((i) => (i <= 0 ? locSuggestions.length - 1 : i - 1))
-    } else if (e.key === 'Enter' && locActive >= 0) {
-      e.preventDefault()
-      pickSuggestion(locSuggestions[locActive])
-    } else if (e.key === 'Escape') {
-      setLocOpen(false)
-    }
-  }
 
   function toggleSource(id: string) {
     const next = selectedSources.includes(id)
@@ -199,54 +142,14 @@ export default function SearchForm({ hasApify, hasAdzuna, hasJsearch, defaultLoc
 
         <div>
           <label className="text-xs font-medium text-muted-foreground">Location</label>
-          <div className="relative mt-1.5">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              {...register('location')}
-              placeholder="Remote, London, New York…"
+          <div className="mt-1.5">
+            <LocationPicker
+              initialLocation={initialLocation}
               disabled={remoteOnly}
-              autoComplete="off"
-              onFocus={() => setLocOpen(true)}
-              onBlur={() => {
-                if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
-                blurTimerRef.current = setTimeout(() => setLocOpen(false), 150)
-              }}
-              onKeyDown={onLocationKeyDown}
-              className={cn(
-                'w-full rounded-xl border bg-background/40 pl-9 pr-3 py-2.5 text-sm outline-none transition-colors',
-                'placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-violet-500/40',
-                'border-border/60 disabled:opacity-50 disabled:cursor-not-allowed'
-              )}
+              onChange={(next) => setValue('location', next, { shouldValidate: true })}
             />
-            {locOpen && locSuggestions.length > 0 && !remoteOnly && (
-              <ul
-                role="listbox"
-                className="absolute z-10 mt-1 w-full rounded-xl border border-border/60 bg-background/95 backdrop-blur shadow-lg ring-1 ring-black/5 overflow-hidden"
-              >
-                {locSuggestions.map((s, i) => (
-                  <li
-                    key={`${s.label}-${i}`}
-                    role="option"
-                    aria-selected={i === locActive}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      pickSuggestion(s)
-                    }}
-                    onMouseEnter={() => setLocActive(i)}
-                    className={cn(
-                      'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer',
-                      i === locActive ? 'bg-violet-600/10 text-violet-700 dark:text-violet-200' : 'hover:bg-muted/40'
-                    )}
-                  >
-                    <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="truncate">{s.label}</span>
-                    <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground/70">{s.type}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
-          {defaultLocation && location === defaultLocation && !remoteOnly && (
+          {initialLocation && location === initialLocation && !remoteOnly && (
             <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-300">
               <Sparkles className="h-3 w-3" />
               From your CV. Edit or clear it.

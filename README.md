@@ -25,6 +25,7 @@ All AI outputs are cached. Each has an explicit Regenerate button if you want a 
 - **AI:** Anthropic Claude (Sonnet 4.6 for generation, Haiku 4.5 for scoring) or Google Gemini (2.5 Flash, free tier). The agentic LinkedIn / Indeed / Glassdoor search always uses Claude.
 - **Job sources:** Remotive, Adzuna, JSearch (direct APIs); LinkedIn, Indeed, Glassdoor (via Apify)
 - **Document generation:** `docx` (Word output), `unpdf` (PDF parsing)
+- **Location picker:** country names from `Intl`; city list from [GeoNames](https://www.geonames.org) (CC BY 4.0), built by `scripts/build-cities.ts`; flag emoji font on Windows via `country-flag-emoji-polyfill`
 - **Browser extension:** Manifest V3 (Chromium-based browsers - Chrome, Edge, Brave, Arc)
 - **Testing:** Playwright for end-to-end browser tests
 
