@@ -102,7 +102,7 @@ const NOT_COUNTRIES = new Set([
 
 // Lower case without accents, so "São Paulo" and "Sao Paulo" match alike, and
 // "&" read as "and".
-function normalize(text: string): string {
+export function normalize(text: string): string {
   return text
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -123,23 +123,38 @@ function nameVariants(name: string): string[] {
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-// Every country's English name, longest first so "Papua New Guinea" wins over
-// "Guinea". Built on first use from Intl, so no list to maintain.
-let countryNames: Array<[code: string, pattern: RegExp]> | null = null
+// Every country Intl names in English, as [lower-case code, name], minus
+// NOT_COUNTRIES. Built on first use from Intl, so no list to maintain. The
+// location picker (lib/locations) lists the same countries, so they can't drift.
+let intlCountries: Array<[code: string, name: string]> | null = null
 
-function getCountryNames(): Array<[code: string, pattern: RegExp]> {
-  if (countryNames) return countryNames
+export function intlCountryNames(): Array<[code: string, name: string]> {
+  if (intlCountries) return intlCountries
   const display = new Intl.DisplayNames(['en'], { type: 'region', fallback: 'none' })
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const names: Array<[code: string, variants: string[]]> = []
+  const names: Array<[code: string, name: string]> = []
   for (const a of letters) {
     for (const b of letters) {
       const code = a + b
       if (NOT_COUNTRIES.has(code)) continue
       const name = display.of(code)
-      if (name && name !== code) names.push([code.toLowerCase(), nameVariants(name)])
+      if (name && name !== code) names.push([code.toLowerCase(), name])
     }
   }
+  intlCountries = names
+  return intlCountries
+}
+
+// Every country's English name, longest first so "Papua New Guinea" wins over
+// "Guinea".
+let countryNames: Array<[code: string, pattern: RegExp]> | null = null
+
+function getCountryNames(): Array<[code: string, pattern: RegExp]> {
+  if (countryNames) return countryNames
+  const names: Array<[code: string, variants: string[]]> = intlCountryNames().map(([code, name]) => [
+    code,
+    nameVariants(name),
+  ])
   names.sort((x, y) => y[1][0].length - x[1][0].length)
   countryNames = names.map(([code, variants]) => [
     code,
