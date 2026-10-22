@@ -1,7 +1,10 @@
 import type { AiClient } from '@/lib/ai/provider'
+import { logger } from '@/lib/logger'
+import { isTransientAiError } from '@/lib/search-errors'
 
-// Used when the model gives no usable queries: the CV's most recent role when
-// the caller has it, otherwise a neutral word (never a profession).
+// Used when the model gives no usable queries, or can't be reached for a
+// temporary reason: the CV's most recent role when the caller has it,
+// otherwise a neutral word (never a profession).
 const DEFAULT_QUERY = 'jobs'
 
 export async function deriveQueriesFromCv(
@@ -9,7 +12,10 @@ export async function deriveQueriesFromCv(
   ai: AiClient,
   count = 3,
   signal?: AbortSignal,
-  fallbackRole?: string
+  fallbackRole?: string,
+  // Called when the AI couldn't be reached and the fallback was used, so the
+  // search can tell the user.
+  onAiUnavailable?: () => void
 ): Promise<string[]> {
   const fallback = [fallbackRole?.trim().slice(0, 100) || DEFAULT_QUERY]
   const text = await ai.complete({
@@ -35,7 +41,17 @@ Return ONLY a JSON array of ${count} strings, no explanation. Format examples (f
 
 CV:
 ${cvText.slice(0, 4000)}`,
+  }).catch((err: unknown) => {
+    // A temporary failure (overloaded, timeout, network) falls back like an
+    // unusable answer, so a blank-query search still runs. A user cancel stops
+    // the search as before; request, key and quota errors would fail again and
+    // must be seen.
+    if (signal?.aborted || !isTransientAiError(err)) throw err
+    logger.warn({ event: 'derive_query.ai_unavailable', provider: ai.provider, err })
+    onAiUnavailable?.()
+    return null
   })
+  if (text === null) return fallback
 
   try {
     const match = text.match(/\[[\s\S]*?\]/)

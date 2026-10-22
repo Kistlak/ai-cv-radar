@@ -87,13 +87,19 @@ export async function runSearch(searchId: string, userId: string): Promise<void>
     } else {
       await setProgress({ stage: 'deriving-queries' })
       const tDerive = Date.now()
+      let queryFallback = false
       queries = await deriveQueriesFromCv(
         cv.rawText,
         ai,
         3,
         cancel.signal,
-        cvProfile?.experience[0]?.role
+        cvProfile?.experience[0]?.role,
+        () => {
+          queryFallback = true
+        }
       )
+      // Kept in the progress after completion, so the results page can say so.
+      if (queryFallback) await setProgress({ queryFallback: true })
       logger.info({
         event: 'run_search.queries_derived',
         searchId,

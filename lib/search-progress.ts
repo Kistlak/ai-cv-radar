@@ -22,6 +22,9 @@ export interface SearchProgress {
   agenticMcpCalls?: number
   totalJobs?: number
   scoredJobs?: number
+  // The AI couldn't build queries from the CV (busy, timed out), so the search
+  // used the CV's latest role (or "jobs") instead.
+  queryFallback?: boolean
 }
 
 export function isSearchProgress(value: unknown): value is SearchProgress {
