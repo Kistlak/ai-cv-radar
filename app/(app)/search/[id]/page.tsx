@@ -6,10 +6,11 @@ import { searches, jobResults } from '@/db/schema'
 import { and, eq, sql } from 'drizzle-orm'
 import {
   ArrowLeft, Clock, MapPin, ExternalLink, Wifi, Building2,
-  Sparkles, AlertCircle, BadgeCheck, Ban,
+  Sparkles, AlertCircle, BadgeCheck, Ban, Info,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { failStaleSearches } from '@/lib/stale-searches'
+import { isSearchProgress } from '@/lib/search-progress'
 import { postedAgoLabel } from '@/lib/freshness'
 import { toHttpUrl } from '@/lib/safe-url'
 import SearchPoller from '@/components/search-poller'
@@ -82,6 +83,16 @@ export default async function SearchResultsPage({
           <StatusBadge status={search.status} />
         </div>
       </div>
+
+      {search.status === 'complete' && isSearchProgress(search.progress) && search.progress.queryFallback && (
+        <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 px-4 py-3 text-xs text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <p>
+            The AI was busy when this search started, so we searched for &ldquo;{search.query}&rdquo; from your
+            CV instead of AI-picked queries. Run the search again later for sharper matches.
+          </p>
+        </div>
+      )}
 
       {search.status === 'running' && <SearchPoller searchId={id} />}
 

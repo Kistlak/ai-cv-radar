@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { APIConnectionTimeoutError, APIError, APIUserAbortError } from '@anthropic-ai/sdk'
+import { APIConnectionError, APIConnectionTimeoutError, APIError, APIUserAbortError } from '@anthropic-ai/sdk'
 import { ApiError as GeminiApiError } from '@google/genai'
 
 vi.mock('@/lib/logger', () => ({
@@ -16,7 +16,7 @@ import { fetchAdzuna } from '@/lib/job-sources/adzuna'
 import { fetchJSearch } from '@/lib/job-sources/jsearch'
 import { fetchRemotive } from '@/lib/job-sources/remotive'
 import { runActor } from '@/lib/job-sources/apify'
-import { AI_BUSY_MESSAGE, AI_TIMEOUT_MESSAGE, searchErrorMessage } from '@/lib/search-errors'
+import { AI_BUSY_MESSAGE, AI_TIMEOUT_MESSAGE, isTransientAiError, searchErrorMessage } from '@/lib/search-errors'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -309,5 +309,36 @@ describe('searchErrorMessage', () => {
       'Add an Anthropic or Gemini API key in Settings'
     )
     expect(searchErrorMessage('boom')).toBe('Unknown error')
+  })
+})
+
+describe('isTransientAiError', () => {
+  const anthropic = (status: number, type: string) =>
+    APIError.generate(status, { type: 'error', error: { type, message: type } }, undefined, new Headers())
+
+  it('is true for timeouts, overload, server errors and network failures', () => {
+    expect(isTransientAiError(new DOMException('timeout', 'TimeoutError'))).toBe(true)
+    expect(isTransientAiError(new DOMException('aborted', 'AbortError'))).toBe(true)
+    expect(isTransientAiError(new APIUserAbortError())).toBe(true)
+    expect(isTransientAiError(new APIConnectionTimeoutError())).toBe(true)
+    expect(isTransientAiError(new APIConnectionError({ message: 'Connection error.' }))).toBe(true)
+    expect(isTransientAiError(new TypeError('fetch failed'))).toBe(true)
+    expect(isTransientAiError(new TypeError('terminated', { cause: { code: 'UND_ERR_SOCKET' } }))).toBe(true)
+    expect(isTransientAiError(new TypeError('request failed', { cause: { code: 'ECONNRESET' } }))).toBe(true)
+    expect(isTransientAiError(new GeminiApiError({ status: 503, message: '{"status":"UNAVAILABLE"}' }))).toBe(true)
+    expect(isTransientAiError(new GeminiApiError({ status: 500, message: 'internal' }))).toBe(true)
+    expect(isTransientAiError(anthropic(529, 'overloaded_error'))).toBe(true)
+    expect(isTransientAiError(anthropic(500, 'api_error'))).toBe(true)
+  })
+
+  it('is false for request, key and quota errors, and anything else', () => {
+    expect(isTransientAiError(new GeminiApiError({ status: 400, message: 'bad' }))).toBe(false)
+    expect(isTransientAiError(new GeminiApiError({ status: 429, message: 'quota' }))).toBe(false)
+    expect(isTransientAiError(anthropic(401, 'authentication_error'))).toBe(false)
+    expect(isTransientAiError(anthropic(429, 'rate_limit_error'))).toBe(false)
+    expect(isTransientAiError(new TypeError('x is not a function'))).toBe(false)
+    expect(isTransientAiError(new TypeError('bad', { cause: { code: 'ERR_INVALID_URL' } }))).toBe(false)
+    expect(isTransientAiError(new Error('boom'))).toBe(false)
+    expect(isTransientAiError('boom')).toBe(false)
   })
 })
